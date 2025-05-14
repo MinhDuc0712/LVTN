@@ -42,7 +42,7 @@ const Home = () => {
         {/* Nội dung chính nằm bên phải */}
         <div className="w-full md:w-2/3">
           <div className="mb-6">
-            <h2 className="text-xl font-bold mb-4">Tin mới đăng</h2>
+            <h2 className="text-xl font-bold mb-4">Đề xuất </h2>
             <ListingCard listings={listings.slice(0, 6)} />
           </div>
 

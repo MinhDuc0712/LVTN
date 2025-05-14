@@ -1,5 +1,5 @@
 import React from "react";
-
+import { Link } from 'react-router-dom'; 
 const ListingCard = ({ listings }) => {
   return (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-1">
@@ -126,9 +126,9 @@ const ListingCard = ({ listings }) => {
                   {listing.contact}
                 </span>
               </div>
-              <button className="rounded-lg bg-blue-100 px-4 py-2 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-200">
+              <Link to="/room/123" className="rounded-lg bg-blue-100 px-4 py-2 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-200">
                 Xem chi tiết
-              </button>
+              </Link>
             </div>
           </div>
         </div>
