@@ -3,21 +3,19 @@ import SearchBar from "./SearchBar";
 import Logo from "../assets/logo.png";
 // import Avatar from "../../assets/default_user.svg";
 import { Link } from "react-router-dom";
+import { useGetCategoriesUS } from "../api/homePage";
+
 
 const Header = () => {
+const { data } = useGetCategoriesUS();
+const categories = data || [];
+console.log("Categories data:", data);
+  const [activeCategoryId, setActiveCategoryId] = useState(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const dropdownRef = useRef(null);
   const mobileMenuRef = useRef(null);
-  const categories = [
-    { id: 1, name: "Phòng trọ", active: true },
-    { id: 2, name: "Nhà nguyên căn", active: false },
-    { id: 3, name: "Căn hộ chung cư", active: false },
-    { id: 4, name: "Căn hộ mini", active: false },
-    { id: 5, name: "Căn hộ dịch vụ", active: false },
-    { id: 6, name: "Blog", active: false },
-    { id: 7, name: "Bảng giá dịch vụ", active: false },
-  ];
+  
   // Xử lý click outside để đóng dropdown
   useEffect(() => {
     function handleClickOutside(event) {
@@ -306,25 +304,27 @@ const Header = () => {
         </div>
 
         <nav className="hidden md:block border-t border-gray-200">
-          <div className="flex items-center justify-center space-x-4 py-2">
-            {categories.map((category) => (
-              <Link
-                to="#"
-                key={category.id}
-                className={`relative px-3 py-2 text-sm font-medium transition-colors ${
-                  category.active
-                    ? "text-[#ff5723]"
-                    : "text-gray-700 hover:text-[#ff5723]"
-                }`}
-              >
-                {category.name}
-                {category.active && (
-                  <span className="absolute -bottom-2 left-0 h-0.5 w-full bg-[#ff5723]"></span>
-                )}
-              </Link>
-            ))}
-          </div>
-        </nav>
+      <div className="flex items-center justify-center space-x-4 py-2">
+        {categories.map((category) => (
+          <Link
+            to="#"
+            key={category.id}
+            onClick={() => setActiveCategoryId(category.id)}
+            className={`relative px-3 py-2 text-sl font-medium transition-colors ${
+              activeCategoryId === category.id
+                ? "text-[#ff5723]"
+                : "text-gray-700 hover:text-[#ff5723]"
+            }`}
+          >
+            {category.name}
+            {activeCategoryId === category.id && (
+              <span className="absolute -bottom-2 left-0 h-0.5 w-full bg-[#ff5723]"></span>
+            )}
+          </Link>
+        ))}
+      </div>
+    </nav>
+
 
         {/* Mobile Menu - Slide from right */}
         {isMobileMenuOpen && (
@@ -485,3 +485,4 @@ const Header = () => {
 };
 
 export default Header;
+
