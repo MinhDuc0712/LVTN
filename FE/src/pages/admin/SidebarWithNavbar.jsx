@@ -14,6 +14,7 @@ import {
 import { useState } from "react";
 import avatar from '@/assets/avatar.jpg'
 import logo from '@/assets/logo.jpg'
+import { Link } from "react-router-dom";
 export default function SidebarWithNavbar({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -88,7 +89,9 @@ export default function SidebarWithNavbar({ children }) {
           {/* Menu */}
           <nav className="space-y-2">
             <SidebarItem icon={<BarChart />} label="Dashboard" />
+            <Link to ="/admin/category">
             <SidebarItem icon={<List />} label="Quản lý danh mục" />
+            </Link>
             <SidebarItem icon={<Home />} label="Quản lý bài đăng" />
             <SidebarItem icon={<CreditCard />} label="Quản lý thanh toán" />
             <SidebarItem icon={<Star />} label="Quản lý đánh giá" />

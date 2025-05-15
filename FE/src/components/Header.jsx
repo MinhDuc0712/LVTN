@@ -138,7 +138,7 @@ console.log("Categories data:", data);
 
             {/* Manage */}
             <Link
-              to="/manage"
+              to="/user"
               className="flex items-center text-gray-700 hover:text-[#ff5723]"
             >
               <svg
@@ -283,7 +283,7 @@ console.log("Categories data:", data);
             </div> */}
 
             {/* Post Ad Button */}
-            <button className="flex items-center gap-1 rounded-full bg-red-500 px-4 py-2 text-white hover:bg-red-600">
+            <Link to="/post" className="flex items-center gap-1 rounded-full bg-red-500 px-4 py-2 text-white hover:bg-red-600">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
@@ -299,7 +299,7 @@ console.log("Categories data:", data);
                 />
               </svg>
               <span className="inline">Đăng tin</span>
-            </button>
+            </Link>
           </div>
         </div>
 
@@ -453,7 +453,7 @@ console.log("Categories data:", data);
                     </Link>
 
                     <Link
-                      to="/manage"
+                      to="/user"
                       className="flex items-center px-2 py-2 text-gray-700 hover:text-orange-700"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
