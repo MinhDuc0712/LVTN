@@ -1,32 +1,21 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import SidebarWithNavbar from "./SidebarWithNavbar";
 import {
   postCategoryAPI,
   deleteCategoryAPI,
   updateCategoryAPI,
-  getCategoriesAPI,
 } from "../../api/homePage/request";
+import { useGetCategoriesUS } from "../../api/homePage/queries";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function Category() {
-  const [categories, setCategories] = useState([]);
   const [name, setName] = useState("");
   const [moTa, setMoTa] = useState("");
-  const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [editingCategory, setEditingCategory] = useState(null);
- 
-  const fetchCategories = async () => {
-    try {
-      const data = await getCategoriesAPI();
-      setCategories(data);
-    } catch (error) {
-      console.error("Lỗi tải danh mục:", error);
-    }
-  };
 
-  useEffect(() => {
-    fetchCategories();
-  }, []);
+  const queryClient = useQueryClient();
+  const { data: categories = [], isLoading } = useGetCategoriesUS();
 
   const handleSubmit = async () => {
     if (!name.trim()) {
@@ -35,44 +24,33 @@ export default function Category() {
     }
 
     try {
-      setLoading(true);
       setMessage("");
-
       if (editingCategory) {
         const res = await updateCategoryAPI(editingCategory.id, {
           name,
           mo_ta: moTa,
         });
-        setCategories((prev) =>
-          prev.map((cat) =>
-            cat.id === editingCategory.id ? res.category : cat
-          )
-        );
         setMessage("Cập nhật thành công!");
       } else {
         const res = await postCategoryAPI({ name, mo_ta: moTa });
-        setCategories((prev) => [...prev, res.category]);
         setMessage("Thêm thành công!");
       }
 
-      // Reset form
+      await queryClient.invalidateQueries({ queryKey: ["categories"] });
       setName("");
       setMoTa("");
       setEditingCategory(null);
     } catch (error) {
       setMessage("Đã xảy ra lỗi.");
-    } finally {
-      setLoading(false);
     }
   };
 
   const handleDelete = async (id) => {
-    const confirmDelete = confirm("Bạn có chắc chắn muốn xóa?");
-    if (!confirmDelete) return;
+    if (!confirm("Bạn có chắc chắn muốn xóa?")) return;
 
     try {
       await deleteCategoryAPI(id);
-      setCategories((prev) => prev.filter((cat) => cat.id !== id));
+      await queryClient.invalidateQueries({ queryKey: ["categories"] });
     } catch (error) {
       alert("Xóa thất bại.");
     }
@@ -92,7 +70,6 @@ export default function Category() {
           Quản lý danh mục
         </h1>
 
-        {/* Form thêm/sửa danh mục */}
         <div className="bg-white shadow-md rounded-xl p-6 mb-8">
           <h2 className="text-lg font-semibold text-blue-700 mb-4">
             {editingCategory ? "Chỉnh sửa danh mục" : "Thêm danh mục mới"}
@@ -118,14 +95,9 @@ export default function Category() {
             <div className="flex gap-4">
               <button
                 onClick={handleSubmit}
-                disabled={loading}
-                className="bg-blue-500 text-white px-4 py-2 cursor-pointer rounded-lg hover:bg-blue-600 transition disabled:opacity-50"
+                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition disabled:opacity-50"
               >
-                {loading
-                  ? "Đang xử lý..."
-                  : editingCategory
-                  ? "Cập nhật danh mục"
-                  : "Thêm danh mục"}
+                {editingCategory ? "Cập nhật danh mục" : "Thêm danh mục"}
               </button>
               {editingCategory && (
                 <button
@@ -143,38 +115,41 @@ export default function Category() {
           </div>
         </div>
 
-        {/* Danh sách danh mục */}
         <div className="bg-white shadow-md rounded-xl p-6">
           <h2 className="text-lg font-semibold text-blue-700 mb-4">
             Danh sách danh mục
           </h2>
-          <ul className="space-y-4">
-            {categories.map((item) => (
-              <li
-                key={item.id}
-                className="border border-blue-200 rounded-lg p-4 flex justify-between items-start"
-              >
-                <div>
-                  <h3 className="text-blue-900 font-semibold">{item.name}</h3>
-                  <p className="text-sm text-blue-700">{item.mo_ta}</p>
-                </div>
-                <div className="flex gap-3">
-                  <button
-                    className="text-blue-600 hover:underline"
-                    onClick={() => handleEdit(item)}
-                  >
-                    Chỉnh sửa
-                  </button>
-                  <button
-                    className="text-red-600 hover:underline"
-                    onClick={() => handleDelete(item.id)}
-                  >
-                    Xóa
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
+          {isLoading ? (
+            <p>Đang tải...</p>
+          ) : (
+            <ul className="space-y-4">
+              {categories.map((item) => (
+                <li
+                  key={item.id}
+                  className="border border-blue-200 rounded-lg p-4 flex justify-between items-start"
+                >
+                  <div>
+                    <h3 className="text-blue-900 font-semibold">{item.name}</h3>
+                    <p className="text-sm text-blue-700">{item.mo_ta}</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <button
+                      className="text-blue-600 hover:underline"
+                      onClick={() => handleEdit(item)}
+                    >
+                      Chỉnh sửa
+                    </button>
+                    <button
+                      className="text-red-600 hover:underline"
+                      onClick={() => handleDelete(item.id)}
+                    >
+                      Xóa
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </div>
     </SidebarWithNavbar>
