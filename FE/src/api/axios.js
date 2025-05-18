@@ -1,34 +1,28 @@
-
 import axios from "axios";
 
-const baseURL = import.meta.env.VITE_API_URI;
-const timeout = +import.meta.env.VITE_API_TIME_OUT || 20000;
+const timeout = +import.meta.env.VITE_APP_API_TIME_OUT || 20000;
 
-const axiosInstance = axios.create({
-  baseURL,
+export const axiosUser = axios.create({
+  baseURL: import.meta.env.VITE_API_URI_USER,
   timeout,
 });
 
-axiosInstance.interceptors.request.use(
-  function (config) {
-    config.headers["Content-Type"] = "application/json";
-    return config;
-  },
-  function (error) {
-    return Promise.reject(error);
-  }
-);
+export const axiosAdmin = axios.create({
+  baseURL: import.meta.env.VITE_API_URI_ADMIN,
+  timeout,
+});
 
-axiosInstance.interceptors.response.use(
-  function (response) {
-    if (response.data) {
-      return response.data;
-    }
-    return response;
-  },
-  function (error) {
-    return Promise.reject(error);
-  }
-);
+[axiosUser, axiosAdmin].forEach(instance => {
+  instance.interceptors.request.use(
+    config => {
+      config.headers["Content-Type"] = "application/json";
+      return config;
+    },
+    error => Promise.reject(error)
+  );
 
-export default axiosInstance;
+  instance.interceptors.response.use(
+    response => response.data || response,
+    error => Promise.reject(error)
+  );
+});
