@@ -1,4 +1,4 @@
-import { axiosUser, axiosAdmin } from "../axios";
+import { axiosUser, axiosAdmin, axiosAuth } from "../axios";
 
 // Lấy danh mục cho user
 export const getCategoriesAPI = async () => {
@@ -19,3 +19,18 @@ export const updateCategoryAPI = async (id, data) => {
 export const deleteCategoryAPI = async (id) => {
   return await axiosAdmin.delete(`/categories/${id}`);
 };
+
+export const postLoginAPI = async (data) => {
+  const response = await axiosAuth.post("/login", data);
+  return response;
+}
+
+export const postRegisterAPI = async (data) => {
+  const response = await axiosAuth.post("/register", data);
+  return response;
+};
+
+export const postLogoutAPI = async () => {
+  const response = await axiosAuth.post("/logout");
+  return response;
+}

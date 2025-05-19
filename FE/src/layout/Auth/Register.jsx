@@ -1,13 +1,21 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { postRegisterAPI } from "../../api/homePage";
 
 const Register = () => {
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
-    name: "",
-    phone: "",
-    password: "",
-    accountType: "",
+    HoTen: "",
+    SDT: "",
+    Email: "",
+    Password: "",
+    PasswordConfirmation: "",
+    user_type: "0", // Mặc định là tìm kiếm
   });
+
+  const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -17,74 +25,126 @@ const Register = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle form submission
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Gọi API đăng ký
+      const response = await postRegisterAPI({
+        HoTen: formData.HoTen,
+        SDT: formData.SDT,
+        Email: formData.Email,
+        Password: formData.Password,
+        Password_confirmation: formData.PasswordConfirmation,
+        MaQuyen: formData.user_type, // Gửi loại tài khoản (role) lên server
+      });
+
+      console.log("response from API:", response);
+      // Xử lý kết quả thành công
+      if (response.user) {
+        // Chuyển hướng sau khi đăng ký thành công
+        navigate("/dang-nhap", {
+          state: { message: "Đăng ký thành công! Vui lòng đăng nhập." },
+          replace: true,
+        });
+      } else {
+        setError(response.message || "Đăng ký không thành công");
+      }
+    } catch (err) {
+      setError(
+        err.response?.data?.message || "Lỗi hệ thống, vui lòng thử lại sau",
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <div className="bg-gradient-to-b from-orange-50 to-white min-h-screen py-12">
+    <div className="min-h-screen bg-gradient-to-b from-orange-50 to-white py-12">
       <main className="container mx-auto px-4">
-        <div className="max-w-lg mx-auto bg-white rounded-xl shadow-md overflow-hidden">
+        <div className="mx-auto max-w-lg overflow-hidden rounded-xl bg-white shadow-md">
           {/* Tab Switching */}
           <div className="flex border-b border-gray-200">
             <Link
               to="/dang-nhap"
-              className="flex-1 py-4 font-medium text-center text-lg text-gray-500 hover:text-orange-500 transition-colors"
+              className="flex-1 py-4 text-center text-lg font-medium text-gray-500 transition-colors hover:text-orange-500"
             >
               Đăng nhập
             </Link>
             <Link
               to="/dang-ky-tai-khoan"
-              className="flex-1 py-4 font-medium text-center text-lg text-orange-500 border-b-2 border-orange-500"
+              className="flex-1 border-b-2 border-orange-500 py-4 text-center text-lg font-medium text-orange-500"
             >
               Tạo tài khoản mới
             </Link>
           </div>
 
+          {error && (
+            <div className="mb-4 rounded-md bg-red-100 p-3 text-sm text-red-700">
+              {error}
+            </div>
+          )}
+
           {/* Form Content */}
           <div className="p-6 sm:p-8">
             <form onSubmit={handleSubmit}>
               <div className="mb-5">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="mb-2 block text-sm font-medium text-gray-700">
                   Họ tên
                 </label>
                 <input
                   type="text"
-                  name="name"
-                  value={formData.name}
+                  name="HoTen"
+                  value={formData.HoTen}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
+                  className="w-full rounded-lg border border-gray-300 px-4 py-3 transition-all focus:border-orange-500 focus:ring-2 focus:ring-orange-500"
                   placeholder="Nhập họ và tên"
                   required
                 />
               </div>
 
               <div className="mb-5">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="mb-2 block text-sm font-medium text-gray-700">
                   Số điện thoại
                 </label>
                 <input
                   type="tel"
-                  name="phone"
-                  value={formData.phone}
+                  name="SDT"
+                  value={formData.SDT}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
+                  className="w-full rounded-lg border border-gray-300 px-4 py-3 transition-all focus:border-orange-500 focus:ring-2 focus:ring-orange-500"
                   placeholder="Nhập số điện thoại"
                   required
                 />
               </div>
 
               <div className="mb-5">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="mb-2 block text-sm font-medium text-gray-700">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  name="Email"
+                  value={formData.Email}
+                  onChange={handleChange}
+                  className="w-full rounded-lg border border-gray-300 px-4 py-3 transition-all focus:border-orange-500 focus:ring-2 focus:ring-orange-500"
+                  placeholder="Nhập email"
+                  required
+                />
+              </div>
+
+              <div className="mb-5">
+                <label className="mb-2 block text-sm font-medium text-gray-700">
                   Mật khẩu
                 </label>
                 <input
                   type="password"
-                  name="password"
-                  value={formData.password}
+                  name="Password"
+                  value={formData.Password}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
+                  className="w-full rounded-lg border border-gray-300 px-4 py-3 transition-all focus:border-orange-500 focus:ring-2 focus:ring-orange-500"
                   placeholder="Tạo mật khẩu"
                   required
                 />
@@ -93,8 +153,23 @@ const Register = () => {
                 </p>
               </div>
 
+              <div className="mb-5">
+                <label className="mb-2 block text-sm font-medium text-gray-700">
+                  Xác nhận mật khẩu
+                </label>
+                <input
+                  type="password"
+                  name="PasswordConfirmation"
+                  value={formData.PasswordConfirmation}
+                  onChange={handleChange}
+                  className="w-full rounded-lg border border-gray-300 px-4 py-3 transition-all focus:border-orange-500 focus:ring-2 focus:ring-orange-500"
+                  placeholder="Nhập lại mật khẩu"
+                  required
+                />
+              </div>
+
               <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-3">
+                <label className="mb-3 block text-sm font-medium text-gray-700">
                   Loại tài khoản
                 </label>
                 <div className="flex flex-wrap gap-4">
@@ -143,19 +218,19 @@ const Register = () => {
                       Chính chủ
                     </label>
                   </div>
-
                 </div>
               </div>
 
               <button
                 type="submit"
-                className="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-lg shadow-md transition-colors"
+                disabled={isLoading}
+                className="w-full rounded-lg bg-orange-500 py-3 font-medium text-white shadow-md transition-colors hover:bg-orange-600"
               >
-                Đăng ký tài khoản
+                {isLoading ? "Đang xử lý..." : "Đăng ký tài khoản"}
               </button>
             </form>
 
-            <div className="mt-8 pt-6 border-t border-gray-200 text-center text-sm text-gray-600">
+            <div className="mt-8 border-t border-gray-200 pt-6 text-center text-sm text-gray-600">
               <p className="mb-3">
                 Bằng việc đăng ký, bạn đã đồng ý với{" "}
                 <a href="#" className="text-orange-600 hover:underline">
