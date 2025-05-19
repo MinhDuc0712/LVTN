@@ -2,10 +2,11 @@ import { BrowserRouter as Router, useLocation } from "react-router-dom";
 import AppRoutes from "./routes";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
+import { AuthProvider } from "./context/AuthContext";
 
 function AppContent() {
   const location = useLocation();
-  
+
   const isAdminRoute = location.pathname.startsWith("/admin");
 
   return (
@@ -22,7 +23,9 @@ function AppContent() {
 function App() {
   return (
     <Router>
-      <AppContent />
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
     </Router>
   );
 }
