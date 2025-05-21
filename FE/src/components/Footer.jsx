@@ -60,7 +60,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           {/* About */}
           <div>
-            <h3 className="text-gray-800 text-sm font-bold uppercase mb-3">Về phongtro123.com</h3>
+            <h3 className="text-gray-800 text-sm font-bold uppercase mb-3">Về HOME </h3>
             <ul className="space-y-2">
               {['Giới thiệu', 'Quy chế hoạt động', 'Quy định sử dụng', 'Chính sách bảo mật', 'Liên hệ'].map((item) => (
                 <li key={item}>
@@ -97,7 +97,7 @@ const Footer = () => {
 
           {/* Social Media */}
           <div>
-            <h3 className="text-gray-800 text-sm font-bold uppercase mb-3">Theo dõi Phongtro123.com</h3>
+            <h3 className="text-gray-800 text-sm font-bold uppercase mb-3">Theo dõi HOME</h3>
             <div className="flex gap-3">
               {['facebook', 'youtube', 'twitter', 'linkedin', 'tiktok'].map((social) => (
                 <a key={social} href="#" className="size-8 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300">
@@ -110,7 +110,7 @@ const Footer = () => {
         </div>
 
         {/* Company Info */}
-        <div className="border-t border-gray-300 pt-6">
+        {/* <div className="border-t border-gray-300 pt-6">
           <h3 className="text-gray-800 text-sm font-bold uppercase mb-3">CÔNG TY TNHH LBKCORP</h3>
           <p className="text-gray-700 text-xs mb-2">
             Căn 02.34, Lầu 2, Tháp 3, The Sun Avenue, Số 28 Mai Chí Thọ, Phường An Phú, Thành phố Thủ Đức, Thành phố Hồ Chí Minh, Việt Nam.
@@ -119,7 +119,6 @@ const Footer = () => {
             Tổng đài CSKH: <span className="text-red-500">0909 316 890</span> - Email: cskh.phongtro123@gmail.com - Giấy phép đăng ký kinh doanh số 0313588502 do Sở kế hoạch và Đầu tư Tp.HCM cấp ngày 24 tháng 12 năm 2015.
           </p>
           
-          {/* Certificates */}
           <div className="flex flex-wrap gap-4 mt-4">
             <div className="h-12 w-32 bg-gray-100 rounded flex items-center justify-center">
               <span className="text-xs">Certificate 1</span>
@@ -128,7 +127,7 @@ const Footer = () => {
               <span className="text-xs">Certificate 2</span>
             </div>
           </div>
-        </div>
+        </div> */}
       </div>
     </footer>
   );
