@@ -7,7 +7,7 @@ import {
 } from "../../api/homePage/request";
 import { useGetCategoriesUS } from "../../api/homePage/queries";
 import { useQueryClient } from "@tanstack/react-query";
-
+import { FaEdit, FaTrash } from 'react-icons/fa';
 export default function Category() {
   const [name, setName] = useState("");
   const [moTa, setMoTa] = useState("");
@@ -134,16 +134,16 @@ export default function Category() {
                   </div>
                   <div className="flex gap-3">
                     <button
-                      className="text-blue-600 hover:underline"
+                      className="text-blue-600 hover:underline inline-flex items-center gap-1"
                       onClick={() => handleEdit(item)}
                     >
-                      Chỉnh sửa
+                      <FaEdit /> Sửa
                     </button>
                     <button
-                      className="text-red-600 hover:underline"
+                      className="text-red-600 hover:underline inline-flex items-center gap-1"
                       onClick={() => handleDelete(item.id)}
                     >
-                      Xóa
+                      <FaTrash /> Xoá
                     </button>
                   </div>
                 </li>

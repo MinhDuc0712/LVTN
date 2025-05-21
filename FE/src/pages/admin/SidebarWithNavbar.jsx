@@ -9,6 +9,7 @@ import {
   Search,
   Bell,
   Mail,
+  Wallet,
   Menu
 } from "lucide-react";
 import { useState } from "react";
@@ -56,7 +57,7 @@ export default function SidebarWithNavbar({ children }) {
           </div>
           <div className="hidden sm:flex items-center gap-2">
             <img
-              src={avatar} 
+              src={avatar}
               alt="Admin Avatar"
               className="w-8 h-8 rounded-full object-cover border border-blue-300"
             />
@@ -69,14 +70,13 @@ export default function SidebarWithNavbar({ children }) {
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
         <div
-          className={`bg-gradient-to-b from-blue-100 to-blue-300 w-64 p-4 space-y-4 shadow-lg transition-transform duration-300 ease-in-out fixed md:static top-20 left-0 h-full z-20 ${
-            sidebarOpen ? "translate-x-0" : "-translate-x-full"
-          } md:translate-x-0 md:rounded-r-3xl`}
+          className={`bg-gradient-to-b from-blue-100 to-blue-300 w-64 p-4 space-y-4 shadow-lg transition-transform duration-300 ease-in-out fixed md:static top-20 left-0 h-full z-20 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
+            } md:translate-x-0 md:rounded-r-3xl`}
         >
           {/* User Info */}
           <div className="flex items-center gap-3 border-b border-blue-300 pb-4">
             <img
-              src={avatar} 
+              src={avatar}
               alt="Admin Avatar"
               className="w-10 h-10 rounded-full object-cover border border-blue-300"
             />
@@ -88,16 +88,28 @@ export default function SidebarWithNavbar({ children }) {
 
           {/* Menu */}
           <nav className="space-y-2">
-            <SidebarItem icon={<BarChart />} label="Dashboard" />
-            <Link to ="/admin/category">
-            <SidebarItem icon={<List />} label="Quản lý danh mục" />
+            <Link to="/admin/dashboard">
+              <SidebarItem icon={<BarChart />} label="Dashboard" />
             </Link>
-            <SidebarItem icon={<Home />} label="Quản lý bài đăng" />
-            <SidebarItem icon={<CreditCard />} label="Quản lý thanh toán" />
-            <SidebarItem icon={<Star />} label="Quản lý đánh giá" />
-            <SidebarItem icon={<Users />} label="Quản lý người dùng" />
+            <Link to="/admin/category">
+              <SidebarItem icon={<List />} label="Quản lý danh mục" />
+            </Link>
+            <Link to="/admin/posts">
+              <SidebarItem icon={<Home />} label="Quản lý bài đăng" />
+            </Link>
+            <Link to="/admin/top_up">
+              <SidebarItem icon={<Wallet />} label="Quản lý nạp tiền" />
+            </Link>
+            <Link to="/admin/payments">
+              <SidebarItem icon={<CreditCard />} label="Quản lý thanh toán" />
+            </Link>
+            <Link to="/admin/reviews">
+              <SidebarItem icon={<Star />} label="Quản lý đánh giá" />
+            </Link>
+            <Link to="/admin/users">
+              <SidebarItem icon={<Users />} label="Quản lý người dùng" />
+            </Link>
           </nav>
-
           {/* Logout */}
           <div className="border-t pt-4 border-blue-300">
             <button className="flex items-center w-full p-2 text-red-600 hover:bg-red-200 rounded-lg transition duration-200">
@@ -108,7 +120,7 @@ export default function SidebarWithNavbar({ children }) {
         </div>
 
         {/* Main Content Placeholder */}
-        <div className="flex-1 p-4 md:ml-64 overflow-auto">
+        <div className="flex-1 p-4 justify-center overflow-auto">
           {children}
         </div>
       </div>
