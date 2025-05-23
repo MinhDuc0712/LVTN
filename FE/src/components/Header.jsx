@@ -11,7 +11,7 @@ const Header = () => {
   const { isAuthenticated, user, logout } = useAuth();
   const { data } = useGetCategoriesUS();
   const categories = data || [];
-  console.log("Categories data:", data);
+  // console.log("Categories data:", data);
   const [activeCategoryId, setActiveCategoryId] = useState(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -210,7 +210,7 @@ const Header = () => {
                         {user?.HoTen || "Người dùng"}
                       </span>
                       <span className="block text-xs text-gray-500">
-                        {user?.Email || user?.SDT}
+                        {user?.Email || user?.SDT || "Không có thông tin"}
                       </span>
                     </li>
                     <li>
@@ -365,7 +365,7 @@ const Header = () => {
             ></div>
             <div
               ref={mobileMenuRef}
-              className="absolute top-0 right-0 h-full w-3/4 max-w-sm overflow-y-auto bg-white shadow-lg"
+              className="absolute top-0 right-0 h-full w-[90%] max-w-sm overflow-y-auto bg-white shadow-lg"
             >
               <div className="p-4">
                 <button
@@ -397,9 +397,6 @@ const Header = () => {
                         <div>
                           <p className="text-sm font-medium">
                             {user?.HoTen || "Người dùng"}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            {user?.Email || user?.SDT || "Không có thông tin"}
                           </p>
                         </div>
                       </div>
@@ -449,10 +446,10 @@ const Header = () => {
                       </button>
                     </div>
                   ) : (
-                    <div className="flex gap-3">
+                    <div className="flex justify-center gap-4">
                       <Link
                         to="/dang-nhap"
-                        className="flex flex-1 items-center justify-center gap-2 rounded-full border border-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-100"
+                        className="flex items-center justify-center gap-2 rounded-full border border-gray-300 px-8 py-3 text-gray-700 hover:bg-gray-100"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
                         <svg
@@ -473,7 +470,7 @@ const Header = () => {
                       </Link>
                       <Link
                         to="/dang-ky-tai-khoan"
-                        className="flex flex-1 items-center justify-center gap-2 rounded-full border border-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-100"
+                        className="flex items-center justify-center gap-2 rounded-full border border-gray-300 px-8 py-3 text-gray-700 hover:bg-gray-100"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
                         <svg
