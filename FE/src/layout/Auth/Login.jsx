@@ -1,13 +1,14 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { postLoginAPI } from "../../api/homePage";
 import { useAuth } from "../../context/AuthContext";
 
-const Register = () => {
+const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuth(); //
 
   const [formData, setFormData] = useState({
+    Email: "",
     SDT: "",
     Password: "",
   });
@@ -40,10 +41,13 @@ const Register = () => {
       if (response.user && response.token) {
         login(response.user, response.token); // Lưu thông tin người dùng vào context
         // Chuyển hướng sau khi đăng ký thành công
-        navigate("/", {
-          state: { message: "Đăng nhập thành công! Vui lòng đăng nhập." },
-          replace: true,
-        });
+        if (response.roles.includes("admin")) {
+          navigate("/admin");
+        } else if (response.roles.includes("owner")) {
+          navigate("/owner/dashboard");
+        } else {
+          navigate("/");
+        }
       } else {
         setError(response.message || "Đăng nhập không thành công");
       }
@@ -107,7 +111,7 @@ const Register = () => {
                 <input
                   type="password"
                   name="Password"
-                  value={formData.Password}
+                  // value={formData.Password}
                   onChange={handleChange}
                   className="w-full rounded-lg border border-gray-300 px-4 py-3 transition-all focus:border-orange-500 focus:ring-2 focus:ring-orange-500"
                   placeholder="Mật khẩu"
@@ -147,6 +151,6 @@ const Register = () => {
       </main>
     </div>
   );
-};
+};  
 
-export default Register;
+export default Login;

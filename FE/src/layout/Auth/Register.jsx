@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { postRegisterAPI } from "../../api/homePage";
 
@@ -11,7 +11,7 @@ const Register = () => {
     Email: "",
     Password: "",
     PasswordConfirmation: "",
-    user_type: "0", // Mặc định là tìm kiếm
+    user_type: "1", // Mặc định là tìm kiếm
   });
 
   const [error, setError] = useState(null);
@@ -38,7 +38,7 @@ const Register = () => {
         Email: formData.Email,
         Password: formData.Password,
         Password_confirmation: formData.PasswordConfirmation,
-        MaQuyen: formData.user_type, // Gửi loại tài khoản (role) lên server
+        MaQuyen: parseInt(formData.user_type),
       });
 
       console.log("response from API:", response);
@@ -54,7 +54,9 @@ const Register = () => {
       }
     } catch (err) {
       setError(
-        err.response?.data?.message || "Lỗi hệ thống, vui lòng thử lại sau",
+        err.response?.data?.message ||
+        err.response?.data?.errors?.MaQuyen?.[0] ||
+        "Lỗi hệ thống, vui lòng thử lại sau",
       );
     } finally {
       setIsLoading(false);
