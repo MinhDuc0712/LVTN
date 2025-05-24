@@ -66,6 +66,7 @@ const handleClientLogout = () => {
   return (
     <AuthContext.Provider value={{ 
       user, 
+      setUser,
       isAuthenticated, 
       login, 
       logout 

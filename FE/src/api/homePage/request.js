@@ -21,16 +21,19 @@ export const deleteCategoryAPI = async (id) => {
 };
 // Thêm giao dịch nạp tiền
 export const getDepositTransactionsAPI = async (params = {}) => {
-  const response = await axiosAdmin.get("/deposits", { 
-    params: {
-      page: params.page,
-      search: params.search,
-      status: params.status
-    }
-  });
-  return response.data;
+  try {
+    const response = await axiosAdmin.get("/deposits", { 
+      params: {
+        page: params.page,
+        per_page: params.limit,
+        ma_nguoi_dung: params.ma_nguoi_dung,
+      }
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
 }
-
 export const postDepositTransactionAPI = async (data) => {
   const response = await axiosAdmin.post("/deposits", data);
   return response.data;
