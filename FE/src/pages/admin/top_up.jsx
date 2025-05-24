@@ -12,7 +12,7 @@ import {
 import { updateUserBalanceAPI } from "../../api/homePage/request";
 import { FaSave, FaPlus, FaEdit, FaTrash } from 'react-icons/fa';
 import { ImSpinner2 } from 'react-icons/im';
-// Constants
+
 const TRANSACTION_STATUS = {
   PENDING: "Đang xử lý",
   COMPLETED: "Hoàn tất",
@@ -53,14 +53,14 @@ export default function NapTienPage() {
 
   // Trích xuất depositsData từ response
   const depositsData = Array.isArray(depositsResponse) ? depositsResponse : [];
-  const totalPages = 1;
+  const totalPages = depositsResponse?.meta?.last_page || 2;
 
-  const { data: userData, isLoading: userLoading } = useGetUserByIdentifier(form.ma_nguoi_dung);
-
+  
   const addMutation = usePostDepositTransaction();
   const updateMutation = useUpdateDepositTransaction();
   const deleteMutation = useDeleteDepositTransaction();
-
+  
+  const { data: userData, isLoading: userLoading } = useGetUserByIdentifier(form.ma_nguoi_dung);
 
   useEffect(() => {
     if (userData) {
@@ -75,6 +75,7 @@ export default function NapTienPage() {
       }));
     }
   }, [userData, userLoading, form.ma_nguoi_dung]);
+
   const resetForm = () => {
     setForm({
       ma_nguoi_dung: "",
@@ -406,7 +407,7 @@ export default function NapTienPage() {
                         Phương thức
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-bold text-blue-700 uppercase">
-                        Ngày nâp
+                        Ngày nạp
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-bold text-blue-700 uppercase">
                         Trạng thái
@@ -425,7 +426,6 @@ export default function NapTienPage() {
                           {formatCurrency(txn.so_tien)}
                         </td>
                         <td className="px-4 py-4 text-blue-600">
-                          {/* {formatCurrency(txn.khuyen_mai)} */}
                           {txn.khuyen_mai}%
                         </td>
                         <td className="px-4 py-4  text-green-600">

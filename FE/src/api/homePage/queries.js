@@ -23,6 +23,7 @@ export const useGetCategoriesUS = () => {
 const DEPOSIT_QUERY_KEY = 'deposits';
 
 export const useGetDepositTransactions = (params) => {
+  
   return useQuery({
     queryKey: [DEPOSIT_QUERY_KEY, params],
     queryFn: () => getDepositTransactionsAPI(params),
@@ -77,6 +78,6 @@ export const useGetUserByIdentifier = (identifier) => {
     queryKey: ['user', identifier],
     queryFn: () => getUserByIdentifierAPI(identifier),
     enabled: !!identifier,
-    retry: false, // Không retry khi lỗi 404
+    retry: false, 
   });
 };
