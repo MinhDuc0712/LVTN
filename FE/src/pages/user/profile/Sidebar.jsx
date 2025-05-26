@@ -4,8 +4,6 @@ import {
   FaPlus, FaList, FaMoneyBill, FaHistory,
   FaTags, FaUser, FaSignOutAlt, FaBars, FaTimes
 } from 'react-icons/fa';
-
-
 import avatar from '@/assets/avatar.jpg';
 
 

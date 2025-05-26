@@ -12,4 +12,5 @@ export default defineConfig({
       '@home': path.resolve(__dirname, './src/homePage')
     },
   },
+  
 })
