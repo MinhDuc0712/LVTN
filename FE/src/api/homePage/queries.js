@@ -1,6 +1,7 @@
 // queries.js
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getCategoriesAPI } from "./request";
+import { getUtilitiesAPI } from "./request";
 import { axiosAdmin } from '../axios';
 import toast from 'react-hot-toast';
 import { 
@@ -16,6 +17,14 @@ export const useGetCategoriesUS = () => {
   return useQuery({
     queryKey: ["categories"],
     queryFn: getCategoriesAPI,
+    retry: 1,
+    refetchOnWindowFocus: false,
+  });
+};
+export const useGetUtilitiesUS = (page = 1) => {
+  return useQuery({
+    queryKey: ["utilities", page],
+    queryFn: () => getUtilitiesAPI(page),
     retry: 1,
     refetchOnWindowFocus: false,
   });

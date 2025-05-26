@@ -14,6 +14,7 @@ import HistoryTopUp from "./pages/user/profile/NapTien/history/Top-up";
 import HistoryPayment from "./pages/user/profile/NapTien/history/Payment";
 import Admin from "./pages/admin/SidebarWithNavbar";
 import Category from "./pages/admin/Category";
+import Utilities from "./pages/admin/Utilities";
 import Top_up from "./pages/admin/top_up";
 
 const AppRoutes = () => {
@@ -34,6 +35,7 @@ const AppRoutes = () => {
       <Route path="/history/payment" element={<HistoryPayment />} />
       <Route path="/admin" element={<Admin />} />
       <Route path="/admin/category" element={<Category />} />
+      <Route path="/admin/Utilities" element={<Utilities />} />
       <Route path="/admin/top_up" element={<Top_up />} />
     </Routes>
   );

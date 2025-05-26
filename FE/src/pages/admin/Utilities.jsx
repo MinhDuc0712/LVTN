@@ -1,93 +1,86 @@
 import { useState } from "react";
 import SidebarWithNavbar from "./SidebarWithNavbar";
+
 import {
-  postCategoryAPI,
-  deleteCategoryAPI,
-  updateCategoryAPI,
+  postUtilitiesAPI ,
+  updateUtilitiesAPI,
+  deleteUtilitiesAPI,
 } from "../../api/homePage/request";
-import { useGetCategoriesUS } from "../../api/homePage/queries";
+import { useGetUtilitiesUS } from "../../api/homePage/queries";
 import { useQueryClient } from "@tanstack/react-query";
 import { FaEdit, FaTrash } from 'react-icons/fa';
-export default function Category() {
-  const [name, setName] = useState("");
-  const [moTa, setMoTa] = useState("");
+export default function Utilities() {
+  const [TenTienIch, setName] = useState("");
   const [message, setMessage] = useState("");
-  const [editingCategory, setEditingCategory] = useState(null);
+  const [editingUtilities, setEditingUtilities] = useState(null);
 
   const queryClient = useQueryClient();
-  const { data: categories = [], isLoading } = useGetCategoriesUS();
+  const { data: utilities = [], isLoading } = useGetUtilitiesUS();
 
-  const handleSubmit = async () => {
-    if (!name.trim()) {
-      setMessage("Tên danh mục không được để trống.");
-      return;
-    }
-
-    try {
-      setMessage("");
-      if (editingCategory) {
-        const res = await updateCategoryAPI(editingCategory.MaDanhMuc, {
-          name,
-          mo_ta: moTa,
-        });
-        setMessage("Cập nhật thành công!");
-      } else {
-        const res = await postCategoryAPI({ name, mo_ta: moTa });
-        setMessage("Thêm thành công!");
-      }
-
-      await queryClient.invalidateQueries({ queryKey: ["categories"] });
-      setName("");
-      setMoTa("");
-      setEditingCategory(null);
-    } catch (error) {
-    console.error("Error:", error.response?.data);
-    setMessage(error.response?.data?.message || "Lỗi khi cập nhật");
+ const handleSubmit = async () => {
+  if (!TenTienIch.trim()) {
+    setMessage("Tên tiện ích không được để trống");
+    return;
   }
+
+  try {
+    if (editingUtilities) {
+      if (!editingUtilities.MaTienIch) {
+        throw new Error("Missing utility ID");
+      }
+      
+      await updateUtilitiesAPI(editingUtilities.MaTienIch, { TenTienIch });
+      setMessage("Cập nhật thành công!");
+    } else {
+      await postUtilitiesAPI({ TenTienIch });
+      setMessage("Thêm thành công!");
+    }
+    
+    await queryClient.invalidateQueries({ queryKey: ["utilities"] });
+    setName("");
+    setEditingUtilities(null);
+  } catch (error) {
+    console.error("Update error:", error);
+    setMessage(`Lỗi: ${error.response?.data?.message || error.message}`);
+  }
+};
+
+const handleDelete = async (id) => {
+  if (!confirm("Bạn có chắc chắn muốn xóa?")) return;
+
+  try {
+    await deleteUtilitiesAPI(id);
+    setMessage("Xóa thành công!"); 
+    await queryClient.invalidateQueries({ queryKey: ["utilities"] });
+  } catch (error) {
+    setMessage("Xóa thất bại: " + error.message); 
+  }
+};
+
+  const handleEdit = (utility) => {
+    setEditingUtilities(utility);
+    setName(utility.TenTienIch);
+    setMessage("");
   };
 
-  const handleDelete = async (MaDanhMuc) => {
-  try {
-    await deleteCategoryAPI(MaDanhMuc);
-    setMessage("Xóa thành công!");
-    await queryClient.invalidateQueries({ queryKey: ["categories"] });
-  } catch (error) {
-    console.error("Delete error:", error);
-    setMessage("Xóa thất bại: " + (error.response?.data?.message || error.message));
-  }
-};
-
-  const handleEdit = (category) => {
-  setEditingCategory(category);
-  setName(category.name);
-  setMoTa(category.mo_ta);
-  setMessage("");
-};
   return (
     <SidebarWithNavbar>
       <div className="max-w-4xl mx-auto">
         <h1 className="text-2xl font-bold text-blue-800 mb-6">
-          Quản lý danh mục
+          Quản lý tiện ích 
         </h1>
 
         <div className="bg-white shadow-md rounded-xl p-6 mb-8">
           <h2 className="text-lg font-semibold text-blue-700 mb-4">
-            {editingCategory ? "Chỉnh sửa danh mục" : "Thêm danh mục mới"}
+            {editingUtilities ? "Chỉnh sửa tiện ích" : "Thêm tiện ích mới"}
           </h2>
           <div className="space-y-4">
             <input
               type="text"
-              placeholder="Tên danh mục"
-              value={name}
+              placeholder="Tên tiện ích"
+              value={TenTienIch}
               onChange={(e) => setName(e.target.value)}
               className="w-full border border-blue-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            />
-            <textarea
-              placeholder="Mô tả"
-              value={moTa}
-              onChange={(e) => setMoTa(e.target.value)}
-              className="w-full border border-blue-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-              rows="3"
             />
             {message && (
               <div className="text-sm text-red-600 font-medium">{message}</div>
@@ -97,12 +90,12 @@ export default function Category() {
                 onClick={handleSubmit}
                 className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition disabled:opacity-50"
               >
-                {editingCategory ? "Cập nhật danh mục" : "Thêm danh mục"}
+                {editingUtilities ? "Cập nhật tiện ích" : "Thêm tiện ích"}
               </button>
-              {editingCategory && (
+              {editingUtilities && (
                 <button
                   onClick={() => {
-                    setEditingCategory(null);
+                    setEditingUtilities(null);
                     setName("");
                     setMoTa("");
                   }}
@@ -117,20 +110,19 @@ export default function Category() {
 
         <div className="bg-white shadow-md rounded-xl p-6">
           <h2 className="text-lg font-semibold text-blue-700 mb-4">
-            Danh sách danh mục
+            Danh sách tiện ích 
           </h2>
           {isLoading ? (
             <p>Đang tải...</p>
           ) : (
             <ul className="space-y-4">
-              {categories.map((item) => (
+              {utilities.map((item) => (
                 <li
-                  key={item.MaDanhMuc}
+                  key={item.MaTienIch}
                   className="border border-blue-200 rounded-lg p-4 flex justify-between items-start"
                 >
                   <div>
-                    <h3 className="text-blue-900 font-semibold">{item.name}</h3>
-                    <p className="text-sm text-blue-700">{item.mo_ta}</p>
+                    <h3 className="text-blue-900 font-semibold">{item.TenTienIch}</h3>
                   </div>
                   <div className="flex gap-3">
                     <button
@@ -141,7 +133,7 @@ export default function Category() {
                     </button>
                     <button
                       className="text-red-600 hover:underline inline-flex items-center gap-1"
-                      onClick={() => handleDelete(item.MaDanhMuc)}
+                      onClick={() => handleDelete(item.MaTienIch)}
                     >
                       <FaTrash /> Xoá
                     </button>

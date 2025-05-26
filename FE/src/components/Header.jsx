@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 import { useGetCategoriesUS } from "../api/homePage";
 import { useAuth } from "../context/AuthContext";
 
+
 const Header = () => {
   const { isAuthenticated, user, logout } = useAuth();
   const { data } = useGetCategoriesUS();

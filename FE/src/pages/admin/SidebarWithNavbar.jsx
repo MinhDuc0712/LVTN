@@ -10,6 +10,7 @@ import {
   Bell,
   Mail,
   Wallet,
+  Puzzle,
   Menu
 } from "lucide-react";
 import { useState } from "react";
@@ -93,6 +94,9 @@ export default function SidebarWithNavbar({ children }) {
             </Link>
             <Link to="/admin/category">
               <SidebarItem icon={<List />} label="Quản lý danh mục" />
+            </Link>
+            <Link to="/admin/Utilities">
+              <SidebarItem icon={<Puzzle />} label="Quản lý tiện ích" />
             </Link>
             <Link to="/admin/posts">
               <SidebarItem icon={<Home />} label="Quản lý bài đăng" />

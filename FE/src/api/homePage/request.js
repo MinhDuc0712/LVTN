@@ -19,6 +19,25 @@ export const updateCategoryAPI = async (id, data) => {
 export const deleteCategoryAPI = async (id) => {
   return await axiosAdmin.delete(`/categories/${id}`);
 };
+// tiện ích 
+export const getUtilitiesAPI = async () => {
+  const response = await axiosUser.get("/utilities");
+  return response;
+};
+
+
+export const postUtilitiesAPI = async (data) => {
+  const response = await axiosAdmin.post("/utilities", data);
+  return response;
+};
+
+export const updateUtilitiesAPI = async (id, data) => {
+  return await axiosAdmin.put(`/utilities/${id}`, data);
+};
+
+export const deleteUtilitiesAPI = async (id) => {
+  return await axiosAdmin.delete(`/utilities/${id}`);
+};
 // Thêm giao dịch nạp tiền
 export const getDepositTransactionsAPI = async (params = {}) => {
   try {
