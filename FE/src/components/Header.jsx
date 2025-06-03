@@ -7,7 +7,6 @@ import { Link } from "react-router-dom";
 import { useGetCategoriesUS } from "../api/homePage";
 import { useAuth } from "../context/AuthContext";
 
-
 const Header = () => {
   const { isAuthenticated, user, logout } = useAuth();
   const { data } = useGetCategoriesUS();
@@ -171,7 +170,7 @@ const Header = () => {
                   className="flex cursor-pointer items-center gap-1 hover:text-[#ff5723]"
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                 >
-                  <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full ">
+                  <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full">
                     <img
                       src={
                         user?.avatar
@@ -211,12 +210,12 @@ const Header = () => {
                         {user?.HoTen || "Người dùng"}
                       </span>
                       <span className="block text-xs text-gray-500">
-                        {user?.Email || user?.SDT || "Không có thông tin"}
+                        {user?.Email || "Không có thông tin"}
                       </span>
                     </li>
                     <li>
                       <Link
-                        to="/user/profile"
+                        to="user"
                         className="flex cursor-pointer items-center px-4 py-2 hover:bg-gray-100"
                         onClick={() => setIsDropdownOpen(false)}
                       >
@@ -339,17 +338,17 @@ const Header = () => {
           <div className="flex items-center justify-center space-x-4 py-2">
             {categories.map((category) => (
               <Link
-                to="#"
-                key={category.id}
-                onClick={() => setActiveCategoryId(category.id)}
+                to={`/${category.MaDanhMuc}`}
+                key={category.MaDanhMuc}
+                onClick={() => setActiveCategoryId(category.MaDanhMuc)}
                 className={`text-sl relative px-3 py-2 font-medium transition-colors ${
-                  activeCategoryId === category.id
+                  activeCategoryId === category.MaDanhMuc
                     ? "text-[#ff5723]"
                     : "text-gray-700 hover:text-[#ff5723]"
                 }`}
               >
                 {category.name}
-                {activeCategoryId === category.id && (
+                {activeCategoryId === category.MaDanhMuc && (
                   <span className="absolute -bottom-2 left-0 h-0.5 w-full bg-[#ff5723]"></span>
                 )}
               </Link>
@@ -392,13 +391,27 @@ const Header = () => {
                   {isAuthenticated ? (
                     <div className="mb-3 rounded bg-gray-100 p-4">
                       <div className="flex items-center px-2 py-2">
-                        <div className="mr-3 flex h-8 w-8 items-center justify-center rounded-full bg-orange-500 font-medium text-white">
-                          {user?.HoTen?.charAt(0) || "U"}
+                        <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full">
+                          <img
+                            src={
+                              user?.avatar
+                                ? `/storage/${user.HinhDaiDien}`
+                                : "/images/default-avatar.png"
+                            }
+                            alt="User Avatar"
+                            className="h-full w-full object-cover"
+                            onError={(e) => {
+                              e.target.src = Avatar;
+                            }}
+                          />
                         </div>
-                        <div>
-                          <p className="text-sm font-medium">
-                            {user?.HoTen || "Người dùng"}
-                          </p>
+                        <div className="ml-2 text-sm font-medium text-gray-700">
+                        <span className="text-sm font-medium text-gray-700">
+                          Xin chào: {user?.HoTen}
+                        </span>
+                        <span className="block text-xs text-gray-500">
+                          {user?.Email || "Không có thông tin"}
+                        </span>
                         </div>
                       </div>
                       <Link
@@ -513,6 +526,7 @@ const Header = () => {
                     </svg>
                     Tin đã lưu
                   </Link>
+
                   {isAuthenticated && (
                     <Link
                       to="/user"
@@ -536,6 +550,7 @@ const Header = () => {
                       Quản lý
                     </Link>
                   )}
+
                   <Link
                     to={isAuthenticated ? "/post" : "/dang-nhap?redirect=/post"}
                     className="flex items-center justify-center gap-1 rounded-full bg-red-500 py-2 text-white hover:bg-red-600"
@@ -557,6 +572,25 @@ const Header = () => {
                     </svg>
                     Đăng tin
                   </Link>
+                  <div className="flex flex-col justify-start space-x-4 py-2">
+                    {categories.map((category) => (
+                      <Link
+                        to={`/${category.MaDanhMuc}`}
+                        // key={category.id}
+                        onClick={() => setActiveCategoryId(category.MaDanhMuc)}
+                        className={`text-sl relative px-3 py-2 transition-colors ${
+                          activeCategoryId === category.MaDanhMuc
+                            ? "text-[#ff5723]"
+                            : "text-gray-700 hover:text-[#ff5723]"
+                        }`}
+                      >
+                        {category.name}
+                        {activeCategoryId === category.MaDanhMuc && (
+                          <span className="absolute -bottom-2 left-0 h-0.5 w-full bg-[#ff5723]"></span>
+                        )}
+                      </Link>
+                    ))}
+                  </div>
                 </nav>
               </div>
             </div>

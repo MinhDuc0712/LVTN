@@ -16,6 +16,8 @@ import Admin from "./pages/admin/SidebarWithNavbar";
 import Category from "./pages/admin/Category";
 import Utilities from "./pages/admin/Utilities";
 import Top_up from "./pages/admin/top_up";
+import Users from "./pages/admin/Users";
+import ChangePassword from "./pages/user/profile/ChangePassword";
 
 const AppRoutes = () => {
   return (
@@ -24,6 +26,7 @@ const AppRoutes = () => {
       <Route path="/dang-nhap" element={<Login />} />
       <Route path="/dang-ky-tai-khoan" element={<Register />} />
       <Route path="/user" element={<User />} />
+      <Route path="/change_password" element={<ChangePassword />}/>
       <Route path="/post" element={<Post />} />
       <Route path="/posts" element={<Posts />} />
       <Route path="/post/paymentpost" element={<PaymentPost />} />
@@ -37,8 +40,9 @@ const AppRoutes = () => {
       <Route path="/admin/category" element={<Category />} />
       <Route path="/admin/Utilities" element={<Utilities />} />
       <Route path="/admin/top_up" element={<Top_up />} />
+      <Route path="/admin/users" element={<Users />} />
     </Routes>
   );
 };
 
-export default AppRoutes; 
+export default AppRoutes;

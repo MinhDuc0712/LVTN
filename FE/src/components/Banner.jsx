@@ -10,15 +10,9 @@ const BannerSlider = () => {
   const banners = [
     {
       image: banner1,
-      title: "Tìm phòng trọ ưng ý",
-      subtitle: "Hơn 70.000+ phòng trọ chất lượng trên toàn quốc",
-      buttonText: "Tìm phòng ngay",
     },
     {
       image: banner2,
-      title: "Đăng tin miễn phí",
-      subtitle: "Tiếp cận hàng ngàn người có nhu cầu",
-      buttonText: "Đăng tin ngay",
     },
   ];
 
