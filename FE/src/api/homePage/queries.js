@@ -90,3 +90,21 @@ export const useGetUserByIdentifier = (identifier) => {
     retry: false, 
   });
 };
+
+//Lấy danh sách người dùng
+export const useGetUsers = () => {
+  return useQuery({
+    queryKey: ["user"],
+    queryFn: async () => {
+      try {
+        const response = await axiosAdmin.get("/user");
+        return response;
+      } catch (error) {
+        if (error.response?.status === 404) {
+          return [];
+        }
+        throw error;
+      }
+    },
+  });
+};

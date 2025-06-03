@@ -22,6 +22,7 @@ export const AuthProvider = ({ children }) => {
   // Hàm xử lý đăng nhập
  const login = (userData, token) => {  // Thêm tham số token
   setUser(userData);
+  console.log('Storing token:', token);
   setIsAuthenticated(true);
   localStorage.setItem('user', JSON.stringify(userData));
   localStorage.setItem('token', token);  // Lưu token vào localStorage
@@ -62,7 +63,7 @@ const handleClientLogout = () => {
   });
 };
 
-//   // Cung cấp giá trị cho các component con
+// Cung cấp giá trị cho các component con
   return (
     <AuthContext.Provider value={{ 
       user, 
@@ -76,7 +77,7 @@ const handleClientLogout = () => {
   );
 };
 
-// //  Custom hook để sử dụng auth context
+//  Custom hook để sử dụng auth context
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {

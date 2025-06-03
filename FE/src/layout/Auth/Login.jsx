@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { postLoginAPI } from "../../api/homePage";
 import { useAuth } from "../../context/AuthContext";
+import { toast } from "react-toastify";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -13,7 +14,6 @@ const Login = () => {
     Password: "",
   });
 
-  const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e) => {
@@ -27,7 +27,6 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    setError(null);
 
     try {
       // Gọi API đăng ký
@@ -36,9 +35,13 @@ const Login = () => {
         Password: formData.Password,
       });
 
-      console.log("response from API:", response);
+      // console.log("response from API:", response);
       // Xử lý kết quả thành công
       if (response.user && response.token) {
+        toast.success("Đăng nhập thành công!", {
+          position: "top-right",
+          autoClose: 3000,
+        });
         login(response.user, response.token); // Lưu thông tin người dùng vào context
         // Chuyển hướng sau khi đăng ký thành công
         if (response.roles.includes("admin")) {
@@ -49,10 +52,10 @@ const Login = () => {
           navigate("/");
         }
       } else {
-        setError(response.message || "Đăng nhập không thành công");
+        toast.error(response.message || "Đăng nhập không thành công");
       }
     } catch (err) {
-      setError(
+      toast.error(
         err.response?.data?.message || "Lỗi hệ thống, vui lòng thử lại sau",
       );
     } finally {
@@ -61,7 +64,7 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-orange-50 to-white py-12">
+    <div className="max-h-screen bg-gradient-to-b from-orange-50 to-white py-12">
       <main className="container mx-auto px-4">
         <div className="mx-auto max-w-lg overflow-hidden rounded-xl bg-white shadow-md">
           {/* Tab Switching */}
@@ -80,12 +83,6 @@ const Login = () => {
             </Link>
           </div>
 
-          {error && (
-            <div className="mb-4 rounded-md bg-red-100 p-3 text-sm text-red-700">
-              {error}
-            </div>
-          )}
-
           {/* Form Content */}
           <div className="p-6 sm:p-8">
             <form onSubmit={handleSubmit}>
@@ -98,7 +95,7 @@ const Login = () => {
                   name="SDT"
                   value={formData.SDT}
                   onChange={handleChange}
-                  className="w-full rounded-lg border border-gray-300 px-4 py-3 transition-all focus:border-orange-500 focus:ring-2 focus:ring-orange-500"
+                  className="w-full rounded-lg border border-gray-300 px-4 py-3"
                   placeholder="Nhập số điện thoại"
                   required
                 />
@@ -113,7 +110,7 @@ const Login = () => {
                   name="Password"
                   // value={formData.Password}
                   onChange={handleChange}
-                  className="w-full rounded-lg border border-gray-300 px-4 py-3 transition-all focus:border-orange-500 focus:ring-2 focus:ring-orange-500"
+                  className="w-full rounded-lg border border-gray-300 px-4 py-3"
                   placeholder="Mật khẩu"
                   required
                 />

@@ -41,7 +41,7 @@ const Register = () => {
         MaQuyen: parseInt(formData.user_type),
       });
 
-      console.log("response from API:", response);
+      // console.log("response from API:", response);
       // Xử lý kết quả thành công
       if (response.user) {
         // Chuyển hướng sau khi đăng ký thành công
@@ -64,7 +64,7 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-orange-50 to-white py-12">
+    <div className="max-h-screen bg-gradient-to-b from-orange-50 to-white py-10">
       <main className="container mx-auto px-4">
         <div className="mx-auto max-w-lg overflow-hidden rounded-xl bg-white shadow-md">
           {/* Tab Switching */}
@@ -151,11 +151,11 @@ const Register = () => {
                   required
                 />
                 <p className="mt-1 text-xs text-gray-500">
-                  Mật khẩu tối thiểu 6 ký tự
+                  Mật khẩu tối thiểu 8 ký tự
                 </p>
               </div>
 
-              <div className="mb-5">
+              {/* <div className="mb-5">
                 <label className="mb-2 block text-sm font-medium text-gray-700">
                   Xác nhận mật khẩu
                 </label>
@@ -168,13 +168,13 @@ const Register = () => {
                   placeholder="Nhập lại mật khẩu"
                   required
                 />
-              </div>
+              </div> */}
 
-              <div className="mb-6">
-                <label className="mb-3 block text-sm font-medium text-gray-700">
+              <div className="mb-6 flex items-center gap-4">
+                <label className="flex text-sm font-medium text-gray-700">
                   Loại tài khoản
                 </label>
-                <div className="flex flex-wrap gap-4">
+                <div className="flex gap-4">
                   {/* Tìm kiếm */}
                   <div className="flex items-center">
                     <input
