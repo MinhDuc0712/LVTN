@@ -40,7 +40,7 @@ function UserPost() {
     const { data: utilitiesData } = useGetUtilitiesUS();
     const utilities = utilitiesData || [];
 
-    
+
 
     useEffect(() => {
         const fetchProvinces = async () => {
@@ -274,7 +274,28 @@ function UserPost() {
                         <textarea className="w-full p-2 border rounded" rows="6" placeholder="Nhập nội dung mô tả chi tiết" />
                         <p className="text-sm text-gray-500">(Tối thiểu 50 ký tự, tối đa 5000 ký tự)</p>
                     </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+                        <div>
+                            <label className="block font-semibold mb-1">
+                                Số phòng ngủ
+                            </label>
+                            <input type="number" min="0" className="w-full p-2 border rounded" placeholder="Nhập số phòng ngủ" />
+                        </div>
 
+                        <div>
+                            <label className="block font-semibold mb-1">
+                                Số phòng tắm
+                            </label>
+                            <input type="number" min="0" className="w-full p-2 border rounded" placeholder="Nhập số phòng tắm" />
+                        </div>
+
+                        <div>
+                            <label className="block font-semibold mb-1">
+                                Số tầng
+                            </label>
+                            <input type="number" min="0" className="w-full p-2 border rounded" placeholder="Nhập số tầng" />
+                        </div>
+                    </div>
                     <div className="mb-4">
                         <label className="block font-semibold mb-1">
                             Giá cho thuê <span className="text-red-600">(*)</span>
