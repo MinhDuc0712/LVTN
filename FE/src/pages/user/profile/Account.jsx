@@ -2,83 +2,125 @@ import { useEffect, useState } from "react";
 import Sidebar from "./Sidebar";
 import { useAuth } from "../../../context/AuthContext";
 import { Link, Navigate } from "react-router-dom";
-import { getUserProfileAPI } from "../../../api/homePage";
+import { getUserProfileAPI, updateUserProfileAPI } from "../../../api/homePage";
 import { toast } from "react-toastify";
+import defaultAvatar from "../../../assets/avatar.jpg";
 
 const AccountManagement = () => {
-  const [avatar, setAvatar] = useState("src/assets/avatar.jpg");
-  const { isAuthenticated, setUser } = useAuth();
+  const { isAuthenticated, user, setUser } = useAuth();
   const [loading, setLoading] = useState(true);
-  const [formData, setFormData] = useState({ SDT: "", HoTen: "", Email: "" });
+  const [formData, setFormData] = useState({
+    SDT: "",
+    HoTen: "",
+    Email: "",
+    avatarBase64: "", // Lưu base64 thay vì file
+  });
+  const [avatar, setAvatar] = useState(defaultAvatar);
   const [isFocused, setIsFocused] = useState({
     SDT: false,
     HoTen: false,
     Email: false,
   });
 
-  // Load hồ sơ người dùng
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         setLoading(true);
         const result = await getUserProfileAPI();
         if (result.success) {
-          toast.success("Cập nhật hồ sơ thành công!", {
-            position: "top-right",
-            autoClose: 3000,
-          });
           setUser({
             ...result.user,
-            roles: result.roles,
+            roles: result.roles || [],
           });
           setFormData({
             SDT: result.user.SDT || "",
             HoTen: result.user.HoTen || "",
             Email: result.user.Email || "",
+            avatarBase64: "", // Reset base64
           });
+          setAvatar(result.user.HinhDaiDien || defaultAvatar);
         } else {
           toast.error(result.message || "Lỗi khi tải hồ sơ");
         }
       } catch (err) {
-        if (!isMounted) return;
         toast.error(err.message || "Lỗi không xác định");
       } finally {
         setLoading(false);
       }
     };
     fetchProfile();
+  }, [setUser]);
 
-  }, [ setUser]);
-
-  // Xử lý đổi avatar (chưa có API upload)
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      const imageUrl = URL.createObjectURL(file);
-      setAvatar(imageUrl);
-      // TODO: Gửi avatar lên server nếu cần
+      if (!file.type.startsWith("image/")) {
+        toast.error("Vui lòng chọn file ảnh!");
+        return;
+      }
+      if (file.size > 2 * 1024 * 1024) {
+        toast.error("Ảnh không được lớn hơn 2MB!");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setAvatar(reader.result); // Hiển thị ảnh base64
+        setFormData((prev) => ({
+          ...prev,
+          avatarBase64: reader.result.split(",")[1], // Lấy phần base64 (bỏ prefix data:image/jpeg;base64,)
+        }));
+        toast.success("Đổi ảnh đại diện thành công (chưa lưu lên server)!");
+      };
+      reader.readAsDataURL(file); // Chuyển file thành base64
+    } else {
+      toast.warn("Bạn chưa chọn ảnh!");
     }
   };
 
-  // Gửi dữ liệu cập nhật
-  const handleUpdate = async () => {
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+    if (!validateForm()) return;
+
     try {
       setLoading(true);
-      const result = await updateUserProfileAPI(formData); // Thêm API cập nhật
+      const dataToSend = {
+        SDT: formData.SDT,
+        HoTen: formData.HoTen,
+        Email: formData.Email,
+        avatarBase64: formData.avatarBase64, // Gửi base64
+      };
+
+      const result = await updateUserProfileAPI(dataToSend);
       if (result.success) {
-        toast.success("Cập nhật thông tin thành công!");
-        setUser((prev) => ({ ...prev, ...formData }));
+        toast.success(result.message || "Cập nhật thông tin thành công!");
+        setUser((prev) => ({
+          ...prev,
+          ...result.user,
+          roles: result.roles || prev.roles,
+        }));
+        setAvatar(result.user.HinhDaiDien || defaultAvatar);
+
+
+        setFormData((prev) => ({ ...prev, avatarBase64: "" }));
       } else {
         toast.error(result.message || "Cập nhật thất bại!");
       }
     } catch (err) {
-      toast.error("Lỗi hệ thống khi cập nhật!");
+      toast.error(err.message || "Lỗi hệ thống khi cập nhật!");
     } finally {
       setLoading(false);
     }
   };
 
-  // if (!isAuthenticated) return <Navigate to="/dang-nhap" replace />;
+  const validateForm = () => {
+    if (!formData.SDT || !formData.HoTen || !formData.Email) {
+      toast.error("Vui lòng điền đầy đủ thông tin!");
+      return false;
+    }
+    return true;
+  };
+
+  if (!isAuthenticated) return <Navigate to="/user" replace />;
   if (loading) return <div className="mt-10 text-center">Đang tải...</div>;
 
   return (
@@ -110,111 +152,112 @@ const AccountManagement = () => {
             Đổi mật khẩu
           </Link>
         </div>
-        <form>
-          <div className="max-w mx-auto mt-10 rounded-xl bg-white p-6 shadow-md">
-            <div className="mb-4 flex flex-col items-center sm:flex-row">
-              <div className="h-16 w-16 overflow-hidden rounded-full bg-gray-300">
-                <img
-                  src={avatar}
-                  alt="Avatar"
-                  className="h-full w-full object-cover"
-                />
-              </div>
-              <label className="mt-2 cursor-pointer rounded bg-gray-500 px-3 py-1 text-sm text-white sm:mt-0 sm:ml-2">
-                Đổi ảnh đại diện
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                  className="hidden"
-                />
-              </label>
-            </div>
-
-            {/* Input - SĐT */}
-            <div className="relative mt-3 mb-4 w-full">
-              <input
-                type="tel"
-                name="SDT"
-                value={formData.SDT}
-                onChange={(e) =>
-                  setFormData({ ...formData, SDT: e.target.value })
-                }
-                onFocus={() => setIsFocused({ ...isFocused, SDT: true })}
-                onBlur={() => setIsFocused({ ...isFocused, SDT: false })}
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:outline-none"
-                required
+        <form
+          onSubmit={handleUpdate}
+          className="max-w mx-auto mt-10 rounded-xl bg-white p-6 shadow-md"
+        >
+          <div className="mb-4 flex flex-col items-center sm:flex-row">
+            <div className="h-16 w-16 overflow-hidden rounded-full bg-gray-300">
+              <img
+                // src={avatar}
+                src={`data:image/jpeg;base64,${avatar}`}
+                alt="Avatar"
+                className="h-full w-full object-cover"
+                onError={(e) => {
+                  e.target.src = defaultAvatar;
+                }}
               />
-              <label
-                className={`absolute left-4 bg-white px-1 text-gray-500 transition-all ${
-                  isFocused.SDT || formData.SDT !== ""
-                    ? "-top-2 left-2 text-sm text-gray-600"
-                    : "top-3 text-base"
-                }`}
-              >
-                Số điện thoại
-              </label>
             </div>
-
-            {/* Input - Họ tên */}
-            <div className="relative mt-3 mb-4 w-full">
+            <label className="mt-2 cursor-pointer rounded bg-gray-500 px-3 py-1 text-sm text-white sm:mt-0 sm:ml-2">
+              Đổi ảnh đại diện
               <input
-                type="text"
-                name="HoTen"
-                value={formData.HoTen}
-                onChange={(e) =>
-                  setFormData({ ...formData, HoTen: e.target.value })
-                }
-                onFocus={() => setIsFocused({ ...isFocused, HoTen: true })}
-                onBlur={() => setIsFocused({ ...isFocused, HoTen: false })}
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:outline-none"
-                required
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="hidden"
               />
-              <label
-                className={`absolute left-4 bg-white px-1 text-gray-500 transition-all ${
-                  isFocused.HoTen || formData.HoTen !== ""
-                    ? "-top-2 left-2 text-sm text-gray-600"
-                    : "top-3 text-base"
-                }`}
-              >
-                Tên liên hệ
-              </label>
-            </div>
-
-            {/* Input - Email */}
-            <div className="relative mt-3 mb-4 w-full">
-              <input
-                type="email"
-                name="Email"
-                value={formData.Email}
-                onChange={(e) =>
-                  setFormData({ ...formData, Email: e.target.value })
-                }
-                onFocus={() => setIsFocused({ ...isFocused, Email: true })}
-                onBlur={() => setIsFocused({ ...isFocused, Email: false })}
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:outline-none"
-                required
-              />
-              <label
-                className={`absolute left-4 bg-white px-1 text-gray-500 transition-all ${
-                  isFocused.Email || formData.Email !== ""
-                    ? "-top-2 left-2 text-sm text-gray-600"
-                    : "top-3 text-base"
-                }`}
-              >
-                Email
-              </label>
-            </div>
-
-            {/* Nút cập nhật */}
-            <button
-              onClick={handleUpdate}
-              disabled={loading}
-              className="w-full rounded-xl bg-orange-500 py-3 font-medium text-white shadow-md transition-colors hover:bg-orange-600 disabled:opacity-60"
-            >
-              {loading ? "Đang xử lý..." : "Cập nhật"}
-            </button>
+            </label>
           </div>
+
+          <div className="relative mt-3 mb-4 w-full">
+            <input
+              type="tel"
+              name="SDT"
+              value={formData.SDT}
+              onChange={(e) =>
+                setFormData({ ...formData, SDT: e.target.value })
+              }
+              onFocus={() => setIsFocused({ ...isFocused, SDT: true })}
+              onBlur={() => setIsFocused({ ...isFocused, SDT: false })}
+              className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:outline-none"
+              required
+            />
+            <label
+              className={`absolute left-4 bg-white px-1 text-gray-500 transition-all ${
+                isFocused.SDT || formData.SDT !== ""
+                  ? "-top-2 left-2 text-sm text-gray-600"
+                  : "top-3 text-base"
+              }`}
+            >
+              Số điện thoại
+            </label>
+          </div>
+
+          <div className="relative mt-3 mb-4 w-full">
+            <input
+              type="text"
+              name="HoTen"
+              value={formData.HoTen}
+              onChange={(e) =>
+                setFormData({ ...formData, HoTen: e.target.value })
+              }
+              onFocus={() => setIsFocused({ ...isFocused, HoTen: true })}
+              onBlur={() => setIsFocused({ ...isFocused, HoTen: false })}
+              className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:outline-none"
+              required
+            />
+            <label
+              className={`absolute left-4 bg-white px-1 text-gray-500 transition-all ${
+                isFocused.HoTen || formData.HoTen !== ""
+                  ? "-top-2 left-2 text-sm text-gray-600"
+                  : "top-3 text-base"
+              }`}
+            >
+              Tên liên hệ
+            </label>
+          </div>
+
+          <div className="relative mt-3 mb-4 w-full">
+            <input
+              type="email"
+              name="Email"
+              value={formData.Email}
+              onChange={(e) =>
+                setFormData({ ...formData, Email: e.target.value })
+              }
+              onFocus={() => setIsFocused({ ...isFocused, Email: true })}
+              onBlur={() => setIsFocused({ ...isFocused, Email: false })}
+              className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:outline-none"
+              required
+            />
+            <label
+              className={`absolute left-4 bg-white px-1 text-gray-500 transition-all ${
+                isFocused.Email || formData.Email !== ""
+                  ? "-top-2 left-2 text-sm text-gray-600"
+                  : "top-3 text-base"
+              }`}
+            >
+              Email
+            </label>
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full rounded-xl bg-orange-500 py-3 font-medium text-white shadow-md transition-colors hover:bg-orange-600 disabled:opacity-60"
+          >
+            {loading ? "Đang xử lý..." : "Cập nhật"}
+          </button>
         </form>
       </div>
     </div>

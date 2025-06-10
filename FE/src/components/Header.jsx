@@ -118,7 +118,7 @@ const Header = () => {
           <div className="hidden items-center space-x-4 md:flex">
             {/* Saved Listings */}
             <Link
-              to="/saved-listings"
+              to="/savedList"
               className="flex items-center text-gray-700 hover:text-[#ff5723]"
             >
               <svg
@@ -506,7 +506,7 @@ const Header = () => {
                     </div>
                   )}
                   <Link
-                    to="/saved-listings"
+                    to="/savedList"
                     className="flex items-center px-2 py-2 text-gray-700 hover:text-orange-700"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >

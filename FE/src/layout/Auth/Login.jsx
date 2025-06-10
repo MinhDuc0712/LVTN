@@ -108,7 +108,7 @@ const Login = () => {
                 <input
                   type="password"
                   name="Password"
-                  // value={formData.Password}
+                  value={formData.Password}
                   onChange={handleChange}
                   className="w-full rounded-lg border border-gray-300 px-4 py-3"
                   placeholder="Mật khẩu"
