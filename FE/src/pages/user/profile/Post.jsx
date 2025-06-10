@@ -3,7 +3,6 @@ import Sidebar from './Sidebar';
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useGetUtilitiesUS, useGetCategoriesUS, useGetUsers } from "../../../api/homePage";
-import { axiosUser } from '../../../api/axios';
 import { toast } from 'react-hot-toast';
 import { useMutation } from '@tanstack/react-query';
 import { useCreateHouse,useUploadHouseImages } from '../../../api/homePage/queries';
@@ -46,26 +45,11 @@ function UserPost() {
     const [previewImages, setPreviewImages] = useState([]);
     const [isUploading, setIsUploading] = useState(false);
 
-    //const { mutate: createHouse } = useCreateHouse();
+ 
 
-const { mutateAsync: createHouse } = useCreateHouse();
-const { mutate: uploadImages } = useUploadHouseImages();
-    // Mutation để tạo bài đăng
-    const { mutate: createPost, isLoading } = useMutation({
-        mutationFn: (postData) => axiosUser.post('/houses', postData),
-        onSuccess: (response) => {
-            console.log("Bài đăng đã tạo:", response.data);
-            const { MaNha } = response.data;
-            if (images.length > 0) {
-                uploadHouseImages(MaNha);
-            }
-            window.location.href = `/post/paymentpost?id=${MaNha}`;
-        },
-        onError: (error) => {
-            toast.error(error.response?.data?.message || 'Lỗi khi tạo bài đăng');
-        }
-    });
-    // Xử lý khi chọn file
+const { mutateAsync: createHouse, isLoading } = useCreateHouse();
+const { mutateAsync: uploadImages } = useUploadHouseImages();
+    
 
 
     const handleImageChange = (e) => {
@@ -93,34 +77,6 @@ const { mutate: uploadImages } = useUploadHouseImages();
         setPreviewImages(previews);
     };
 
-    // Xử lý upload ảnh sau khi tạo bài đăng
-// const uploadHouseImages = async (houseId) => {
-//     if (images.length === 0) return;
-
-//     try {
-//         setIsUploading(true);
-//         const formData = new FormData();
-        
-//         // Thêm ảnh vào FormData (đúng format API backend yêu cầu)
-//         images.forEach((image, index) => {
-//             formData.append('images[]', image); // Sử dụng 'images[]' thay vì 'images'
-//         });
-
-//         // Gọi API upload ảnh
-//         await axiosUser.post(`/houses/${houseId}/images`, formData, {
-//             headers: {
-//                 'Content-Type': 'multipart/form-data' // Quan trọng: phải set header này
-//             }
-//         });
-
-//         toast.success('Tải lên hình ảnh thành công!');
-//     } catch (error) {
-//         console.error('Upload error:', error);
-//         toast.error(error.response?.data?.message || 'Lỗi khi tải lên hình ảnh');
-//     } finally {
-//         setIsUploading(false);
-//     }
-// };
     const removeImage = (index) => {
         const newImages = [...images];
         const newPreviews = [...previewImages];
@@ -179,7 +135,11 @@ const handleSubmit = async (e) => {
         toast.error('Mô tả chi tiết phải có ít nhất 50 ký tự');
         return;
     }
-
+if (!selectedCategoryId || !user?.MaNguoiDung || !selectedProvince || 
+        !selectedDistrict || !selectedWard || formData.MoTaChiTiet.length < 50) {
+        // Hiển thị lỗi tương ứng
+        return;
+    }
     // Lấy tên địa chỉ
     const provinceObj = provinces.find(p => String(p.code) === String(selectedProvince));
     const districtObj = districts.find(d => String(d.code) === String(selectedDistrict));
@@ -189,43 +149,38 @@ const handleSubmit = async (e) => {
     const districtName = districtObj?.name || '';
     const wardName = wardObj?.name || '';
 
-    // Chuẩn bị dữ liệu - ĐẢM BẢO ĐÚNG TÊN TRƯỜNG
-    const postData = {
-        TieuDe: formData.TieuDe.trim(),
-        Tinh_TP: provinceName,
-        Quan_Huyen: districtName,
-        Phuong_Xa: wardName,
-        Duong: formData.Duong ? formData.Duong.trim() : null,
-        DiaChi: formData.DiaChi.trim(),
-        SoPhongNgu: parseInt(formData.SoPhongNgu),
-        SoPhongTam: parseInt(formData.SoPhongTam),
-        SoTang: formData.SoTang ? parseInt(formData.SoTang) : null,
-        DienTich: parseFloat(formData.DienTich),
-        Gia: parseFloat(formData.Gia),
-        MoTaChiTiet: formData.MoTaChiTiet.trim(),
-        MaDanhMuc: parseInt(selectedCategoryId),
-        MaNguoiDung: parseInt(user.MaNguoiDung),
-        utilities: formData.utilities ? formData.utilities.map(id => parseInt(id)) : []
-    };
+    
+   try {
+       
+        const postData = {
+            TieuDe: formData.TieuDe.trim(),
+            Tinh_TP: provinceName,
+            Quan_Huyen: districtName,
+            Phuong_Xa: wardName,
+            Duong: formData.Duong ? formData.Duong.trim() : null,
+            DiaChi: formData.DiaChi.trim(),
+            SoPhongNgu: parseInt(formData.SoPhongNgu),
+            SoPhongTam: parseInt(formData.SoPhongTam),
+            SoTang: formData.SoTang ? parseInt(formData.SoTang) : null,
+            DienTich: parseFloat(formData.DienTich),
+            Gia: parseFloat(formData.Gia),
+            MoTaChiTiet: formData.MoTaChiTiet.trim(),
+            MaDanhMuc: parseInt(selectedCategoryId),
+            MaNguoiDung: parseInt(user.MaNguoiDung),
+            utilities: formData.utilities ? formData.utilities.map(id => parseInt(id)) : []
+        };
 
-      try {
-        const created = await createHouse(postData); // dùng custom hook
-        const houseId = created?.MaNha || created?.house?.MaNha;
-
-        if (!houseId) {
-            toast.error('Không lấy được mã nhà sau khi tạo');
-            return;
-        }
-
-        // Upload ảnh nếu có
+       
+        const { houseId } = await createHouse(postData);
+        
+      
         if (images.length > 0) {
             await uploadImages({ houseId, images });
         }
-
-        toast.success('Tạo bài đăng thành công!');
         window.location.href = `/post/paymentpost?id=${houseId}`;
+        
     } catch (error) {
-        console.error('Lỗi khi submit:', error);
+        console.error('Error:', error);
     }
 };
     useEffect(() => {
