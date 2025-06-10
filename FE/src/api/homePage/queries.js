@@ -123,7 +123,12 @@ export const useCreateHouse = () => {
                     'Accept': 'application/json'
                 }
             });
-            return response.data;
+            
+            // Trả về cả response.data và houseId để dễ sử dụng
+            return {
+                ...response.data,
+                houseId: response.data.house?.MaNha || response.data.MaNha
+            };
         },
         onSuccess: (data) => {
             queryClient.invalidateQueries(['houses']);
@@ -146,32 +151,34 @@ export const useCreateHouse = () => {
 };
 // upload images
 export const useUploadHouseImages = () => {
-    return useMutation({
+     return useMutation({
         mutationFn: async ({ houseId, images }) => {
             const formData = new FormData();
-            
-            images.forEach((image) => {
-                formData.append('images[]', image);
+            images.forEach(image => {
+                formData.append('images[]', image); // CHỈNH SỬA Ở ĐÂY
             });
 
             const response = await axiosUser.post(
-                `/houses/${houseId}/images`, 
+                `/houses/${houseId}/images`,
                 formData,
                 {
                     headers: {
-                        'Content-Type': 'multipart/form-data'
+                        'Content-Type': 'multipart/form-data',
+                        'Accept': 'application/json'
                     }
                 }
             );
-            
+
             return response.data;
         },
         onError: (error) => {
-            const message = error.response?.data?.message || 'Upload ảnh thất bại';
-            toast.error(message);
+            const serverMessage = error.response?.data?.message;
+            toast.error(serverMessage || 'Lỗi khi upload ảnh');
             throw error;
         }
     });
+};
+
 export const useUpdateUserRole = () => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -225,3 +232,4 @@ export const useGetRoles = () => {
     },
   });
 };
+
