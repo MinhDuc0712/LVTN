@@ -141,6 +141,26 @@ export const getUserProfileAPI = async () => {
   }
 };
 
+// Cập nhật thông tin người dùng
+export const updateUserProfileAPI = async (data) => {
+  try {
+    const response = await axiosAuth.post("/updateProfile", data);
+    return {
+      success: true,
+      message: response.message || "Cập nhật thông tin thành công",
+      user: response.user || {},
+      roles: response.roles || [],
+    };
+  } catch (error) {
+    console.error("Lỗi cập nhật thông tin người dùng:", error);
+    const errorMessage = error.response?.data?.message || error.message || "Cập nhật thông tin thất bại";
+    return {
+      success: false,
+      message: errorMessage,
+    };
+  }
+};
+
 // Gửi yêu cầu đổi mật khẩu tới backend
 export const changePasswordAPI = async (data) => {
   try {

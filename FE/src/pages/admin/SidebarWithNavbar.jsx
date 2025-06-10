@@ -134,12 +134,11 @@ export default function SidebarWithNavbar({ children }) {
 
 function SidebarItem({ icon, label }) {
   return (
-    <a
-      href="#"
+    <div
       className="flex items-center p-3 rounded-xl hover:bg-blue-200 transition duration-200 text-blue-900 font-medium"
     >
       <span className="w-5 h-5 mr-3 text-blue-700">{icon}</span>
       {label}
-    </a>
+    </div>
   );
 }

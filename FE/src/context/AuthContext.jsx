@@ -22,7 +22,7 @@ export const AuthProvider = ({ children }) => {
   // Hàm xử lý đăng nhập
  const login = (userData, token) => {  // Thêm tham số token
   setUser(userData);
-  console.log('Storing token:', token);
+  // console.log('Storing token:', token);
   setIsAuthenticated(true);
   localStorage.setItem('user', JSON.stringify(userData));
   localStorage.setItem('token', token);  // Lưu token vào localStorage
@@ -40,12 +40,12 @@ const logout = async () => {
     }
 
     await axiosAuth.post('/logout');
-    console.log('Token đã được xóa phía server');
+    // console.log('Token đã được xóa phía server');
   } catch (error) {
-    console.error('Lỗi khi gọi API đăng xuất:', error.response || error);
+    // console.error('Lỗi khi gọi API đăng xuất:', error.response || error);
     // Nếu lỗi 401, vẫn tiến hành đăng xuất phía client
     if (error.response?.status === 401) {
-      console.warn('Token không hợp lệ hoặc đã hết hạn');
+      // console.warn('Token không hợp lệ hoặc đã hết hạn');
     }
   }
 
