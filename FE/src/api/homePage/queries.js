@@ -3,7 +3,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getCategoriesAPI } from "./request";
 import { getUtilitiesAPI } from "./request";
 import { axiosAdmin } from '../axios';
-import { axiosUser } from '../axios';
 import toast from 'react-hot-toast';
 import { 
   getDepositTransactionsAPI,
@@ -110,68 +109,6 @@ export const useGetUsers = () => {
   });
 };
 
-
-// post house
-export const useCreateHouse = () => {
-    const queryClient = useQueryClient();
-    
-    return useMutation({
-        mutationFn: async (data) => {
-            const response = await axiosUser.post('/houses', data, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                }
-            });
-            return response.data;
-        },
-        onSuccess: (data) => {
-            queryClient.invalidateQueries(['houses']);
-            return data;
-        },
-        onError: (error) => {
-            const serverMessage = error.response?.data?.message;
-            const validationErrors = error.response?.data?.errors;
-            
-            if (validationErrors) {
-                Object.values(validationErrors).forEach(errors => {
-                    errors.forEach(message => toast.error(message));
-                });
-            } else {
-                toast.error(serverMessage || 'Lỗi khi tạo bài đăng');
-            }
-            throw error;
-        }
-    });
-};
-// upload images
-export const useUploadHouseImages = () => {
-    return useMutation({
-        mutationFn: async ({ houseId, images }) => {
-            const formData = new FormData();
-            
-            images.forEach((image) => {
-                formData.append('images[]', image);
-            });
-
-            const response = await axiosUser.post(
-                `/houses/${houseId}/images`, 
-                formData,
-                {
-                    headers: {
-                        'Content-Type': 'multipart/form-data'
-                    }
-                }
-            );
-            
-            return response.data;
-        },
-        onError: (error) => {
-            const message = error.response?.data?.message || 'Upload ảnh thất bại';
-            toast.error(message);
-            throw error;
-        }
-    });
 export const useUpdateUserRole = () => {
   const queryClient = useQueryClient();
   return useMutation({
