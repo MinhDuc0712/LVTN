@@ -110,6 +110,7 @@ export const useGetUsers = () => {
   });
 };
 
+
 // post house
 export const useCreateHouse = () => {
     const queryClient = useQueryClient();
@@ -177,3 +178,58 @@ export const useUploadHouseImages = () => {
         }
     });
 };
+
+export const useUpdateUserRole = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ userId, role, status }) => {
+      console.log("Sending data:", { Role: role, TrangThai: status });
+      const response = await axiosAdmin.put(`/user/${userId}`, {
+        Role: role,
+        TrangThai: status,
+      });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(["user"]);
+    },
+    onError: (error) => {
+      console.error("Lỗi khi cập nhật quyền:", error.response?.data || error.message);
+    },
+  });
+};
+
+export const useBanUser = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ userId, reason }) =>
+      await axiosAdmin.post(`/user/${userId}/ban`, { LyDo: reason }),
+    onSuccess: () => {
+      queryClient.invalidateQueries(["user"]);
+    },
+  });
+};
+
+export const useUnbanUser = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (userId) => await axiosAdmin.post(`/user/${userId}/unban`),
+    onSuccess: () => {
+      queryClient.invalidateQueries(["user"]);
+    },
+  });
+};
+
+export const useGetRoles = () => {
+  return useQuery({
+    queryKey: ["roles"],
+    queryFn: async () => {
+      const response = await axiosAdmin.get("/roles");
+      return response; // Trả về mảng roles
+    },
+    onError: (error) => {
+      console.error("Lỗi khi lấy danh sách quyền:", error);
+    },
+  });
+};
+
