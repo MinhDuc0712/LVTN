@@ -178,3 +178,8 @@ export const changePasswordAPI = async (data) => {
   }
 };
 
+// API thêm house
+export const postHouseAPI = async (data) => {
+  const response = await axiosUser.post("/houses", data);
+  return response.data;
+};
