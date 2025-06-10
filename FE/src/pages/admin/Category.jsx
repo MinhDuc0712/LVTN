@@ -7,33 +7,37 @@ import {
 } from "../../api/homePage/request";
 import { useGetCategoriesUS } from "../../api/homePage/queries";
 import { useQueryClient } from "@tanstack/react-query";
-import { FaEdit, FaTrash } from 'react-icons/fa';
+import { FaEdit, FaTrash } from "react-icons/fa";
+import { toast } from "react-toastify";
+
 export default function Category() {
   const [name, setName] = useState("");
   const [moTa, setMoTa] = useState("");
-  const [message, setMessage] = useState("");
   const [editingCategory, setEditingCategory] = useState(null);
 
   const queryClient = useQueryClient();
-  const { data: categories = [], isLoading } = useGetCategoriesUS();
+  const { data: categories = [] } = useGetCategoriesUS();
 
   const handleSubmit = async () => {
     if (!name.trim()) {
-      setMessage("Tên danh mục không được để trống.");
+      // setMessage("Tên danh mục không được để trống.");
+      toast.error("Tên danh mục không được để trống.");
       return;
     }
 
     try {
-      setMessage("");
+      // setMessage("");
       if (editingCategory) {
         const res = await updateCategoryAPI(editingCategory.MaDanhMuc, {
           name,
           mo_ta: moTa,
         });
-        setMessage("Cập nhật thành công!");
+        // setMessage("Cập nhật thành công!");
+        toast.success("Cập nhật thành công!");
       } else {
         const res = await postCategoryAPI({ name, mo_ta: moTa });
-        setMessage("Thêm thành công!");
+        // setMessage("Thêm thành công!");
+        toast.success("Thêm thành công!");
       }
 
       await queryClient.invalidateQueries({ queryKey: ["categories"] });
@@ -41,37 +45,41 @@ export default function Category() {
       setMoTa("");
       setEditingCategory(null);
     } catch (error) {
-    console.error("Error:", error.response?.data);
-    setMessage(error.response?.data?.message || "Lỗi khi cập nhật");
-  }
+      // console.error("Error:", error.response?.data);
+      // setMessage(error.response?.data?.message || "Lỗi khi cập nhật");
+      toast.error(`Lỗi khi cập nhật`);
+      // console.error("Error:", error);
+    }
   };
 
   const handleDelete = async (MaDanhMuc) => {
-  try {
-    await deleteCategoryAPI(MaDanhMuc);
-    setMessage("Xóa thành công!");
-    await queryClient.invalidateQueries({ queryKey: ["categories"] });
-  } catch (error) {
-    console.error("Delete error:", error);
-    setMessage("Xóa thất bại: " + (error.response?.data?.message || error.message));
-  }
-};
+    try {
+      await deleteCategoryAPI(MaDanhMuc);
+      // setMessage("Xóa thành công!");
+      toast.success("Xóa thành công!");
+      await queryClient.invalidateQueries({ queryKey: ["categories"] });
+    } catch (error) {
+      console.error("Delete error:", error);
+      // setMessage("Xóa thất bại: " + (error.response?.data?.message || error.message));
+      toast.error(`Xóa thất bại`);
+    }
+  };
 
   const handleEdit = (category) => {
-  setEditingCategory(category);
-  setName(category.name);
-  setMoTa(category.mo_ta);
-  setMessage("");
-};
+    setEditingCategory(category);
+    setName(category.name);
+    setMoTa(category.mo_ta);
+    // setMessage("");
+  };
   return (
     <SidebarWithNavbar>
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-2xl font-bold text-blue-800 mb-6">
+      <div className="mx-auto max-w-4xl">
+        <h1 className="mb-6 text-2xl font-bold text-blue-800">
           Quản lý danh mục
         </h1>
 
-        <div className="bg-white shadow-md rounded-xl p-6 mb-8">
-          <h2 className="text-lg font-semibold text-blue-700 mb-4">
+        <div className="mb-8 rounded-xl bg-white p-6 shadow-md">
+          <h2 className="mb-4 text-lg font-semibold text-blue-700">
             {editingCategory ? "Chỉnh sửa danh mục" : "Thêm danh mục mới"}
           </h2>
           <div className="space-y-4">
@@ -80,22 +88,19 @@ export default function Category() {
               placeholder="Tên danh mục"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full border border-blue-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="w-full rounded-lg border border-blue-300 p-2 focus:ring-2 focus:ring-blue-400 focus:outline-none"
             />
             <textarea
               placeholder="Mô tả"
               value={moTa}
               onChange={(e) => setMoTa(e.target.value)}
-              className="w-full border border-blue-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="w-full rounded-lg border border-blue-300 p-2 focus:ring-2 focus:ring-blue-400 focus:outline-none"
               rows="3"
             />
-            {message && (
-              <div className="text-sm text-red-600 font-medium">{message}</div>
-            )}
             <div className="flex gap-4">
               <button
                 onClick={handleSubmit}
-                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition disabled:opacity-50"
+                className="rounded-lg bg-blue-500 px-4 py-2 text-white transition hover:bg-blue-600 disabled:opacity-50"
               >
                 {editingCategory ? "Cập nhật danh mục" : "Thêm danh mục"}
               </button>
@@ -106,7 +111,7 @@ export default function Category() {
                     setName("");
                     setMoTa("");
                   }}
-                  className="bg-gray-300 text-black px-4 py-2 rounded-lg hover:bg-gray-400"
+                  className="rounded-lg bg-gray-300 px-4 py-2 text-black hover:bg-gray-400"
                 >
                   Hủy
                 </button>
@@ -115,32 +120,32 @@ export default function Category() {
           </div>
         </div>
 
-        <div className="bg-white shadow-md rounded-xl p-6">
-          <h2 className="text-lg font-semibold text-blue-700 mb-4">
+        <div className="rounded-xl bg-white p-6 shadow-md">
+          <h2 className="mb-4 text-lg font-semibold text-blue-700">
             Danh sách danh mục
           </h2>
-          {isLoading ? (
-            <p>Đang tải...</p>
+          {categories.length === 0 ? (
+            <p>Không có danh mục nào</p>
           ) : (
             <ul className="space-y-4">
               {categories.map((item) => (
                 <li
                   key={item.MaDanhMuc}
-                  className="border border-blue-200 rounded-lg p-4 flex justify-between items-start"
+                  className="flex items-start justify-between rounded-lg border border-blue-200 p-4"
                 >
                   <div>
-                    <h3 className="text-blue-900 font-semibold">{item.name}</h3>
+                    <h3 className="font-semibold text-blue-900">{item.name}</h3>
                     <p className="text-sm text-blue-700">{item.mo_ta}</p>
                   </div>
                   <div className="flex gap-3">
                     <button
-                      className="text-blue-600 hover:underline inline-flex items-center gap-1"
+                      className="inline-flex items-center gap-1 text-blue-600 hover:underline"
                       onClick={() => handleEdit(item)}
                     >
                       <FaEdit /> Sửa
                     </button>
                     <button
-                      className="text-red-600 hover:underline inline-flex items-center gap-1"
+                      className="inline-flex items-center gap-1 text-red-600 hover:underline"
                       onClick={() => handleDelete(item.MaDanhMuc)}
                     >
                       <FaTrash /> Xoá

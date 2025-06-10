@@ -18,6 +18,9 @@ import Utilities from "./pages/admin/Utilities";
 import Top_up from "./pages/admin/top_up";
 import Users from "./pages/admin/Users";
 import ChangePassword from "./pages/user/profile/ChangePassword";
+import Dashboard from "./pages/admin/Dashborad";
+import SavedListings from "./pages/user/SavedListing/SavedListing";
+import GoongMap from "./pages/map"; // Assuming this is a test page
 
 const AppRoutes = () => {
   return (
@@ -34,6 +37,7 @@ const AppRoutes = () => {
       <Route path="/top-up" element={<TopUp />} />
       <Route path="/top-up/momo" element={<Momo />} />
       <Route path="/top-up/QR" element={<QR />} />
+      <Route path="/savedList" element={<SavedListings />} />
       <Route path="/history/top-up" element={<HistoryTopUp />} />
       <Route path="/history/payment" element={<HistoryPayment />} />
       <Route path="/admin" element={<Admin />} />
@@ -41,6 +45,8 @@ const AppRoutes = () => {
       <Route path="/admin/Utilities" element={<Utilities />} />
       <Route path="/admin/top_up" element={<Top_up />} />
       <Route path="/admin/users" element={<Users />} />
+      <Route path="/admin/dashboard" element={<Dashboard />} />
+      <Route path="/test" element={<GoongMap />} />
     </Routes>
   );
 };
