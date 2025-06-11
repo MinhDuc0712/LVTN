@@ -1,18 +1,17 @@
 // queries.js
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getCategoriesAPI } from "./request";
 import { getUtilitiesAPI } from "./request";
-import { axiosAdmin } from '../axios';
-import { axiosUser } from '../axios';
-import toast from 'react-hot-toast';
-import { 
+import { axiosAdmin } from "../axios";
+import { axiosUser } from "../axios";
+import toast from "react-hot-toast";
+import {
   getDepositTransactionsAPI,
   postDepositTransactionAPI,
   updateDepositTransactionAPI,
   deleteDepositTransactionAPI,
-  getUserByIdentifierAPI
-
-} from './request';
+  getUserByIdentifierAPI,
+} from "./request";
 
 export const useGetCategoriesUS = () => {
   return useQuery({
@@ -30,14 +29,13 @@ export const useGetUtilitiesUS = (page = 1) => {
     refetchOnWindowFocus: false,
   });
 };
-const DEPOSIT_QUERY_KEY = 'deposits';
+const DEPOSIT_QUERY_KEY = "deposits";
 
 export const useGetDepositTransactions = (params) => {
-  
   return useQuery({
     queryKey: [DEPOSIT_QUERY_KEY, params],
     queryFn: () => getDepositTransactionsAPI(params),
-    keepPreviousData: true
+    keepPreviousData: true,
   });
 };
 
@@ -51,7 +49,7 @@ export const usePostDepositTransaction = () => {
     },
     onError: (error) => {
       toast.error(`Lỗi: ${error.response?.data?.message || error.message}`);
-    }
+    },
   });
 };
 
@@ -65,7 +63,7 @@ export const useUpdateDepositTransaction = () => {
     },
     onError: (error) => {
       toast.error(`Lỗi: ${error.response?.data?.message || error.message}`);
-    }
+    },
   });
 };
 
@@ -79,16 +77,16 @@ export const useDeleteDepositTransaction = () => {
     },
     onError: (error) => {
       toast.error(`Lỗi: ${error.response?.data?.message || error.message}`);
-    }
+    },
   });
 };
 
 export const useGetUserByIdentifier = (identifier) => {
   return useQuery({
-    queryKey: ['user', identifier],
+    queryKey: ["user", identifier],
     queryFn: () => getUserByIdentifierAPI(identifier),
     enabled: !!identifier,
-    retry: false, 
+    retry: false,
   });
 };
 
@@ -110,73 +108,96 @@ export const useGetUsers = () => {
   });
 };
 
-
 // post house
 export const useCreateHouse = () => {
-    const queryClient = useQueryClient();
-    
-    return useMutation({
-        mutationFn: async (data) => {
-            const response = await axiosUser.post('/houses', data, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                }
-            });
-            
-            // Trả về cả response.data và houseId để dễ sử dụng
-            return {
-                ...response.data,
-                houseId: response.data.house?.MaNha || response.data.MaNha
-            };
-        },
-        onSuccess: (data) => {
-            queryClient.invalidateQueries(['houses']);
-            return data;
-        },
-        onError: (error) => {
-            const serverMessage = error.response?.data?.message;
-            const validationErrors = error.response?.data?.errors;
-            
-            if (validationErrors) {
-                Object.values(validationErrors).forEach(errors => {
-                    errors.forEach(message => toast.error(message));
-                });
-            } else {
-                toast.error(serverMessage || 'Lỗi khi tạo bài đăng');
-            }
-            throw error;
-        }
-    });
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data) => {
+  try {
+    console.log("Payload sent:", data);
+
+    const resData = await axiosUser.post("/houses", data);
+    console.log("Response (after interceptor):", resData);
+
+    const house = resData?.house;
+    const houseId = house?.MaNha || resData?.MaNha;
+
+    if (!houseId) {
+      throw new Error("Không tìm thấy ID của bài đăng từ server.");
+    }
+
+    return {
+      ...resData,
+      houseId,
+    };
+  } catch (err) {
+    console.error("Lỗi mutationFn:", err);
+    throw err;
+  }
+},
+
+    onSuccess: (data) => {
+      queryClient.invalidateQueries(["houses"]);
+      toast.success("Bài đăng đã được tạo thành công!");
+      return data;
+    },
+
+    onError: (error) => {
+      if (!error.response) {
+        toast.error("Không thể kết nối đến máy chủ.");
+        console.error("Network/Server error:", error);
+        return;
+      }
+
+      const serverMessage = error.response?.data?.message;
+      const validationErrors = error.response?.data?.errors;
+
+      if (validationErrors) {
+        Object.values(validationErrors).forEach((errors) => {
+          errors.forEach((message) => toast.error(message));
+        });
+      } else {
+        toast.error(
+          serverMessage ||
+            error.message ||
+            "Lỗi không xác định khi tạo bài đăng",
+        );
+      }
+
+      console.error("Error response:", error.response?.data || error.message);
+    },
+  });
 };
+
 // upload images
 export const useUploadHouseImages = () => {
-     return useMutation({
-        mutationFn: async ({ houseId, images }) => {
-            const formData = new FormData();
-            images.forEach(image => {
-                formData.append('images[]', image); // CHỈNH SỬA Ở ĐÂY
-            });
+  return useMutation({
+    mutationFn: async ({ houseId, images }) => {
+      const formData = new FormData();
+      images.forEach((image) => {
+        formData.append("images[]", image); // CHỈNH SỬA Ở ĐÂY
+      });
 
-            const response = await axiosUser.post(
-                `/houses/${houseId}/images`,
-                formData,
-                {
-                    headers: {
-                        'Content-Type': 'multipart/form-data',
-                        'Accept': 'application/json'
-                    }
-                }
-            );
-
-            return response.data;
+      const response = await axiosUser.post(
+        `/houses/${houseId}/images`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Accept: "application/json",
+          },
         },
-        onError: (error) => {
-            const serverMessage = error.response?.data?.message;
-            toast.error(serverMessage || 'Lỗi khi upload ảnh');
-            throw error;
-        }
-    });
+      );
+
+      return response.data;
+    },
+    onError: (error) => {
+      const serverMessage = error.response?.data?.message;
+      toast.error(serverMessage || "Lỗi khi upload ảnh");
+      throw error;
+    },
+  });
 };
 
 export const useUpdateUserRole = () => {
@@ -194,7 +215,10 @@ export const useUpdateUserRole = () => {
       queryClient.invalidateQueries(["user"]);
     },
     onError: (error) => {
-      console.error("Lỗi khi cập nhật quyền:", error.response?.data || error.message);
+      console.error(
+        "Lỗi khi cập nhật quyền:",
+        error.response?.data || error.message,
+      );
     },
   });
 };
@@ -213,7 +237,8 @@ export const useBanUser = () => {
 export const useUnbanUser = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (userId) => await axiosAdmin.post(`/user/${userId}/unban`),
+    mutationFn: async (userId) =>
+      await axiosAdmin.post(`/user/${userId}/unban`),
     onSuccess: () => {
       queryClient.invalidateQueries(["user"]);
     },
@@ -232,4 +257,3 @@ export const useGetRoles = () => {
     },
   });
 };
-
