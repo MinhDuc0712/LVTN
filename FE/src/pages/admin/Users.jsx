@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   FaEdit,
   FaTrash,
@@ -20,7 +20,6 @@ import {
 } from "../../api/homePage/queries";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import axios from "axios";
 
 export default function Users() {
   const { isLoading: isLoadingUsers, error: errorUsers, data: users = [] } = useGetUsers();
@@ -34,37 +33,21 @@ export default function Users() {
   const [banReason, setBanReason] = useState("");
   const [userRole, setUserRole] = useState("");
   const [userStatus, setUserStatus] = useState("");
-  const [userImage, setUserImage] = useState(null); // State for image file
 
-  // Handle image selection
-  const handleImageChange = (e) => {
-    setUserImage(e.target.files[0]);
-  };
-
-  const handleUpdateUserRole = async (userId) => {
+  const handleUpdateUserRole = async (userId, newRole) => {
     try {
-      const formData = new FormData();
-      formData.append("HoTen", selectedUser.HoTen);
-      formData.append("Email", selectedUser.Email);
-      formData.append("SDT", selectedUser.SDT);
-      formData.append("Role", userRole);
-      formData.append("TrangThai", userStatus);
-      if (userImage) {
-        formData.append("HinhDaiDien", userImage);
-      }
-
-      const response = await axios.put(`http://localhost:5000/api/users/${userId}`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+      await updateUserRoleMutation.mutateAsync({
+        userId,
+        role: newRole,
+        status: userStatus,
       });
-
-      toast.success(`Cập nhật thông tin thành công cho người dùng ${selectedUser?.HoTen}`, {
+      toast.success(`Cập nhật quyền thành công cho người dùng ${selectedUser?.HoTen}`, {
         position: "top-right",
         autoClose: 3000,
       });
       setShowEditModal(false);
-      setUserImage(null); // Reset image
     } catch (error) {
-      toast.error("Cập nhật thất bại: " + (error.response?.data?.message || error.message), {
+      toast.error("Cập nhật quyền thất bại: " + (error.response?.data?.message || error.message), {
         position: "top-right",
         autoClose: 3000,
       });
@@ -108,7 +91,6 @@ export default function Users() {
     setSelectedUser(user);
     setUserRole(user.Role || "user");
     setUserStatus(user.TrangThai || "Đang hoạt động");
-    setUserImage(null); // Reset image when opening modal
     setShowEditModal(true);
   };
 
@@ -271,7 +253,7 @@ export default function Users() {
                         <div className="flex items-center">
                           <div className="h-10 w-10 flex-shrink-0">
                             <img
-                              src={user.HinhDaiDien ? `http://localhost:5000${user.HinhDaiDien}` : Avatar}
+                              src={`data:image/jpeg;base64,${user.HinhDaiDien}` || Avatar}
                               alt={`${user.HoTen}'s avatar`}
                               className="h-10 w-10 rounded-full object-cover"
                               onError={(e) => {
@@ -378,42 +360,6 @@ export default function Users() {
                 </div>
                 <div>
                   <label className="mb-2 block text-sm font-medium text-gray-700">
-                    Email
-                  </label>
-                  <input
-                    type="text"
-                    value={selectedUser.Email}
-                    readOnly
-                    className="w-full rounded-md border border-gray-300 bg-gray-50 px-3 py-2"
-                  />
-                </div>
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-gray-700">
-                    Số điện thoại
-                  </label>
-                  <input
-                    type="text"
-                    value={selectedUser.SDT}
-                    readOnly
-                    className="w-full rounded-md border border-gray-300 bg-gray-50 px-3 py-2"
-                  />
-                </div>
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-gray-700">
-                    Hình đại diện
-                  </label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageChange}
-                    className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                  />
-                  {userImage && (
-                    <p className="mt-2 text-sm text-gray-600">Đã chọn: {userImage.name}</p>
-                  )}
-                </div>
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-gray-700">
                     Quyền hạn
                   </label>
                   <select
@@ -443,31 +389,16 @@ export default function Users() {
                   </select>
                 </div>
               </div>
-              {updateUserRoleMutation.isError && (
-                <div className="mt-2 text-sm text-red-600">
-                  <p>Lỗi: {updateUserRoleMutation.error.response?.data?.message || "Dữ liệu không hợp lệ"}</p>
-                  {updateUserRoleMutation.error.response?.data?.errors && (
-                    <ul>
-                      {Object.entries(updateUserRoleMutation.error.response.data.errors).map(([field, messages]) => (
-                        <li key={field}>{field}: {messages.join(", ")}</li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              )}
               <div className="mt-6 flex gap-3">
                 <button
-                  onClick={() => handleUpdateUserRole(selectedUser.MaNguoiDung)}
+                  onClick={() => handleUpdateUserRole(selectedUser.MaNguoiDung, userRole)}
                   className="flex-1 rounded-md bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
                   disabled={updateUserRoleMutation.isLoading}
                 >
                   {updateUserRoleMutation.isLoading ? "Đang cập nhật..." : "Cập nhật"}
                 </button>
                 <button
-                  onClick={() => {
-                    setShowEditModal(false);
-                    setUserImage(null);
-                  }}
+                  onClick={() => setShowEditModal(false)}
                   className="flex-1 rounded-md bg-gray-300 px-4 py-2 text-gray-700 transition-colors hover:bg-gray-400"
                 >
                   Hủy
