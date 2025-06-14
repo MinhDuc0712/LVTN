@@ -4,8 +4,20 @@ const timeout = +import.meta.env.VITE_APP_API_TIME_OUT || 20000;
 
 export const axiosUser = axios.create({
   baseURL: import.meta.env.VITE_API_URI_USER,
-  timeout,
+  timeout: +import.meta.env.VITE_APP_API_TIME_OUT,
+  
 });
+
+axiosUser.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token"); 
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
 export const axiosAdmin = axios.create({
   baseURL: import.meta.env.VITE_API_URI_ADMIN,
