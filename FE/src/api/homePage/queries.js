@@ -4,6 +4,7 @@ import { getCategoriesAPI } from "./request";
 import { getUtilitiesAPI } from "./request";
 import { axiosAdmin } from "../axios";
 import { axiosUser } from "../axios";
+
 import toast from "react-hot-toast";
 import {
   getDepositTransactionsAPI,
@@ -176,7 +177,7 @@ export const useUploadHouseImages = () => {
     mutationFn: async ({ houseId, images }) => {
       const formData = new FormData();
       images.forEach((image) => {
-        formData.append("images[]", image); // CHỈNH SỬA Ở ĐÂY
+        formData.append("images[]", image); 
       });
 
       const response = await axiosUser.post(
@@ -199,10 +200,39 @@ export const useUploadHouseImages = () => {
     },
   });
 };
+export const useAuthUser = () => {
+  return useQuery({
+    queryKey: ["me"],
+    queryFn: async () => {
+      try {
+        const res = await axiosUser.get("/me");
+        if (!res || !res.user) {
+          console.error("Response không hợp lệ:", res);
+          throw new Error("Dữ liệu trả về không hợp lệ");
+        }
+        return res.user;
+      } catch (error) {
+        console.error("Lỗi khi gọi API:", {
+          message: error.message,
+          status: error.response?.status,
+          data: error.response?.data,
+        });
+        throw error;
+      }
+    },
+    retry: false,
+    staleTime: 1000 * 60 * 5,
+  });
+};
+
+
+
+
 
 export const useUpdateUserRole = () => {
   const queryClient = useQueryClient();
   return useMutation({
+
     mutationFn: async ({ userId, role, status }) => {
       console.log("Sending data:", { Role: role, TrangThai: status });
       const response = await axiosAdmin.put(`/user/${userId}`, {
