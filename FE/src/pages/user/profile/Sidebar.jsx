@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   FaPlus, FaList, FaMoneyBill, FaHistory,
   FaTags, FaUser, FaSignOutAlt, FaBars, FaTimes
 } from 'react-icons/fa';
 import avatar from '@/assets/avatar.jpg';
-
+import { useAuthUser } from "../../../api/homePage/queries";
 
 const menuItems = [
   { icon: <FaPlus />, label: 'Đăng tin mới', path: '/post' },
@@ -20,6 +20,11 @@ const menuItems = [
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const { data: user, isLoading: isUserLoading, error: userError } = useAuthUser();
+  // console.log("HinhDaiDien:", user?.HinhDaiDien);
+
+  if (isUserLoading) return <p className="p-4">Đang tải thông tin người dùng...</p>;
+  if (userError) return <p className="p-4 text-red-500">Không thể tải dữ liệu người dùng</p>;
 
   return (
     <>
@@ -41,35 +46,40 @@ const Sidebar = () => {
                 <FaTimes size={24} />
               </button>
             </div>
-            <SidebarContent avatar={avatar} />
+            <SidebarContent avatar={avatar} user={user} />
           </div>
         </div>
       )}
 
       {/* Sidebar for Desktop */}
       <div className="hidden md:block w-1/4 bg-gray-100 p-4">
-        <SidebarContent avatar={avatar} />
+        <SidebarContent avatar={avatar} user={user} />
       </div>
     </>
   );
 };
 
-const SidebarContent = ({ avatar }) => (
+const SidebarContent = ({ avatar, user }) => (
   <>
     <div className="flex items-center mb-4">
       <div className="w-16 h-16 rounded-full bg-gray-300 overflow-hidden">
-        <img src={avatar} alt="Avatar" className="w-full h-full object-cover" />
+        <img
+          src={`data:image/png;base64,${user?.HinhDaiDien}`}
+          alt="Avatar"
+          className="w-full h-full object-cover"
+        />
+        
       </div>
       <div className="ml-2">
-        <p className="font-bold">Quỳnh Trang</p>
-        <p>0344773350</p>
-        <p className="text-sm text-gray-600">Mã tài khoản: 151962</p>
+        <p className="font-bold">{user?.HoTen || "Chưa đăng nhập"}</p>
+        <p>{user?.SDT || "..."}</p>
+        <p className="text-sm text-gray-600">Mã tài khoản: {user?.MaNguoiDung || "..."}</p>
       </div>
     </div>
-    <Link to ="/top-up"> 
-    <button className="bg-yellow-400 text-white py-2 px-4 rounded mb-4 w-full cursor-pointer ">Nạp tiền</button>
+    <Link to="/top-up">
+      <button className="bg-yellow-400 text-white py-2 px-4 rounded mb-4 w-full cursor-pointer">Nạp tiền</button>
     </Link>
-    <p className="mb-4 text-sm">Số dư tài khoản: 0</p>
+    <p className="mb-4 text-sm">Số dư tài khoản: {user?.so_du?.toLocaleString('vi-VN') || 0}₫</p>
     <ul>
       {menuItems.map((item, idx) => (
         <Link key={idx} to={item.path}>

@@ -9,6 +9,7 @@ import { useAuth } from "../context/AuthContext";
 
 const Header = () => {
   const { isAuthenticated, user, logout } = useAuth();
+  // console.log("HinhDaiDien:", user?.HinhDaiDien);
   const { data } = useGetCategoriesUS();
   const categories = data || [];
   // console.log("Categories data:", data);
@@ -172,11 +173,7 @@ const Header = () => {
                 >
                   <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full">
                     <img
-                      src={
-                        user?.avatar
-                          ? `/storage/${user.avatar}`
-                          : "/images/default-avatar.png"
-                      }
+                      src={`data:image/png;base64,${user?.HinhDaiDien}`}
                       alt="User Avatar"
                       className="h-full w-full object-cover"
                       onError={(e) => {
