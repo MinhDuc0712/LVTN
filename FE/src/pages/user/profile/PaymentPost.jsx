@@ -1,7 +1,56 @@
 import { useEffect, useState } from 'react';
+import { useLocation, Link, useNavigate } from 'react-router-dom';
 import Sidebar from './Sidebar';
-import { Link } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
+import { axiosUser } from '../../../api/axios';
+import { useAuthUser } from "../../../api/homePage/queries";
+import { useQueryClient } from "@tanstack/react-query";
+
+function useQuery() {
+    return new URLSearchParams(useLocation().search);
+}
+
+
 function PaymentPost() {
+    const query = useQuery();
+    const navigate = useNavigate();
+    const queryClient = useQueryClient();
+    const houseId = query.get("id");
+    const { data: user, isLoading: isUserLoading, error: userError } = useAuthUser();
+    useEffect(() => {
+
+    }, [user, isUserLoading, userError]);
+    
+    const handlePayment = async () => {
+        if (!houseId) {
+            toast.error("Không tìm thấy bài đăng.");
+            return;
+        }
+
+        try {
+            await axiosUser.post("/houses/payment", {
+                houseId,
+                planType: type,
+                duration: quantity,
+                unit: durationUnit,
+                total,
+            });
+            queryClient.setQueryData(["me"], (oldData) => {
+                if (!oldData) return oldData;
+                return {
+                    ...oldData,
+                    so_du: oldData.so_du - total,
+                };
+            });
+
+
+            toast.success("Thanh toán thành công!");
+            navigate("/my-houses"); // hoặc trang bạn muốn quay lại
+        } catch (error) {
+            console.error(error);
+            toast.error("Có lỗi xảy ra khi thanh toán.");
+        }
+    };
 
     const plans = {
         normal: {
@@ -135,15 +184,18 @@ function PaymentPost() {
                                 <input type="radio" name="payment" className="mt-1" defaultChecked />
                                 <div className="flex-1">
                                     <p className="font-semibold">Trừ tiền trong tài khoản HOME CONVENIENT</p>
-                                    <p className="text-green-600 text-sm">(Bạn đang có: 0)</p>
-                                    <p className="text-red-600 text-sm">
-                                        Số tiền trong tài khoản của bạn không đủ để thực hiện thanh toán, vui lòng{" "}
-                                        <Link to="/top-up"> <a href="#" className="text-blue-600 underline">nạp thêm</a> </Link> hoặc chọn phương thức khác bên dưới
+                                    <p className="text-green-600 text-sm">
+                                        (Bạn đang có: {user?.so_du?.toLocaleString() || 0}₫)
                                     </p>
+                                    {user?.so_du < total && (
+                                        <p className="text-red-600 text-sm">
+                                            Số tiền trong tài khoản của bạn không đủ để thực hiện thanh toán, vui lòng{" "}
+                                            <Link to="/top-up" className="text-blue-600 underline">nạp thêm</Link> hoặc chọn phương thức khác bên dưới.
+                                        </p>
+                                    )}
                                 </div>
                             </label>
                         </div>
-
                         {/* QR Code */}
                         <div className="border p-4 rounded flex items-center justify-between">
                             <label className="flex items-center space-x-2">
@@ -177,9 +229,13 @@ function PaymentPost() {
                             <Link className="flex items-center justify-center gap-2 w-1/2 px-6 py-3 bg-gray-300 text-black font-medium rounded-xl hover:bg-gray-400 transition" to="/post">
                                 <span className="text-lg">←</span> Quay lại
                             </Link>
-                            <button className="w-1/2 px-6 py-3  bg-[#ff1e56] hover:bg-[#e60042] text-white font-semibold rounded-xl  transition">
+                            <button
+                                onClick={handlePayment}
+                                className="w-1/2 px-6 py-3 bg-[#ff1e56] hover:bg-[#e60042] text-white font-semibold rounded-xl transition"
+                            >
                                 Thanh toán {total.toLocaleString()}₫
                             </button>
+
                         </div>
                     </div>
                 </div>

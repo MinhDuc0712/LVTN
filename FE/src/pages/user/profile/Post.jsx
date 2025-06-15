@@ -3,19 +3,21 @@ import { useState, useEffect } from "react";
 import {
     useGetUtilitiesUS,
     useGetCategoriesUS,
-    
+
 } from "../../../api/homePage";
 import { toast } from "react-hot-toast";
-import { useCreateHouse,useAuthUser, } from "../../../api/homePage/queries";
+
+import { useCreateHouse, useAuthUser, } from "../../../api/homePage/queries";
 import { useNavigate } from "react-router-dom";
 function UserPost() {
     const navigate = useNavigate();
 
- const { data: user, isLoading: isUserLoading, error: userError } = useAuthUser();
+    const { data: user, isLoading: isUserLoading, error: userError } = useAuthUser();
 
-  useEffect(() => {
-    
-  }, [user, isUserLoading, userError]);
+    useEffect(() => {
+
+    }, [user, isUserLoading, userError]);
+
     const [formData, setFormData] = useState({
         TieuDe: "",
         SoPhongNgu: 0,
@@ -41,7 +43,7 @@ function UserPost() {
     const { data: categories } = useGetCategoriesUS();
     const { data: utilitiesData } = useGetUtilitiesUS();
     const utilities = utilitiesData || [];
-   
+
 
     const [images, setImages] = useState([]);
     const [previewImages, setPreviewImages] = useState([]);
@@ -141,7 +143,7 @@ function UserPost() {
             toast.error("Vui lòng tải lên ít nhất một ảnh");
             return;
         }
-         if (isUserLoading) {
+        if (isUserLoading) {
             toast.error("Đang xác thực thông tin người dùng...");
             return;
         }
@@ -181,12 +183,20 @@ function UserPost() {
                 Gia: parseFloat(formData.Gia) || 0,
                 MoTaChiTiet: formData.MoTaChiTiet.trim(),
                 MaDanhMuc: parseInt(selectedCategoryId),
+                //MaNguoiDung: user.MaNguoiDung,
                 utilities: formData.utilities
                     ? formData.utilities.map((id) => parseInt(id))
                     : [],
                 images: images.map((image) => image.base64),
             };
+
+            // console.log("Submitting payload:", postData);
+            // console.log("Post data being sent:", postData);
+
+
+            console.log("Submitting with user ID:", user.MaNguoiDung);
             const { houseId } = await createHouse(postData);
+
             toast.success("Đăng tin thành công!");
             navigate(`/post/paymentpost?id=${houseId}`);
         } catch (error) {
@@ -581,39 +591,39 @@ function UserPost() {
                             )}
                         </ul>
                     </div>
-   <div className="mb-6 rounded bg-white p-4 shadow">
-      <h2 className="mb-4 text-lg font-bold">Thông tin liên hệ</h2>
-      <div>
-        {isUserLoading ? (
-          <p>Đang tải thông tin...</p>
-        ) : userError ? (
-          <p>Lỗi: {userError.message}. Vui lòng kiểm tra token hoặc liên hệ admin.</p>
-        ) : user && (user.HoTen || user.SDT) ? (
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div>
-              <label className="mb-1 block font-medium">Họ Tên</label>
-              <input
-                type="text"
-                value={user.HoTen || "Chưa cập nhật"}
-                className="w-full rounded border p-2"
-                readOnly
-              />
-            </div>
-            <div>
-              <label className="mb-1 block font-medium">Số điện thoại</label>
-              <input
-                type="text"
-                value={user.SDT || "Chưa cập nhật"}
-                className="w-full rounded border p-2"
-                readOnly
-              />
-            </div>
-          </div>
-        ) : (
-          <p>Không có dữ liệu người dùng.</p>
-        )}
-      </div>
-    </div>
+                    <div className="mb-6 rounded bg-white p-4 shadow">
+                        <h2 className="mb-4 text-lg font-bold">Thông tin liên hệ</h2>
+                        <div>
+                            {isUserLoading ? (
+                                <p>Đang tải thông tin...</p>
+                            ) : userError ? (
+                                <p>Lỗi: {userError.message}. Vui lòng kiểm tra token hoặc liên hệ admin.</p>
+                            ) : user && (user.HoTen || user.SDT) ? (
+                                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                    <div>
+                                        <label className="mb-1 block font-medium">Họ Tên</label>
+                                        <input
+                                            type="text"
+                                            value={user.HoTen || "Chưa cập nhật"}
+                                            className="w-full rounded border p-2"
+                                            readOnly
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="mb-1 block font-medium">Số điện thoại</label>
+                                        <input
+                                            type="text"
+                                            value={user.SDT || "Chưa cập nhật"}
+                                            className="w-full rounded border p-2"
+                                            readOnly
+                                        />
+                                    </div>
+                                </div>
+                            ) : (
+                                <p>Không có dữ liệu người dùng.</p>
+                            )}
+                        </div>
+                    </div>
                     <div className="text-center">
                         <button
                             type="submit"
