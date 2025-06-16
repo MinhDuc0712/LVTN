@@ -98,7 +98,7 @@ export default function SidebarWithNavbar({ children }) {
             <Link to="/admin/Utilities">
               <SidebarItem icon={<Puzzle />} label="Quản lý tiện ích" />
             </Link>
-            <Link to="/admin/posts">
+            <Link to="/admin/post">
               <SidebarItem icon={<Home />} label="Quản lý bài đăng" />
             </Link>
             <Link to="/admin/top_up">

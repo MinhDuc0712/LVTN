@@ -183,3 +183,17 @@ export const postHouseAPI = async (data) => {
   const response = await axiosUser.post("/houses", data);
   return response.data;
 };
+
+// API lấy danh sách nhà
+export const getRatingsByHouseAPI = async (maNha) => {
+  const response = await axiosUser.get(`/ratings`, {
+    params: { MaNha: maNha },
+  });
+  return response;
+};
+
+// API thêm đánh giá
+export const postRatingAPI = async (data) => {
+  const response = await axiosUser.post(`/ratings`, data);
+  return response;
+};
