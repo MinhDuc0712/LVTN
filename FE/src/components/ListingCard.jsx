@@ -83,7 +83,7 @@ const ListingCard = ({ listings }) => {
                         <span>Lưu: {listing.savedTime}</span>
                       </div> */}
                       <div className="mb-1 flex items-center gap-1">
-                        Đăng: {listing.postedTime}
+                        Thời gian đăng: {listing.postedTime}
                       </div>
                     </div>
 
