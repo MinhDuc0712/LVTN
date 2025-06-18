@@ -10,16 +10,17 @@ import {
   FaSearch,
 } from "react-icons/fa";
 import SidebarWithNavbar from "./SidebarWithNavbar";
-import Avatar from "../../assets/avatar.jpg";
+import Avatar from "@/assets/avatar.jpg";
 import {
   useGetUsers,
   useUpdateUserRole,
   useBanUser,
   useUnbanUser,
   useGetRoles,
-} from "../../api/homePage/queries";
+} from "@/api/homePage/queries";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { AlertCircle } from "lucide-react";
 
 export default function Users() {
   const { isLoading: isLoadingUsers, error: errorUsers, data: users = [] } = useGetUsers();
@@ -303,8 +304,14 @@ export default function Users() {
                                   : "bg-green-400"
                             }`}
                           ></div>
-                          {getStatusText(user.TrangThai || "Đang hoạt động")}
+                          {getStatusText(user.TrangThai)}
                         </span>
+                        {user.TrangThai === "Bị cấm" && (
+                          <div className="mt-1 text-xs text-red-500">
+                            <AlertCircle className="w-3 h-3 inline mr-1" />
+                            Lý do: {user.LyDoCam}
+                          </div>
+                        )}
                       </td>
                       <td className="px-6 py-4 text-sm font-medium whitespace-nowrap">
                         <div className="flex gap-2">

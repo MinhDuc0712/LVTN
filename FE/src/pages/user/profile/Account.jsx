@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import Sidebar from "./Sidebar";
-import { useAuth } from "../../../context/AuthContext";
+import { useAuth } from "@/context/AuthContext";
 import { Link, Navigate } from "react-router-dom";
-import { getUserProfileAPI, updateUserProfileAPI } from "../../../api/homePage";
+import { getUserProfileAPI, updateUserProfileAPI } from "@/api/homePage";
 import { toast } from "react-toastify";
-import defaultAvatar from "../../../assets/avatar.jpg";
+import Avatar from "@/assets/avatar.jpg";
 
 const AccountManagement = () => {
   const { isAuthenticated, user, setUser } = useAuth();
@@ -15,7 +15,7 @@ const AccountManagement = () => {
     Email: "",
     avatarBase64: "", // Lưu base64 thay vì file
   });
-  const [avatar, setAvatar] = useState(defaultAvatar);
+  const [avatar, setAvatar] = useState(Avatar);
   const [isFocused, setIsFocused] = useState({
     SDT: false,
     HoTen: false,
@@ -38,7 +38,7 @@ const AccountManagement = () => {
             Email: result.user.Email || "",
             avatarBase64: "", // Reset base64
           });
-          setAvatar(result.user.HinhDaiDien || defaultAvatar);
+          setAvatar(result.user.HinhDaiDien || Avatar);
         } else {
           toast.error(result.message || "Lỗi khi tải hồ sơ");
         }
@@ -69,7 +69,7 @@ const AccountManagement = () => {
           ...prev,
           avatarBase64: reader.result.split(",")[1], // Lấy phần base64 (bỏ prefix data:image/jpeg;base64,)
         }));
-        toast.success("Đổi ảnh đại diện thành công (chưa lưu lên server)!");
+        toast.success("Ảnh được tải lên thành công!");
       };
       reader.readAsDataURL(file); // Chuyển file thành base64
     } else {
@@ -98,7 +98,7 @@ const AccountManagement = () => {
           ...result.user,
           roles: result.roles || prev.roles,
         }));
-        setAvatar(result.user.HinhDaiDien || defaultAvatar);
+        setAvatar(result.user.HinhDaiDien || Avatar);
 
 
         setFormData((prev) => ({ ...prev, avatarBase64: "" }));
@@ -164,7 +164,7 @@ const AccountManagement = () => {
                 alt="Avatar"
                 className="h-full w-full object-cover"
                 onError={(e) => {
-                  e.target.src = defaultAvatar;
+                  e.target.src = Avatar;
                 }}
               />
             </div>

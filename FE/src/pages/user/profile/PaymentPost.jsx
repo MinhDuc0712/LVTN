@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import { toast } from 'react-hot-toast';
-import { axiosUser } from '../../../api/axios';
-import { useAuthUser } from "../../../api/homePage/queries";
+import { axiosUser } from '@/api/axios';
+import { useAuthUser } from "@/api/homePage/queries";
 import { useQueryClient } from "@tanstack/react-query";
 
 function useQuery() {
