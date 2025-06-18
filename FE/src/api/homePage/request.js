@@ -184,6 +184,53 @@ export const postHouseAPI = async (data) => {
   return response.data;
 };
 
+
+export const getHouses = async () => {
+  try {
+    const response = await axiosUser.get('/houses'); 
+    return response.data || response;
+  } catch (error) {
+    console.error('Error fetching public houses:', error.response?.data || error.message);
+    throw error;
+  }
+};
+
+
+export const getUserHouses = async () => {
+  try {
+    const response = await axiosUser.get('/houses/my'); 
+    return response.data || response;
+  } catch (error) {
+    console.error('Error fetching user houses:', error.response?.data || error.message);
+    throw error;
+  }
+};
+
+export const getFeaturedHouses = async () => {
+  try {
+    const response = await axiosUser.get('/houses/featured'); 
+    return response.data || response;
+  } catch (error) {
+    console.error('Error fetching featured houses:', error.response?.data || error.message);
+    throw error;
+  }
+};
+
+
+const fetchHousesByCategory = async (categoryId) => {
+  const res = await axiosUser.get(`/houses/category/${categoryId}`);
+  return res.data.data;
+};
+
+export function useHousesByCategory(categoryId) {
+  return useQuery(["housesByCategory", categoryId], () => fetchHousesByCategory(categoryId), {
+    enabled: !!categoryId,
+  });
+}
+export const getHousesByCategory = (categoryId) => {
+  return axiosUser.get(`/houses/category/${categoryId}`);
+};
+
 // API lấy danh sách nhà
 export const getRatingsByHouseAPI = async (maNha) => {
   const response = await axiosUser.get(`/ratings`, {

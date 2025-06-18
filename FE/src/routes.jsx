@@ -1,5 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import Home from "./pages/user/Home";
+import HousesByCategory from "./pages/user/HousesByCategory";
 import Login from "./layout/Auth/Login";
 import Register from "./layout/Auth/Register";
 import User from "./pages/user/profile/Account";
@@ -27,6 +28,7 @@ const AppRoutes = () => {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
+      <Route path="/category/:categoryId" element={<HousesByCategory/>} />
       <Route path="/dang-nhap" element={<Login />} />
       <Route path="/dang-ky-tai-khoan" element={<Register />} />
       <Route path="/user" element={<User />} />

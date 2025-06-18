@@ -335,7 +335,7 @@ const Header = () => {
           <div className="flex items-center justify-center space-x-4 py-2">
             {categories.map((category) => (
               <Link
-                to={`/${category.MaDanhMuc}`}
+                to={`/category/${category.MaDanhMuc}`}
                 key={category.MaDanhMuc}
                 onClick={() => setActiveCategoryId(category.MaDanhMuc)}
                 className={`text-sl relative px-3 py-2 font-medium transition-colors ${

@@ -1,59 +1,85 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import FilterSection from "../../components/FilterSection";
 import ListingCard from "../../components/ListingCard";
 import Banner from "../../components/Banner";
+import { getHouses, getUserHouses, getFeaturedHouses } from "../../api/homePage/request";
 
 const Home = () => {
-  const listings = [
-    {
-      id: 1,
-      title:
-        "Phòng trọ giá rẻ an toàn, an ninh kế bên khu CNC, ĐH FPT, Tài Chính Marketing chuẩn PCCC",
-      price: 2.0,
-      area: 20,
-      district: "Quận Phú Nhuận",
-      city: "Hồ Chí Minh",
-      address: "Nguyễn Trọng Tuyển, P.8, Phú Nhuận",
-      description:
-        "Đầy đủ nội thất, có máy giặt riêng. Sạch sẽ, hiện đại, thoáng mát, có ban công. Khu vực an ninh cao, ra vào vân tay, bảo vệ.",
-      postedTime: "3 ngày trước",
-      contact: "0344773350",
-      posterName: "Quỳnh Trang",
-      type: "Phòng trọ",
-      image: "src/assets/img-4597_1746276984.jpg",
-    },
-    {
-      id: 2,
-      title: "Căn hộ 1pn hiện đại tại Huỳnh Văn Bánh, Phú Nhuận",
-      price: 11.0,
-      area: 35,
-      district: "Quận Phú Nhuận",
-      city: "Hồ Chí Minh",
-      address: "Huỳnh Văn Bánh, Phú Nhuận",
-      description:
-        "Căn hộ 1 phòng ngủ hiện đại, đầy đủ tiện nghi, gần trung tâm thành phố.",
-      postedTime: "1 tuần trước",
-      contact: "0912345678",
-      posterName: "Minh Tuấn",
-      type: "Căn hộ",
-      image: "src/assets/img-4598_1746276976.jpg",
-    },
-    {
-      id: 3,
-      title: "Cho thuê căn hộ hiện đại ngay trung tâm Phú Nhuận",
-      price: 7.9,
-      area: 30,
-      district: "Quận Phú Nhuận",
-      city: "Hồ Chí Minh",
-      address: "Trung tâm Phú Nhuận",
-      description: "Căn hộ hiện đại, vị trí đắc địa, giao thông thuận tiện.",
-      postedTime: "5 ngày trước",
-      contact: "0987654321",
-      posterName: "Thu Hằng",
-      type: "Căn hộ",
-      image: "src/assets/img-4599_1746276981.jpg",
-    },
-  ];
+  const [listings, setListings] = useState([]);
+  const [featuredListings, setFeaturedListings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  
+useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        
+        // Sử dụng getHouses() cho danh sách public
+        const housesResponse = await getHouses();
+        setListings(housesResponse?.data || housesResponse || []);
+        
+        // Sử dụng getFeaturedHouses() cho nhà nổi bật
+        const featuredResponse = await getFeaturedHouses();
+        setFeaturedListings(featuredResponse?.data || featuredResponse || []);
+        
+      } catch (err) {
+        setError(err.message);
+        console.error("Fetch error:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  if (loading) return <div className="text-center py-8">Đang tải dữ liệu...</div>;
+  if (error) return <div className="text-center py-8 text-red-500">Lỗi: {error}</div>;
+
+ 
+  const formatListingData = (houses) => {
+    return houses.map(house => ({
+      id: house.MaNha,
+      title: house.TieuDe,
+      price: house.Gia,
+      area: house.DienTich,
+      district: house.Quan_Huyen,
+      city: house.Tinh_TP,
+      address: house.DiaChi,
+      description: house.MoTaChiTiet,
+      postedTime: formatPostedTime(house.NgayDang),
+      contact: house.user?.SDT || '',
+      posterName: house.user?.HoTen || '',
+      type: house.category?.TenDanhMuc || '',
+      image: house.HinhAnh || getFirstImage(house.images),
+      isFeatured: house.NoiBat
+    }));
+  };
+
+  // Hàm format thời gian đăng
+  const formatPostedTime = (dateString) => {
+    const now = new Date();
+    const postedDate = new Date(dateString);
+    const diffInDays = Math.floor((now - postedDate) / (1000 * 60 * 60 * 24));
+    
+    if (diffInDays === 0) return 'Hôm nay';
+    if (diffInDays === 1) return '1 ngày trước';
+    if (diffInDays < 7) return `${diffInDays} ngày trước`;
+    if (diffInDays < 30) return `${Math.floor(diffInDays / 7)} tuần trước`;
+    return `${Math.floor(diffInDays / 30)} tháng trước`;
+  };
+
+  // Lấy ảnh đầu tiên nếu có
+  const getFirstImage = (images) => {
+    if (!images || images.length === 0) return '';
+    return images[0].DuongDanHinh;
+  };
+
+  const formattedListings = formatListingData(listings);
+  const formattedFeatured = formatListingData(featuredListings);
+
   return (
     <div>
       <Banner />
@@ -61,21 +87,21 @@ const Home = () => {
         <div className="flex flex-col gap-6 md:flex-row">
           {/* Nội dung chính nằm bên phải */}
           <div className="w-full md:w-2/3">
-            <div className="mb-6">
-              <h2 className="mb-4 text-xl font-bold">Đề xuất </h2>
-              <ListingCard listings={listings.slice(0, 6)} />
-            </div>
-
+            {/* Hiển thị nhà nổi bật */}
+            {formattedFeatured.length > 0 && (
+              <div className="mb-6">
+                <h2 className="mb-4 uppercase text-xl font-bold">Nhà nổi bật</h2>
+                <ListingCard listings={formattedFeatured} />
+              </div>
+            )}
+            
+            {/* Hiển thị tất cả nhà */}
             {/* <div className="mb-6">
-              <h2 className="mb-4 text-xl font-bold">Phòng trọ giá rẻ</h2>
-              <ListingGrid listings={listings.filter(l => l.price < 3).slice(0, 6)} />
-            </div>
-
-            <div className="mb-6">
-              <h2 className="mb-4 text-xl font-bold">Căn hộ cao cấp</h2>
-              <ListingGrid listings={listings.filter(l => l.price > 5).slice(0, 6)} />
+              <h2 className="mb-4 text-xl font-bold">Đề xuất</h2>
+              <ListingCard listings={formattedListings} />
             </div> */}
           </div>
+          
           {/* FilterSection nằm bên trái */}
           <div className="w-full md:w-1/3">
             <FilterSection />
