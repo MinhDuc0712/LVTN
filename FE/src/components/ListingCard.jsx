@@ -1,6 +1,14 @@
 import React from "react";
 import { Heart, MapPin, Calendar, Square, Phone, Eye } from "lucide-react";
 import { Link } from 'react-router-dom'; 
+
+const formatnumber = (num) => {
+  return new Intl.NumberFormat('vi-VN', {
+    style: 'decimal',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(num);
+};
 const ListingCard = ({ listings }) => {
   return (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-1">
@@ -49,7 +57,7 @@ const ListingCard = ({ listings }) => {
 
                   {/* Price */}
                   <div className="mb-3 text-2xl font-bold text-amber-600">
-                    {listing.price} triệu/tháng
+                    {formatnumber(listing.price)} triệu/tháng
                   </div>
 
                   {/* Details */}
@@ -92,7 +100,7 @@ const ListingCard = ({ listings }) => {
                         <Phone className="h-4 w-4" />
                         <span>{listing.contact}</span>
                       </div>
-                      <Link to="/room/123" className="flex items-center gap-2 rounded-lg bg-amber-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-amber-600">
+                      <Link to={`/room/${listing.id}`} className="flex items-center gap-2 rounded-lg bg-amber-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-amber-600">
                         <Eye className="h-4 w-4" />
                         Xem chi tiết
                       </Link>

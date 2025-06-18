@@ -51,7 +51,14 @@ const HousesByCategory = () => {
     const postedDate = new Date(dateString);
     const diffInDays = Math.floor((now - postedDate) / (1000 * 60 * 60 * 24));
 
-    if (diffInDays === 0) return 'Hôm nay';
+    // if (diffInDays === 0) return 'Hôm nay';
+    //tính theo phút
+    if (diffInDays < 1) {
+      const diffInMinutes = Math.floor((now - postedDate) / (1000 * 60));
+      if (diffInMinutes < 15) return 'Hôm nay';
+      return `${diffInMinutes} phút trước`;
+    }
+
     if (diffInDays === 1) return '1 ngày trước';
     if (diffInDays < 7) return `${diffInDays} ngày trước`;
     if (diffInDays < 30) return `${Math.floor(diffInDays / 7)} tuần trước`;

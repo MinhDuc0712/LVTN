@@ -6,6 +6,7 @@ import {
   MessageCircle,
   MoreHorizontal,
 } from "lucide-react";
+import { toast } from "react-toastify";
 import { getRatingsByHouseAPI, postRatingAPI } from "@/api/homePage/request";
 
 function CommentsSection({ house, user }) {
@@ -16,22 +17,19 @@ function CommentsSection({ house, user }) {
   const [visibleCount, setVisibleCount] = useState(5);
   const [loading, setLoading] = useState(true);
 
-  // 👉 Fetch dữ liệu đánh giá
   useEffect(() => {
     const fetchRatings = async () => {
       try {
+        if (!house?.MaNha) return;
         setLoading(true);
-        const res = await getRatingsByHouseAPI(house?.MaNha);
-        if (house?.MaNha) {
-          fetchRatings();
-        }
-        // Chuẩn hóa dữ liệu
+
+        const res = await getRatingsByHouseAPI(house.MaNha);
+        // console.log("Đánh giá:", res);
+
         const formatted = res.map((item) => ({
           id: item.MaDanhGia,
           user: item.user?.HoTen || `Người dùng #${item.MaNguoiDung}`,
           avatar: `data:image/png;base64,${item.user.HinhDaiDien}`,
-          // ? `data:image/png;base64,${item.user.HinhDaiDien}`,
-          // : `/api/placeholder/40/${item.MaNguoiDung % 10}`,
           rating: item.SoSao,
           comment: item.NoiDung,
           date: item.ThoiGian,
@@ -47,10 +45,9 @@ function CommentsSection({ house, user }) {
       }
     };
 
-    if (house?.MaNha) fetchRatings();
+    fetchRatings();
   }, [house]);
 
-  // 👉 Gửi đánh giá mới
   const handleSubmitComment = async (e) => {
     e.preventDefault();
     if (!newComment.trim() || newRating === 0) return;
@@ -62,7 +59,6 @@ function CommentsSection({ house, user }) {
         SoSao: newRating,
         NoiDung: newComment,
       };
-
       const res = await postRatingAPI(payload);
 
       const newEntry = {
@@ -79,9 +75,10 @@ function CommentsSection({ house, user }) {
       setComments([newEntry, ...comments]);
       setNewComment("");
       setNewRating(0);
+      toast.success("Đánh giá đã được gửi thành công!");
     } catch (error) {
       console.error("Lỗi gửi đánh giá:", error);
-      alert("Gửi đánh giá thất bại.");
+      toast.error("Gửi đánh giá thất bại.");
     }
   };
 

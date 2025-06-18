@@ -195,17 +195,6 @@ export const getHouses = async () => {
   }
 };
 
-
-export const getUserHouses = async () => {
-  try {
-    const response = await axiosUser.get('/houses/my'); 
-    return response.data || response;
-  } catch (error) {
-    console.error('Error fetching user houses:', error.response?.data || error.message);
-    throw error;
-  }
-};
-
 export const getFeaturedHouses = async () => {
   try {
     const response = await axiosUser.get('/houses/featured'); 
@@ -216,7 +205,10 @@ export const getFeaturedHouses = async () => {
   }
 };
 
-
+export const getHousesById = async (Id) => {
+  const res = await axiosUser.get(`/houses/${Id}`);
+  return res.data;
+};
 const fetchHousesByCategory = async (categoryId) => {
   const res = await axiosUser.get(`/houses/category/${categoryId}`);
   return res.data.data;
