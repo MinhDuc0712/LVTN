@@ -22,6 +22,7 @@ import ChangePassword from "./pages/user/profile/ChangePassword";
 import Dashboard from "./pages/admin/Dashborad";
 import SavedListings from "./pages/user/SavedListing/SavedListing";
 import GoongMap from "./pages/map"; // Assuming this is a test page
+import PostModeration from "./pages/admin/Post";
 
 const AppRoutes = () => {
   return (
@@ -48,6 +49,7 @@ const AppRoutes = () => {
       <Route path="/admin/top_up" element={<Top_up />} />
       <Route path="/admin/users" element={<Users />} />
       <Route path="/admin/dashboard" element={<Dashboard />} />
+      <Route path="/admin/post" element={<PostModeration/>}/>
       <Route path="/test" element={<GoongMap />} />
     </Routes>
   );

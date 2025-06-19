@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import FilterSection from "../../components/FilterSection";
 import ListingCard from "../../components/ListingCard";
 import Banner from "../../components/Banner";
 import { getHouses, getFeaturedHouses } from "../../api/homePage/request";
+
 
 const Home = () => {
   const [listings, setListings] = useState([]);
@@ -63,8 +64,13 @@ const Home = () => {
     const now = new Date();
     const postedDate = new Date(dateString);
     const diffInDays = Math.floor((now - postedDate) / (1000 * 60 * 60 * 24));
-
-    if (diffInDays === 0) return 'Hôm nay';
+    
+    // if (diffInDays === 0) return 'Hôm nay';
+    if (diffInDays < 1) {
+      const diffInMinutes = Math.floor((now - postedDate) / (1000 * 60));
+      if (diffInMinutes < 15) return 'Hôm nay';
+      return `${diffInMinutes} phút trước`;
+    }
     if (diffInDays === 1) return '1 ngày trước';
     if (diffInDays < 7) return `${diffInDays} ngày trước`;
     if (diffInDays < 30) return `${Math.floor(diffInDays / 7)} tuần trước`;
@@ -77,7 +83,7 @@ const Home = () => {
     return images[0].DuongDanHinh;
   };
 
-  const formattedListings = formatListingData(listings);
+  // const formattedListings = formatListingData(listings);
   const formattedFeatured = formatListingData(featuredListings);
 
   return (

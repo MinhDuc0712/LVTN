@@ -221,7 +221,7 @@ export const useAuthUser = () => {
       }
     },
     retry: false,
-    staleTime: 1000 * 60 * 5,
+    staleTime: 0, // Không lưu dữ liệu cũ
   });
 };
 
