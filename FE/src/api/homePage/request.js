@@ -186,7 +186,7 @@ export const postHouseAPI = async (data) => {
 
 export const getHouses = async () => {
   try {
-    const response = await axiosUser.get('/houses'); 
+    const response = await axiosUser.get('/houses');
     return response.data || response;
   } catch (error) {
     console.error('Error fetching public houses:', error.response?.data || error.message);
@@ -194,20 +194,9 @@ export const getHouses = async () => {
   }
 };
 
-
-export const getUserHouses = async () => {
-  try {
-    const response = await axiosUser.get('/houses/my'); 
-    return response.data || response;
-  } catch (error) {
-    console.error('Error fetching user houses:', error.response?.data || error.message);
-    throw error;
-  }
-};
-
 export const getFeaturedHouses = async () => {
   try {
-    const response = await axiosUser.get('/houses/featured'); 
+    const response = await axiosUser.get('/houses/featured');
     return response.data || response;
   } catch (error) {
     console.error('Error fetching featured houses:', error.response?.data || error.message);

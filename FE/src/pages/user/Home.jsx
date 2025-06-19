@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import FilterSection from "../../components/FilterSection";
 import ListingCard from "../../components/ListingCard";
 import Banner from "../../components/Banner";
-import { getHouses, getUserHouses, getFeaturedHouses } from "../../api/homePage/request";
+import { getHouses, getFeaturedHouses } from "../../api/homePage/request";
 
 const Home = () => {
   const [listings, setListings] = useState([]);
@@ -10,20 +10,20 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  
-useEffect(() => {
+
+  useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
+
         
-        // Sử dụng getHouses() cho danh sách public
         const housesResponse = await getHouses();
         setListings(housesResponse?.data || housesResponse || []);
+
         
-        // Sử dụng getFeaturedHouses() cho nhà nổi bật
         const featuredResponse = await getFeaturedHouses();
         setFeaturedListings(featuredResponse?.data || featuredResponse || []);
-        
+
       } catch (err) {
         setError(err.message);
         console.error("Fetch error:", err);
@@ -38,7 +38,7 @@ useEffect(() => {
   if (loading) return <div className="text-center py-8">Đang tải dữ liệu...</div>;
   if (error) return <div className="text-center py-8 text-red-500">Lỗi: {error}</div>;
 
- 
+
   const formatListingData = (houses) => {
     return houses.map(house => ({
       id: house.MaNha,
@@ -63,7 +63,7 @@ useEffect(() => {
     const now = new Date();
     const postedDate = new Date(dateString);
     const diffInDays = Math.floor((now - postedDate) / (1000 * 60 * 60 * 24));
-    
+
     if (diffInDays === 0) return 'Hôm nay';
     if (diffInDays === 1) return '1 ngày trước';
     if (diffInDays < 7) return `${diffInDays} ngày trước`;
@@ -94,14 +94,14 @@ useEffect(() => {
                 <ListingCard listings={formattedFeatured} />
               </div>
             )}
-            
+
             {/* Hiển thị tất cả nhà */}
             {/* <div className="mb-6">
               <h2 className="mb-4 text-xl font-bold">Đề xuất</h2>
               <ListingCard listings={formattedListings} />
             </div> */}
           </div>
-          
+
           {/* FilterSection nằm bên trái */}
           <div className="w-full md:w-1/3">
             <FilterSection />
