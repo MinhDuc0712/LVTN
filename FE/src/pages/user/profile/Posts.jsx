@@ -1,74 +1,70 @@
 import Sidebar from './Sidebar';
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { getUserHouses } from '../../../api/homePage/request';
 import { Link } from 'react-router-dom';
-function Posts() {
-    const [posts, setPosts] = useState([
-        {
-            id: 681191,
-            image: 'src/assets/img-4597_1746276984.jpg',
-            label: 'Cho thuê phòng trọ',
-            title: 'Cho thuê phòng cao cấp, đầy đủ tiện nghi, như căn hộ, ngay trung tâm Quận 10',
-            price: '2.5 triệu / tháng',
-            startDate: '2022-10-25 16:30:23',
-            endDate: '29/03/2021 00:44:53',
-            status: 'Tin hết hạn',
-        },
-        {
-            id: 6,
-            image: 'src/assets/img-4599_1746276981.jpg',
-            label: 'Nhà cho thuê',
-            title: 'Cho thuê số nhà 33 Triều Khúc',
-            price: '2.5 triệu / tháng',
-            startDate: '2022-08-20 18:53:36',
-            endDate: '29/03/2021 00:44:53',
-            status: 'Đang hoạt động',
-        },
-        {
-            id: 2,
-            image: 'src/assets/img-4600_1746276972.jpg',
-            label: 'Cho thuê phòng trọ',
-            title: 'Cho thuê phòng trọ tại Tứ Hiệp',
-            price: '2.5 triệu / tháng',
-            startDate: '2022-08-20 18:33:20',
-            endDate: '29/03/2021 00:44:53',
-            status: 'Tin hết hạn',
-        },
-        {
-            id: 3,
-            image: 'src/assets/img-4600_1746276972.jpg',
-            label: 'Căn hộ cao cấp',
-            title: 'Cho thuê phòng trọ tại Tứ Hiệp',
-            price: '2.5 triệu / tháng',
-            startDate: '2022-08-20 18:33:20',
-            endDate: '29/03/2021 00:44:53',
-            status: 'Tin hết hạn',
-        },
-    ]);
 
+function Posts() {
     const [activeTab, setActiveTab] = useState('all');
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [selectedPost, setSelectedPost] = useState(null);
+
+    const { data: houses = [], isLoading } = useQuery({
+        queryKey: ['user-houses'],
+        queryFn: getUserHouses,
+    });
 
     const handleContinuePayment = (post) => {
         setSelectedPost(post);
         setShowPaymentModal(true);
     };
 
-    const confirmPayment = () => {
-        // Cập nhật trạng thái tin đăng sau khi thanh toán
-        const updatedPosts = posts.map(p => 
-            p.id === selectedPost.id ? {...p, status: 'Đang hoạt động'} : p
-        );
-        setPosts(updatedPosts);
-        setShowPaymentModal(false);
-        alert(`Thanh toán thành công cho tin #${selectedPost.id}`);
+    const mapHouseToPost = (house) => ({
+        id: house.MaNha,
+        image: house.images?.[0]?.DuongDanHinh || '/default.jpg',
+        label: house.category?.name || 'Khác',
+        title: house.TieuDe,
+        price: `${Number(house.Gia).toLocaleString()} VND / tháng`,
+        startDate: house.NgayDang || '---',
+        endDate: house.NgayHetHan || '---',
+        status: house.TrangThai,
+    });
+
+    const transformedPosts = houses.map(mapHouseToPost);
+
+    const categoryColors = {
+        'Nhà cho thuê': 'bg-red-500',
+        'Căn hộ cao cấp': 'bg-green-500',
+        'Phòng trọ sinh viên': 'bg-yellow-500',
+        'Nhà nguyên căn': 'bg-purple-500',
+        'Khác': 'bg-blue-500',
+    };
+    const statusColors = {
+        'Đang xử lý': 'text-yellow-500',
+        'Đã từ chối': 'text-red-500',
+        'Đã ẩn': 'text-red-500',
+        'Đang chờ thanh toán': 'text-blue-500',
+        'Đã duyệt': 'text-green-500',
     };
 
-    const filteredPosts = activeTab === 'all' 
-        ? posts 
-        : activeTab === 'active' 
-            ? posts.filter(post => post.status === 'Đang hoạt động')
-            : posts.filter(post => post.status.includes('hết hạn'));
+    const filteredPosts =
+        activeTab === 'all'
+            ? transformedPosts
+            : activeTab === 'active'
+                ? transformedPosts.filter((post) =>
+                    ['Đã duyệt', 'Đang xử lý'].includes(post.status)
+                )
+                : transformedPosts.filter((post) =>
+                    ['Đã từ chối', 'Đã ẩn', 'Đang chờ thanh toán'].includes(post.status)
+                );
+
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center h-screen text-lg text-gray-600">
+                Đang tải danh sách tin đăng...
+            </div>
+        );
+    }
 
     return (
         <div className="flex flex-col md:flex-row bg-gray-50 min-h-screen p-4 md:p-6">
@@ -78,23 +74,34 @@ function Posts() {
                 <h1 className="text-2xl md:text-3xl font-bold mb-6 text-gray-700">Danh sách tin đăng</h1>
 
                 <div className="border-b mb-6">
-                    <button 
+                    <button
                         onClick={() => setActiveTab('all')}
-                        className={`mr-4 font-semibold border-b-2 transition ${activeTab === 'all' ? 'border-blue-500 text-blue-500' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+                        className={`mr-4 font-semibold border-b-2 transition ${activeTab === 'all'
+                            ? 'border-blue-500 text-blue-500'
+                            : 'border-transparent text-gray-500 hover:text-gray-700'
+                            }`}
                     >
-                        Tất cả ({posts.length})
+                        Tất cả ({transformedPosts.length})
                     </button>
-                    <button 
+                    <button
                         onClick={() => setActiveTab('active')}
-                        className={`mr-4 font-semibold border-b-2 transition ${activeTab === 'active' ? 'border-blue-500 text-blue-500' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+                        className={`mr-4 font-semibold border-b-2 transition ${activeTab === 'active'
+                            ? 'border-blue-500 text-blue-500'
+                            : 'border-transparent text-gray-500 hover:text-gray-700'
+                            }`}
                     >
-                        Đang hoạt động ({posts.filter(post => post.status === 'Đang hoạt động').length})
+                        Đang hoạt động ({transformedPosts.filter((post) =>
+                            ['Đã duyệt', 'Đang xử lý'].includes(post.status)).length})
                     </button>
-                    <button 
+                    <button
                         onClick={() => setActiveTab('expired')}
-                        className={`mr-4 font-semibold border-b-2 transition ${activeTab === 'expired' ? 'border-blue-500 text-blue-500' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+                        className={`mr-4 font-semibold border-b-2 transition ${activeTab === 'expired'
+                            ? 'border-blue-500 text-blue-500'
+                            : 'border-transparent text-gray-500 hover:text-gray-700'
+                            }`}
                     >
-                        Hết hạn ({posts.filter(post => post.status.includes('hết hạn')).length})
+                        Hết hạn ({transformedPosts.filter((post) =>
+                            ['Đã từ chối', 'Đã ẩn', 'Đang chờ thanh toán'].includes(post.status)).length})
                     </button>
                 </div>
 
@@ -117,14 +124,24 @@ function Posts() {
                                 <tr key={`${post.id}-${index}`} className="text-sm hover:bg-blue-50 transition">
                                     <td className="p-3 border text-center font-semibold text-gray-800">{post.id}</td>
                                     <td className="p-3 border">
-                                        <img src={post.image} alt="Ảnh tin" className="w-50 h-30 object-cover rounded-lg shadow-md" />
+                                        <img
+                                            src={post.image}
+                                            alt="Ảnh tin"
+                                            className="w-24 h-20 object-cover rounded-lg shadow-md"
+                                        />
                                     </td>
                                     <td className="p-3 border">
                                         <div className="flex flex-col">
-                                            <span className={`text-white text-xs w-fit px-3 py-1 rounded-full mb-1 font-semibold ${post.label === 'Nhà cho thuê' ? 'bg-red-500' : post.label === 'Căn hộ cao cấp' ? 'bg-green-500' : 'bg-blue-500'}`}>
+                                            <span
+                                                className={`text-white text-xs w-fit px-3 py-1 rounded-full mb-1 font-semibold ${categoryColors[post.label] || 'bg-blue-500'
+                                                    }`}
+                                            >
                                                 {post.label}
                                             </span>
-                                            <a href="#" className="text-blue-600 hover:underline font-medium text-sm md:text-base">
+                                            <a
+                                                href="#"
+                                                className="text-blue-600 hover:underline font-medium text-sm md:text-base"
+                                            >
                                                 {post.title}
                                             </a>
                                             <div className="text-gray-500 mt-2 flex flex-wrap gap-3 text-sm">
@@ -137,12 +154,15 @@ function Posts() {
                                     <td className="p-3 border text-gray-800">{post.price}</td>
                                     <td className="p-3 border text-gray-600">{post.startDate}</td>
                                     <td className="p-3 border text-gray-600">{post.endDate}</td>
-                                    <td className={`p-3 border text-center font-bold ${post.status.includes('hết hạn') ? 'text-red-500' : 'text-green-500'}`}>
+                                    <td
+                                        className={`p-3 border text-center font-bold ${statusColors[post.status] || 'text-blue-500'}`}
+                                    >
                                         {post.status}
                                     </td>
+
                                     <td className="p-3 border text-center">
-                                        {post.status.includes('hết hạn') && (
-                                            <button 
+                                        {['Đã từ chối', 'Đã ẩn', 'Đang chờ thanh toán'].includes(post.status) && (
+                                            <button
                                                 onClick={() => handleContinuePayment(post)}
                                                 className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm transition"
                                             >
@@ -164,17 +184,16 @@ function Posts() {
                             <p className="mb-4">Bạn đang thanh toán để gia hạn tin đăng:</p>
                             <p className="font-semibold mb-2">Mã tin: #{selectedPost.id}</p>
                             <p className="mb-4">{selectedPost.title}</p>
-                            <p className="mb-4">Phí thanh toán: <span className="font-bold text-red-500">500.000 VND</span></p>
-                            
+
                             <div className="flex justify-end gap-3 mt-6">
-                                <button 
+                                <button
                                     onClick={() => setShowPaymentModal(false)}
                                     className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition"
                                 >
                                     Hủy bỏ
                                 </button>
-                                <Link to="/post/paymentpost"
-                                    
+                                <Link
+                                    to={`/post/paymentpost?id=${selectedPost.id}`}
                                     className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
                                 >
                                     Xác nhận thanh toán

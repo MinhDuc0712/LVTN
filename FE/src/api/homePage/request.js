@@ -236,3 +236,17 @@ export const postRatingAPI = async (data) => {
   const response = await axiosUser.post(`/ratings`, data);
   return response;
 };
+export const postPaymentForHouse = async ({ houseId, planType, duration, unit, total }) => {
+  const response = await axiosUser.post("/houses/payment", {
+    houseId,
+    planType,
+    duration,
+    unit,
+    total,
+  });
+  return response.data;
+};
+export const getUserHouses = async () => {
+  const res = await axiosUser.get('/houses/user-posts');
+  return res.data; 
+}

@@ -16,11 +16,11 @@ useEffect(() => {
       try {
         setLoading(true);
         
-        // Sử dụng getHouses() cho danh sách public
+        
         const housesResponse = await getHouses();
         setListings(housesResponse?.data || housesResponse || []);
         
-        // Sử dụng getFeaturedHouses() cho nhà nổi bật
+      
         const featuredResponse = await getFeaturedHouses();
         setFeaturedListings(featuredResponse?.data || featuredResponse || []);
         

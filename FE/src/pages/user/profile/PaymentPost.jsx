@@ -5,7 +5,7 @@ import { toast } from "react-hot-toast";
 import { axiosUser } from "@/api/axios";
 import { useAuthUser } from "@/api/homePage/queries";
 import { useQueryClient } from "@tanstack/react-query";
-
+import { postPaymentForHouse } from "../../../api/homePage/request";
 function useQuery() {
   return new URLSearchParams(useLocation().search);
 }
@@ -22,36 +22,29 @@ function PaymentPost() {
   } = useAuthUser();
   useEffect(() => {}, [user, isUserLoading, userError]);
 
-  const handlePayment = async () => {
-    if (!houseId) {
-      toast.error("Không tìm thấy bài đăng.");
-      return;
-    }
+const handlePayment = async () => {
+  if (!houseId) {
+    toast.error("Không tìm thấy bài đăng.");
+    return;
+  }
 
-    try {
-      await axiosUser.post("/houses/payment", {
-        houseId,
-        planType: type,
-        duration: quantity,
-        unit: durationUnit,
-        total,
-      });
-      queryClient.setQueryData(["me"], (oldData) => {
-        if (!oldData) return oldData;
-        return {
-          ...oldData,
-          so_du: oldData.so_du - total,
-        };
-      });
+  try {
+    await postPaymentForHouse({ houseId, planType: type, duration: quantity, unit: durationUnit, total });
+    queryClient.setQueryData(["me"], (oldData) => {
+      if (!oldData) return oldData;
+      return {
+        ...oldData,
+        so_du: oldData.so_du - total,
+      };
+    });
 
-      toast.success("Thanh toán thành công!");
-      navigate("/my-houses"); // hoặc trang bạn muốn quay lại
-    } catch (error) {
-      console.error(error);
-      toast.error("Có lỗi xảy ra khi thanh toán.");
-    }
-  };
-
+    toast.success("Thanh toán thành công!");
+    navigate("/my-houses");
+  } catch (error) {
+    console.error(error);
+    toast.error("Có lỗi xảy ra khi thanh toán.");
+  }
+};
   const plans = {
     normal: {
       label: "Tin thường",
