@@ -1,13 +1,23 @@
+// Enhanced Posts.jsx with improved UI and lucide-react icons
 import Sidebar from './Sidebar';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getUserHouses } from '../../../api/homePage/request';
 import { Link } from 'react-router-dom';
+import {
+    CreditCard, Edit, EyeOff, RefreshCw, Star, FileText,
+    ChevronLeft, ChevronRight, Clock, Check, X, Loader2,
+    RotateCcw, PenTool, Image, Calendar, DollarSign,
+    MapPin, Home, Building, Users, Sparkles
+} from 'lucide-react';
 
 function Posts() {
     const [activeTab, setActiveTab] = useState('all');
     const [showPaymentModal, setShowPaymentModal] = useState(false);
+    const [showHideModal, setShowHideModal] = useState(false);
     const [selectedPost, setSelectedPost] = useState(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const pageSize = 5;
 
     const { data: houses = [], isLoading } = useQuery({
         queryKey: ['user-houses'],
@@ -19,6 +29,17 @@ function Posts() {
         setShowPaymentModal(true);
     };
 
+    const handleHidePost = (post) => {
+        setSelectedPost(post);
+        setShowHideModal(true);
+    };
+
+    
+    const handleReviewTenant = (post) => {
+        setSelectedPost(post);
+        setShowReviewModal(true);
+    };
+
     const mapHouseToPost = (house) => ({
         id: house.MaNha,
         image: house.images?.[0]?.DuongDanHinh || '/default.jpg',
@@ -28,23 +49,50 @@ function Posts() {
         startDate: house.NgayDang || '---',
         endDate: house.NgayHetHan || '---',
         status: house.TrangThai,
+        rejectReason: house.LyDoTuChoi || '',
     });
 
     const transformedPosts = houses.map(mapHouseToPost);
 
     const categoryColors = {
-        'Nhà cho thuê': 'bg-red-500',
-        'Căn hộ cao cấp': 'bg-green-500',
-        'Phòng trọ sinh viên': 'bg-yellow-500',
-        'Nhà nguyên căn': 'bg-purple-500',
-        'Khác': 'bg-blue-500',
+        'Nhà cho thuê': 'bg-gradient-to-r from-red-500 to-red-600',
+        'Căn hộ cao cấp': 'bg-gradient-to-r from-emerald-500 to-emerald-600',
+        'Phòng trọ sinh viên': 'bg-gradient-to-r from-amber-500 to-orange-500',
+        'Nhà nguyên căn': 'bg-gradient-to-r from-purple-500 to-purple-600',
+        'Khác': 'bg-gradient-to-r from-blue-500 to-blue-600',
     };
-    const statusColors = {
-        'Đang xử lý': 'text-yellow-500',
-        'Đã từ chối': 'text-red-500',
-        'Đã ẩn': 'text-red-500',
-        'Đang chờ thanh toán': 'text-blue-500',
-        'Đã duyệt': 'text-green-500',
+
+    const statusConfig = {
+        'Đang xử lý': { 
+            color: 'text-amber-600', 
+            bg: 'bg-amber-50 border-amber-200',
+            icon: Clock
+        },
+        'Đã từ chối': { 
+            color: 'text-red-600', 
+            bg: 'bg-red-50 border-red-200',
+            icon: X
+        },
+        'Đã ẩn': { 
+            color: 'text-gray-600', 
+            bg: 'bg-gray-50 border-gray-200',
+            icon: EyeOff
+        },
+        'Đang chờ thanh toán': { 
+            color: 'text-blue-600', 
+            bg: 'bg-blue-50 border-blue-200',
+            icon: CreditCard
+        },
+        'Đã duyệt': { 
+            color: 'text-green-600', 
+            bg: 'bg-green-50 border-green-200',
+            icon: Check
+        },
+        'Đã cho thuê': { 
+            color: 'text-purple-600', 
+            bg: 'bg-purple-50 border-purple-200',
+            icon: Home
+        },
     };
 
     const filteredPosts =
@@ -52,152 +100,440 @@ function Posts() {
             ? transformedPosts
             : activeTab === 'active'
                 ? transformedPosts.filter((post) =>
-                    ['Đã duyệt', 'Đang xử lý'].includes(post.status)
+                    ['Đã duyệt', 'Đang xử lý', 'Đã cho thuê'].includes(post.status)
                 )
                 : transformedPosts.filter((post) =>
-                    ['Đã từ chối', 'Đã ẩn', 'Đang chờ thanh toán'].includes(post.status)
+                    ['Đã từ chối', 'Đã ẩn', 'Đang chờ thanh toán', 'Tin hết hạn'].includes(post.status)
                 );
+
+    const totalPages = Math.ceil(filteredPosts.length / pageSize);
+    const currentPagePosts = filteredPosts.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
     if (isLoading) {
         return (
-            <div className="flex items-center justify-center h-screen text-lg text-gray-600">
-                Đang tải danh sách tin đăng...
+            <div className="flex items-center justify-center h-screen">
+                <div className="flex flex-col items-center gap-4">
+                    <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+                    <span className="text-lg text-gray-600 font-medium">Đang tải danh sách tin đăng...</span>
+                </div>
             </div>
         );
     }
 
+    const renderActionButton = (post) => {
+        switch (post.status) {
+            case 'Đang chờ thanh toán':
+                return (
+                    <button
+                        onClick={() => handleContinuePayment(post)}
+                        className="flex items-center gap-1.5 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
+                    >
+                        <CreditCard className="w-4 h-4" />
+                        Thanh toán
+                    </button>
+                );
+            case 'Đã từ chối':
+                return (
+                    
+                    <Link
+                        to={`/post/${post.id}`}
+                        className="flex items-center justify-center gap-1.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
+                    >
+                        <Edit className="w-4 h-4" />
+                        Sửa tin
+                    </Link>
+                );
+            case 'Đã ẩn':
+                return (
+                    <div className="flex flex-col gap-2 min-w-[130px]">
+                    <button
+                        to={`/post/${post.id}`}
+                        className="flex items-center gap-1.5 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-white px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
+                    >
+                        <RotateCcw className="w-3 h-3" />
+                        Đăng lại
+                    </button>
+                     <Link
+                        to={`/post/${post.id}`}
+                        className="flex items-center gap-1.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
+                    >
+                        <Edit className="w-4 h-4" />
+                        Sửa tin
+                    </Link>
+                     </div>
+                );
+            case 'Đã duyệt':
+                return (
+                    <Link
+                        onClick={() => handleHidePost(post)}
+                        className="flex items-center justify-center gap-1.5 bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
+                    >
+                        <EyeOff className="w-4 h-4" />
+                        Ẩn tin
+                    </Link>
+                );
+            case 'Đã cho thuê':
+                return (
+                    <div className="flex flex-col gap-2 min-w-[130px]">
+                        <button
+                            onClick={() => handleExtendPost(post)}
+                            className="flex items-center justify-center gap-1.5 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 shadow-sm hover:shadow-md transform hover:scale-105"
+                        >
+                            <RefreshCw className="w-3.5 h-3.5" />
+                            Gia hạn
+                        </button>
+                        <button
+                        onClick={() => handleHidePost(post)}
+                        className="flex items-center justify-center gap-1.5 bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
+                    >
+                        <EyeOff className="w-4 h-4" />
+                        Ẩn tin
+                    </button>
+                        
+                    </div>
+                );
+            case 'Đang xử lý':
+                return (
+                    <div className="flex items-center gap-2 text-amber-600 text-sm font-medium bg-amber-50 px-3 py-2 rounded-lg border border-amber-200">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Đang xử lý...
+                    </div>
+                );
+                case 'Tin hết hạn':
+                return (
+                    <div className="flex flex-col gap-2 min-w-[130px]">
+                        <button
+                            onClick={() => handleExtendPost(post)}
+                            className="flex items-center justify-center gap-1.5 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 shadow-sm hover:shadow-md transform hover:scale-105"
+                        >
+                            <RefreshCw className="w-3.5 h-3.5" />
+                            Gia hạn
+                        </button>
+                        
+                    </div>
+                );
+            default:
+                return (
+                    <div className="text-gray-400 text-sm font-medium px-3 py-2">
+                        ---
+                    </div>
+                );
+        }
+    };
+
+    const tabConfig = [
+        { 
+            key: 'all', 
+            label: 'Tất cả',
+            icon: Building,
+            count: transformedPosts.length 
+        },
+        { 
+            key: 'active', 
+            label: 'Đang hoạt động',
+            icon: Sparkles,
+            count: transformedPosts.filter((post) => 
+                ['Đã duyệt', 'Đang xử lý', 'Đã cho thuê'].includes(post.status)
+            ).length 
+        },
+        { 
+            key: 'expired', 
+            label: 'Hết hạn',
+            icon: Clock,
+            count: transformedPosts.filter((post) => 
+                ['Đã từ chối', 'Đã ẩn', 'Đang chờ thanh toán', 'Tin hết hạn'].includes(post.status)
+            ).length 
+        }
+    ];
+
     return (
-        <div className="flex flex-col md:flex-row bg-gray-50 min-h-screen p-4 md:p-6">
+        <div className="flex flex-col md:flex-row bg-gradient-to-br from-gray-50 to-blue-50 min-h-screen p-4 md:p-6">
             <Sidebar />
 
-            <div className="w-full md:w-3/4 p-4 md:p-6 bg-white rounded-lg shadow-lg overflow-auto">
-                <h1 className="text-2xl md:text-3xl font-bold mb-6 text-gray-700">Danh sách tin đăng</h1>
-
-                <div className="border-b mb-6">
-                    <button
-                        onClick={() => setActiveTab('all')}
-                        className={`mr-4 font-semibold border-b-2 transition ${activeTab === 'all'
-                            ? 'border-blue-500 text-blue-500'
-                            : 'border-transparent text-gray-500 hover:text-gray-700'
-                            }`}
-                    >
-                        Tất cả ({transformedPosts.length})
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('active')}
-                        className={`mr-4 font-semibold border-b-2 transition ${activeTab === 'active'
-                            ? 'border-blue-500 text-blue-500'
-                            : 'border-transparent text-gray-500 hover:text-gray-700'
-                            }`}
-                    >
-                        Đang hoạt động ({transformedPosts.filter((post) =>
-                            ['Đã duyệt', 'Đang xử lý'].includes(post.status)).length})
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('expired')}
-                        className={`mr-4 font-semibold border-b-2 transition ${activeTab === 'expired'
-                            ? 'border-blue-500 text-blue-500'
-                            : 'border-transparent text-gray-500 hover:text-gray-700'
-                            }`}
-                    >
-                        Hết hạn ({transformedPosts.filter((post) =>
-                            ['Đã từ chối', 'Đã ẩn', 'Đang chờ thanh toán'].includes(post.status)).length})
-                    </button>
+            <div className="w-full md:w-3/4 p-6 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-auto">
+                {/* Header */}
+                <div className="mb-8">
+                    <div className="flex items-center gap-3 mb-2">
+                        
+                        <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-700 to-gray-900 bg-clip-text text-transparent">
+                            Danh sách tin đăng
+                        </h1>
+                    </div>
+                    <p className="text-gray-600 ml-11">Quản lý và theo dõi tất cả tin đăng của bạn</p>
                 </div>
 
-                <div className="w-full overflow-x-auto">
-                    <table className="min-w-[900px] w-full table-auto border border-gray-200 rounded-lg overflow-hidden">
-                        <thead className="bg-blue-100 text-gray-700 text-sm">
-                            <tr>
-                                <th className="p-3 border">Mã tin</th>
-                                <th className="p-3 border">Ảnh</th>
-                                <th className="p-3 border min-w-[250px]">Tiêu đề</th>
-                                <th className="p-3 border">Giá</th>
-                                <th className="p-3 border">Bắt đầu</th>
-                                <th className="p-3 border">Kết thúc</th>
-                                <th className="p-3 border">Trạng thái</th>
-                                <th className="p-3 border">Hành động</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filteredPosts.map((post, index) => (
-                                <tr key={`${post.id}-${index}`} className="text-sm hover:bg-blue-50 transition">
-                                    <td className="p-3 border text-center font-semibold text-gray-800">{post.id}</td>
-                                    <td className="p-3 border">
-                                        <img
-                                            src={post.image}
-                                            alt="Ảnh tin"
-                                            className="w-24 h-20 object-cover rounded-lg shadow-md"
-                                        />
-                                    </td>
-                                    <td className="p-3 border">
-                                        <div className="flex flex-col">
-                                            <span
-                                                className={`text-white text-xs w-fit px-3 py-1 rounded-full mb-1 font-semibold ${categoryColors[post.label] || 'bg-blue-500'
-                                                    }`}
-                                            >
-                                                {post.label}
-                                            </span>
-                                            <a
-                                                href="#"
-                                                className="text-blue-600 hover:underline font-medium text-sm md:text-base"
-                                            >
-                                                {post.title}
-                                            </a>
-                                            <div className="text-gray-500 mt-2 flex flex-wrap gap-3 text-sm">
-                                                <span className="cursor-pointer hover:text-gray-800">🔁 Đăng lại</span>
-                                                <span className="cursor-pointer hover:text-gray-800">👁️ Ẩn tin</span>
-                                                <span className="cursor-pointer hover:text-gray-800">✏️ Sửa tin</span>
-                                            </div>
+                {/* Enhanced Tabs */}
+                <div className="bg-gray-50 p-1 rounded-xl mb-8 inline-flex">
+                    {tabConfig.map(tab => {
+                        const IconComponent = tab.icon;
+                        return (
+                            <button
+                                key={tab.key}
+                                onClick={() => {
+                                    setActiveTab(tab.key);
+                                    setCurrentPage(1);
+                                }}
+                                className={`relative flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-300 ${
+                                    activeTab === tab.key
+                                        ? 'bg-white text-blue-600 shadow-md transform scale-105'
+                                        : 'text-gray-600 hover:text-gray-800 hover:bg-white/50'
+                                }`}
+                            >
+                                <IconComponent className="w-4 h-4" />
+                                <span>{tab.label}</span>
+                                <span className={`ml-1 px-2 py-0.5 text-xs rounded-full ${
+                                    activeTab === tab.key 
+                                        ? 'bg-blue-100 text-blue-600' 
+                                        : 'bg-gray-200 text-gray-600'
+                                }`}>
+                                    {tab.count}
+                                </span>
+                            </button>
+                        );
+                    })}
+                </div>
+
+                {/* Enhanced Table */}
+                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                    <div className="overflow-x-auto">
+                        <table className="min-w-[900px] w-full table-auto">
+                            <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
+                                <tr>
+                                    <th className="p-4 text-left font-semibold text-gray-700 border-b border-gray-200">
+                                        <div className="flex items-center gap-2">
+                                            <MapPin className="w-4 h-4" />
+                                            Mã tin
                                         </div>
-                                    </td>
-                                    <td className="p-3 border text-gray-800">{post.price}</td>
-                                    <td className="p-3 border text-gray-600">{post.startDate}</td>
-                                    <td className="p-3 border text-gray-600">{post.endDate}</td>
-                                    <td
-                                        className={`p-3 border text-center font-bold ${statusColors[post.status] || 'text-blue-500'}`}
-                                    >
-                                        {post.status}
-                                    </td>
-
-                                    <td className="p-3 border text-center">
-                                        {['Đã từ chối', 'Đã ẩn', 'Đang chờ thanh toán'].includes(post.status) && (
-                                            <button
-                                                onClick={() => handleContinuePayment(post)}
-                                                className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm transition"
-                                            >
-                                                Thanh toán
-                                            </button>
-                                        )}
-                                    </td>
+                                    </th>
+                                    <th className="p-4 text-left font-semibold text-gray-700 border-b border-gray-200">
+                                        <div className="flex items-center gap-2">
+                                            <Image className="w-4 h-4" />
+                                            Hình ảnh
+                                        </div>
+                                    </th>
+                                    <th className="p-4 text-left font-semibold text-gray-700 border-b border-gray-200 min-w-[280px]">
+                                        <div className="flex items-center gap-2">
+                                            <Home className="w-4 h-4" />
+                                            Thông tin tin đăng
+                                        </div>
+                                    </th>
+                                    <th className="p-4 text-left font-semibold text-gray-700 border-b border-gray-200">
+                                        <div className="flex items-center gap-2">
+                                            <DollarSign className="w-4 h-4" />
+                                            Giá
+                                        </div>
+                                    </th>
+                                    <th className="p-4 text-left font-semibold text-gray-700 border-b border-gray-200">
+                                        <div className="flex items-center gap-2">
+                                            <Calendar className="w-4 h-4" />
+                                            Thời gian
+                                        </div>
+                                    </th>
+                                    <th className="p-4 text-left font-semibold text-gray-700 border-b border-gray-200">
+                                        <div className="flex items-center gap-2">
+                                            <Clock className="w-4 h-4" />
+                                            Trạng thái
+                                        </div>
+                                    </th>
+                                    <th className="p-4 text-center font-semibold text-gray-700 border-b border-gray-200 min-w-[150px]">
+                                        Hành động
+                                    </th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {currentPagePosts.map((post, index) => {
+                                    const statusInfo = statusConfig[post.status] || {};
+                                    const StatusIcon = statusInfo.icon || Clock;
+                                    
+                                    return (
+                                        <tr key={`${post.id}-${index}`} className="hover:bg-blue-50/50 transition-all duration-200 border-b border-gray-100 last:border-b-0">
+                                            <td className="p-4">
+                                                <div className="font-bold text-gray-800 text-center bg-gray-50 rounded-lg py-2 px-3">
+                                                    #{post.id}
+                                                </div>
+                                            </td>
+                                            <td className="p-4">
+                                                <div className="relative group">
+                                                    <img 
+                                                        src={post.image} 
+                                                        alt="Ảnh tin" 
+                                                        className="w-28 h-24 object-cover rounded-xl shadow-md group-hover:shadow-lg transition-shadow duration-200" 
+                                                    />
+                                                   
+                                                </div>
+                                            </td>
+                                            <td className="p-4">
+                                                <div className="flex flex-col gap-3">
+                                                    <span className={`text-white text-xs w-fit px-3 py-1.5 rounded-full font-semibold shadow-sm ${categoryColors[post.label] || 'bg-gradient-to-r from-blue-500 to-blue-600'}`}>
+                                                        {post.label}
+                                                    </span>
+                                                    <a href="#" className="text-gray-800 hover:text-blue-600 font-semibold text-sm line-clamp-2 transition-colors duration-200">
+                                                        {post.title}
+                                                    </a>
+                                                    {/* {post.status !== 'Đã cho thuê' && post.status !== 'Đang xử lý' && (
+                                                        <div className="flex flex-wrap gap-3 text-xs">
+                                                            <button className="flex items-center gap-1.5 text-blue-600 hover:text-blue-800 transition-colors duration-200 font-medium">
+                                                                <RotateCcw className="w-3 h-3" />
+                                                                Đăng lại
+                                                            </button>
+                                                            <button className="flex items-center gap-1.5 text-orange-600 hover:text-orange-800 transition-colors duration-200 font-medium">
+                                                                <PenTool className="w-3 h-3" />
+                                                                Sửa tin
+                                                            </button>
+                                                        </div>
+                                                    )} */}
+                                                </div>
+                                            </td>
+                                            <td className="p-4">
+                                                <div className="font-bold  bg-green-50 text-green-700 px-3 py-2 rounded-lg border border-green-200">
+                                                    {post.price}
+                                                </div>
+                                            </td>
+                                            <td className="p-4">
+                                                <div className="text-sm text-gray-600 space-y-1">
+                                                    <div className="flex items-center gap-1">
+                                                        <span className="font-medium">Bắt đầu:</span>
+                                                        <span>{post.startDate}</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-1">
+                                                        <span className="font-medium">Kết thúc:</span>
+                                                        <span>{post.endDate}</span>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="p-4">
+                                                <div className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg border font-semibold text-sm ${statusInfo.bg || 'bg-gray-50 border-gray-200'} ${statusInfo.color || 'text-gray-600'}`}>
+                                                    <StatusIcon className="w-4 h-4" />
+                                                    {post.status}
+                                                </div>
+                                                {post.status === 'Đã từ chối' && post.rejectReason && (
+                                                    <div className="text-xs text-red-500 mt-2 italic bg-red-50 px-2 py-1 rounded border border-red-200">
+                                                        <X className="w-3 h-3 inline mr-1" />
+                                                        {post.rejectReason}
+                                                    </div>
+                                                )}
+                                            </td>
+                                            <td className="p-4 text-center">
+                                                {renderActionButton(post)}
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
-                {/* Modal thanh toán */}
-                {showPaymentModal && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                        <div className="bg-white rounded-lg p-6 w-full max-w-md">
-                            <h2 className="text-xl font-bold mb-4">Tiếp tục thanh toán</h2>
-                            <p className="mb-4">Bạn đang thanh toán để gia hạn tin đăng:</p>
-                            <p className="font-semibold mb-2">Mã tin: #{selectedPost.id}</p>
-                            <p className="mb-4">{selectedPost.title}</p>
+                {/* Enhanced Pagination */}
+                {totalPages > 1 && (
+                    <div className="flex items-center justify-between mt-8 p-4 bg-gray-50 rounded-xl border border-gray-200">
+                        <button
+                            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                            disabled={currentPage === 1}
+                            className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 font-medium text-gray-700"
+                        >
+                            <ChevronLeft className="w-4 h-4" />
+                            Trang trước
+                        </button>
+                        
+                        <div className="flex items-center gap-2">
+                            <span className="text-gray-600">Trang</span>
+                            <span className="font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-lg">{currentPage}</span>
+                            <span className="text-gray-600">trong</span>
+                            <span className="font-bold text-gray-800">{totalPages}</span>
+                        </div>
+                        
+                        <button
+                            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                            disabled={currentPage === totalPages}
+                            className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 font-medium text-gray-700"
+                        >
+                            Trang sau
+                            <ChevronRight className="w-4 h-4" />
+                        </button>
+                    </div>
+                )}
 
-                            <div className="flex justify-end gap-3 mt-6">
+                {/* Enhanced Payment Modal */}
+                {showPaymentModal && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                        <div className="bg-white rounded-2xl p-8 w-full max-w-md shadow-2xl border border-gray-200">
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="p-3 bg-blue-100 rounded-xl">
+                                    <CreditCard className="w-6 h-6 text-blue-600" />
+                                </div>
+                                <h2 className="text-2xl font-bold text-gray-800">Tiếp tục thanh toán</h2>
+                            </div>
+                            
+                            <p className="mb-6 text-gray-600 leading-relaxed">
+                                Bạn đang thanh toán để gia hạn tin đăng của mình. Vui lòng xác nhận thông tin bên dưới.
+                            </p>
+                            
+                            <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-xl mb-6 border border-blue-200">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <MapPin className="w-4 h-4 text-blue-600" />
+                                    <p className="font-semibold text-gray-800">Mã tin: #{selectedPost?.id}</p>
+                                </div>
+                                <p className="text-sm text-gray-700 ml-6">{selectedPost?.title}</p>
+                            </div>
+
+                            <div className="flex justify-end gap-4 mt-8">
                                 <button
                                     onClick={() => setShowPaymentModal(false)}
-                                    className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition"
+                                    className="px-6 py-3 border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors duration-200 font-medium text-gray-700"
                                 >
                                     Hủy bỏ
                                 </button>
                                 <Link
-                                    to={`/post/paymentpost?id=${selectedPost.id}`}
-                                    className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
+                                    to={`/post/paymentpost?id=${selectedPost?.id}`}
+                                    className="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all duration-200 font-medium shadow-md hover:shadow-lg transform hover:scale-105"
                                 >
                                     Xác nhận thanh toán
                                 </Link>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Enhanced Hide Post Modal */}
+                {showHideModal && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                        <div className="bg-white rounded-2xl p-8 w-full max-w-md shadow-2xl border border-gray-200">
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="p-3 bg-gray-100 rounded-xl">
+                                    <EyeOff className="w-6 h-6 text-gray-600" />
+                                </div>
+                                <h2 className="text-2xl font-bold text-gray-800">Ẩn tin đăng</h2>
+                            </div>
+                            
+                            <p className="mb-6 text-gray-600 leading-relaxed">
+                                Bạn có chắc chắn muốn ẩn tin đăng này? Tin đăng sẽ không hiển thị với người dùng khác.
+                            </p>
+                            
+                            <div className="bg-gradient-to-r from-gray-50 to-red-50 p-4 rounded-xl mb-6 border border-gray-200">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <MapPin className="w-4 h-4 text-gray-600" />
+                                    <p className="font-semibold text-gray-800">Mã tin: #{selectedPost?.id}</p>
+                                </div>
+                                <p className="text-sm text-gray-700 ml-6">{selectedPost?.title}</p>
+                            </div>
+
+                            <div className="flex justify-end gap-4 mt-8">
+                                <button
+                                    onClick={() => setShowHideModal(false)}
+                                    className="px-6 py-3 border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors duration-200 font-medium text-gray-700"
+                                >
+                                    Hủy bỏ
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        console.log('Ẩn tin đăng:', selectedPost?.id);
+                                        setShowHideModal(false);
+                                    }}
+                                    className="px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 transition-all duration-200 font-medium shadow-md hover:shadow-lg transform hover:scale-105"
+                                >
+                                    Xác nhận ẩn
+                                </button>
                             </div>
                         </div>
                     </div>

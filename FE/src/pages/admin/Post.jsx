@@ -1,26 +1,19 @@
-import React, { useState } from 'react';
-import { 
-  Eye, 
-  Check, 
-  X, 
-  Clock, 
-  MapPin, 
-  Calendar, 
-  User, 
-  DollarSign, 
-  Filter,
-  Search,
-  ChevronLeft,
-  ChevronRight,
-  AlertCircle,
-  MessageSquare,
-  Home,
-  Users,
-  Edit
+import React, { useState, useEffect } from 'react';
+import {
+  Eye, Check, X, Clock, MapPin, Calendar, User, DollarSign, Filter,
+  Search, ChevronLeft, ChevronRight, AlertCircle, MessageSquare,
+  Home, Users, Edit, Loader2
 } from 'lucide-react';
 import SidebarWithNavbar from './SidebarWithNavbar';
+import {
+  getAllHousesForAdmin,
+  approveHouse,
+  rejectHouse
+} from '../../api/homePage/request';
 
 const PostModeration = () => {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [selectedPost, setSelectedPost] = useState(null);
   const [filter, setFilter] = useState('pending');
   const [searchTerm, setSearchTerm] = useState('');
@@ -28,85 +21,123 @@ const PostModeration = () => {
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  
-  // Dữ liệu mẫu cho bài đăng
-  const [posts, setPosts] = useState([
-    {
-      id: 1,
-      title: 'Cho thuê phòng trọ cao cấp quận 1',
-      description: 'Phòng trọ mới xây, đầy đủ tiện nghi, gần trường đại học, an ninh tốt. Giá thuê hợp lý cho sinh viên và người đi làm.',
-      price: '5000000',
-      location: 'Quận 1, TP.HCM',
-      category: 'Cho thuê phòng trọ',
-      author: 'Nguyễn Văn A',
-      phone: '0901234567',
-      email: 'nguyenvana@email.com',
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100',
-      images: [
-        'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400',
-        'https://images.unsplash.com/photo-1560449752-4de5cca4b4e5?w=400',
-        'https://images.unsplash.com/photo-1560449752-ed5e0e89c8e5?w=400'
-      ],
-      createdAt: '2024-06-15T10:30:00',
-      status: 'pending',
-      reason: null
-    },
-    {
-      id: 2,
-      title: 'Cần tìm người ở ghép',
-      description: 'Tìm bạn nữ ở ghép chung cư cao cấp, có đầy đủ tiện ích, view đẹp, giá chia đôi.',
-      price: '3000000',
-      location: 'Quận 7, TP.HCM',
-      category: 'Tìm người ở ghép',
-      author: 'Trần Thị B',
-      phone: '0912345678',
-      email: 'tranthib@email.com',
-      avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b890?w=100',
-      images: [
-        'https://images.unsplash.com/photo-1556909210-bfdc5570b4f7?w=400'
-      ],
-      createdAt: '2024-06-14T15:20:00',
-      status: 'pending',
-      reason: null
-    },
-    {
-      id: 3,
-      title: 'Cho thuê căn hộ mini',
-      description: 'Căn hộ mini 1 phòng ngủ, 1 phòng khách, bếp riêng, WC riêng. Thoáng mát, yên tĩnh.',
-      price: '7000000',
-      location: 'Quận 3, TP.HCM',
-      category: 'Cho thuê căn hộ',
-      author: 'Lê Văn C',
-      phone: '0923456789',
-      email: 'levanc@email.com',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100',
-      images: [
-        'https://images.unsplash.com/photo-1484154218962-a197022b5858?w=400',
-        'https://images.unsplash.com/photo-1484154218962-a197022b5858?w=400'
-      ],
-      createdAt: '2024-06-13T09:15:00',
-      status: 'approved',
-      reason: null
-    },
-    {
-      id: 4,
-      title: 'Phòng trọ giá rẻ gần chợ',
-      description: 'Phòng trọ cơ bản, sạch sẽ, giá rẻ phù hợp sinh viên. Gần chợ, trường học, bệnh viện.',
-      price: '2500000',
-      location: 'Quận 10, TP.HCM',
-      category: 'Cho thuê phòng trọ',
-      author: 'Phạm Thị D',
-      phone: '0934567890',
-      email: 'phamthid@email.com',
-      avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100',
-      images: [
-        'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=400'
-      ],
-      createdAt: '2024-06-12T14:45:00',
-      status: 'rejected',
-      reason: 'Hình ảnh không rõ ràng, thông tin không đầy đủ'
+  const [loading, setLoading] = useState(true);
+  const [posts, setPosts] = useState([]);
+
+
+useEffect(() => {
+  const fetchAllPages = async () => {
+    try {
+      setLoading(true);
+      let allData = [];
+      let page = 1;
+      let lastPage = 1;
+
+      do {
+        const params = {
+          page,
+          limit: 50 
+        };
+
+        if (filter !== 'all') {
+          params.status = getStatusValue(filter);
+        }
+        if (searchTerm) {
+          params.search = searchTerm;
+        }
+
+        const response = await getAllHousesForAdmin(params);
+        const housesData = Array.isArray(response.data) ? response.data : [];
+
+        allData = [...allData, ...housesData];
+        lastPage = response.pagination?.last_page || 1;
+        page++;
+      } while (page <= lastPage);
+
+      setPosts(mapApiDataToPosts(allData));
+    } catch (error) {
+      console.error('Error fetching all pages:', error);
+    } finally {
+      setLoading(false);
     }
-  ]);
+  };
+
+  fetchAllPages();
+}, [filter, searchTerm]);
+
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filter, searchTerm]);
+
+  const openDetailModal = (post) => {
+    setSelectedPost({
+      ...post,
+      images: post.image ? [post.image] : [],
+    });
+    setCurrentImageIndex(0);
+    setShowDetailModal(true);
+  };
+
+  const openRejectModal = (post) => {
+    setSelectedPost(post);
+    setRejectReason('');
+    setShowRejectModal(true);
+  };
+  const mapApiDataToPosts = (apiData) => {
+    if (!Array.isArray(apiData)) {
+      console.error('Expected array but got:', apiData);
+      return [];
+    }
+
+    return apiData.map(house => ({
+      id: house.MaNha,
+      title: house.TieuDe,
+      description: house.MoTaChiTiet,
+      price: house.Gia,
+      location: `${house.Phuong_Xa}, ${house.Quan_Huyen}, ${house.Tinh_TP}`,
+      category: house.category?.name || 'Không xác định',
+      author: house.user?.HoTen || 'Ẩn danh',
+      phone: house.user?.SDT || 'Không có',
+      email: house.user?.Email || 'Không có',
+      image: house.images?.[0]?.DuongDanHinh || house.HinhAnh,
+      avatar: house.user?.HinhDaiDien
+        ? `data:image/jpeg;base64,${house.user.HinhDaiDien}`
+        : null,
+      createdAt: house.NgayDang,
+      status: getStatusKey(house.TrangThai),
+      reason: house.LyDoTuChoi || null
+    }));
+  };
+
+  // Chuyển đổi giữa key FE và value BE
+  const getStatusValue = (key) => {
+    const statusMap = {
+      'waiting_payment': 'Đang chờ thanh toán',
+      'pending': 'Đang xử lý',
+      'approved': 'Đã duyệt',
+      'rejected': 'Đã từ chối',
+      'rented': 'Đã cho thuê',
+      'hidden': 'Đã ẩn',
+      'expired': 'Tin hết hạn',
+      'deleted': 'Đã xóa'
+    };
+    return statusMap[key] || key;
+  };
+
+  const getStatusKey = (value) => {
+    const statusMap = {
+      'Đang chờ thanh toán': 'waiting_payment',
+      'Đang xử lý': 'pending',
+      'Đã duyệt': 'approved',
+      'Đã từ chối': 'rejected',
+      'Đã cho thuê': 'rented',
+      'Đã ẩn': 'hidden',
+      'Tin hết hạn': 'Tin hết hạn',
+      'Đã xóa': 'deleted'
+    };
+    return statusMap[value] || value;
+  };
 
   const formatPrice = (price) => {
     return new Intl.NumberFormat('vi-VN', {
@@ -125,44 +156,38 @@ const PostModeration = () => {
     });
   };
 
-  const handleApprove = (postId) => {
-    setPosts(posts.map(post => 
-      post.id === postId 
-        ? { ...post, status: 'approved', reason: null }
-        : post
-    ));
+  const handleApprove = async (postId) => {
+    try {
+      await approveHouse(postId);
+      setPosts(posts.map(post =>
+        post.id === postId
+          ? { ...post, status: 'approved', reason: null }
+          : post
+      ));
+    } catch (error) {
+      console.error('Error approving post:', error);
+    }
   };
 
-  const handleReject = (postId, reason) => {
-    setPosts(posts.map(post => 
-      post.id === postId 
-        ? { ...post, status: 'rejected', reason }
-        : post
-    ));
-    setShowRejectModal(false);
-    setRejectReason('');
+  const handleReject = async (postId, reason) => {
+    try {
+      await rejectHouse(postId, reason);
+      setPosts(posts.map(post =>
+        post.id === postId
+          ? { ...post, status: 'rejected', reason }
+          : post
+      ));
+      setShowRejectModal(false);
+      setRejectReason('');
+    } catch (error) {
+      console.error('Error rejecting post:', error);
+    }
   };
-
-  const openDetailModal = (post) => {
-    setSelectedPost(post);
-    setCurrentImageIndex(0);
-    setShowDetailModal(true);
-  };
-
-  const openRejectModal = (post) => {
-    setSelectedPost(post);
-    setShowRejectModal(true);
-  };
-
-  const filteredPosts = posts.filter(post => {
-    const matchesFilter = filter === 'all' || post.status === filter;
-    const matchesSearch = post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         post.author.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesFilter && matchesSearch;
-  });
 
   const getStatusColor = (status) => {
     switch (status) {
+      case 'waiting_payment':
+        return 'bg-blue-100 text-blue-800';
       case 'pending':
         return 'bg-yellow-100 text-yellow-800';
       case 'approved':
@@ -176,12 +201,22 @@ const PostModeration = () => {
 
   const getStatusText = (status) => {
     switch (status) {
+      case 'waiting_payment':
+        return 'Chờ thanh toán';
       case 'pending':
         return 'Chờ duyệt';
       case 'approved':
         return 'Đã duyệt';
       case 'rejected':
         return 'Từ chối';
+      case 'rented':
+        return 'Đã cho thuê';
+      case 'hidden':
+        return 'Đã ẩn';
+      case 'expired':
+        return 'Tin hết hạn';
+      case 'deleted':
+        return 'Đã xóa';
       default:
         return 'Không xác định';
     }
@@ -204,6 +239,63 @@ const PostModeration = () => {
   const prevImage = () => {
     setCurrentImageIndex((prev) => (prev - 1 + selectedPost.images.length) % selectedPost.images.length);
   };
+
+  // Logic phân trang
+  const filteredPosts = posts.filter(post => {
+    const matchesFilter = filter === 'all' || post.status === filter;
+    const matchesSearch = post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      post.author.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesFilter && matchesSearch;
+  });
+
+  // Tính toán phân trang
+  const totalPages = Math.ceil(filteredPosts.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentPosts = filteredPosts.slice(startIndex, endIndex);
+
+  // Tính toán số trang hiển thị
+  const getVisiblePages = () => {
+    const delta = 2;
+    const range = [];
+    const rangeWithDots = [];
+
+    for (let i = Math.max(2, currentPage - delta); i <= Math.min(totalPages - 1, currentPage + delta); i++) {
+      range.push(i);
+    }
+
+    if (currentPage - delta > 2) {
+      rangeWithDots.push(1, '...');
+    } else {
+      rangeWithDots.push(1);
+    }
+
+    rangeWithDots.push(...range);
+
+    if (currentPage + delta < totalPages - 1) {
+      rangeWithDots.push('...', totalPages);
+    } else {
+      if (totalPages > 1) rangeWithDots.push(totalPages);
+    }
+
+    return rangeWithDots;
+  };
+
+  const handlePageChange = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+
+  if (loading) {
+    return (
+      <SidebarWithNavbar>
+        <div className="flex justify-center items-center h-screen">
+          <Loader2 className="animate-spin h-12 w-12 text-blue-500" />
+        </div>
+      </SidebarWithNavbar>
+    );
+  }
 
   return (
     <SidebarWithNavbar>
@@ -234,12 +326,12 @@ const PostModeration = () => {
                 </span>
               </div>
             </div>
-            
+
             <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
               <div className="flex items-center gap-2">
                 <Filter className="w-4 h-4 text-gray-500" />
-                <select 
-                  value={filter} 
+                <select
+                  value={filter}
                   onChange={(e) => setFilter(e.target.value)}
                   className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
@@ -247,9 +339,10 @@ const PostModeration = () => {
                   <option value="pending">Chờ duyệt</option>
                   <option value="approved">Đã duyệt</option>
                   <option value="rejected">Từ chối</option>
+                  <option value="waiting_payment">Đang chờ thanh toán</option>
                 </select>
               </div>
-              
+
               <div className="relative">
                 <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
                 <input
@@ -263,8 +356,34 @@ const PostModeration = () => {
             </div>
           </div>
 
+          {/* Thông tin phân trang và số mục trên trang */}
+          <div className="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-gray-600">
+                Hiển thị {startIndex + 1}-{Math.min(endIndex, filteredPosts.length)} của {filteredPosts.length} kết quả
+              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600">Hiển thị:</span>
+                <select
+                  value={itemsPerPage}
+                  onChange={(e) => {
+                    setItemsPerPage(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                  className="rounded border border-gray-300 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value={5}>5</option>
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                  <option value={50}>50</option>
+                </select>
+                <span className="text-sm text-gray-600">mục/trang</span>
+              </div>
+            </div>
+          </div>
+
           {/* Bảng danh sách bài đăng */}
-          {filteredPosts.length === 0 ? (
+          {currentPosts.length === 0 ? (
             <p className="text-gray-500 text-center py-8">Không có bài đăng nào phù hợp với bộ lọc.</p>
           ) : (
             <div className="overflow-x-auto">
@@ -289,13 +408,13 @@ const PostModeration = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 bg-white">
-                  {filteredPosts.map((post) => (
+                  {currentPosts.map((post) => (
                     <tr key={post.id} className="transition-colors hover:bg-gray-50">
                       <td className="px-2 py-4">
                         <div className="flex items-start space-x-3">
                           <div className="flex-shrink-0">
                             <img
-                              src={post.images[0]}
+                              src={post.image}
                               alt={post.title}
                               className="h-16 w-16 rounded-lg object-cover border"
                             />
@@ -346,10 +465,9 @@ const PostModeration = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getStatusColor(post.status)}`}>
-                          <div className={`mr-1 h-2 w-2 rounded-full ${
-                            post.status === 'pending' ? 'bg-yellow-400' :
+                          <div className={`mr-1 h-2 w-2 rounded-full ${post.status === 'pending' ? 'bg-yellow-400' :
                             post.status === 'approved' ? 'bg-green-400' : 'bg-red-400'
-                          }`}></div>
+                            }`}></div>
                           {getStatusText(post.status)}
                         </span>
                         {post.status === 'rejected' && post.reason && (
@@ -391,6 +509,64 @@ const PostModeration = () => {
               </table>
             </div>
           )}
+
+          {/* Phân trang */}
+          {totalPages > 1 && (
+            <div className="mt-6 flex items-center justify-between">
+              <div className="flex items-center text-sm text-gray-600">
+                Trang {currentPage} của {totalPages}
+              </div>
+
+              <div className="flex items-center space-x-2">
+                {/* Nút Previous */}
+                <button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className={`flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${currentPage === 1
+                      ? 'text-gray-400 cursor-not-allowed'
+                      : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                >
+                  <ChevronLeft className="w-4 h-4 mr-1" />
+                  Trước
+                </button>
+
+                {/* Số trang */}
+                <div className="flex items-center space-x-1">
+                  {getVisiblePages().map((page, index) => (
+                    <React.Fragment key={index}>
+                      {page === '...' ? (
+                        <span className="px-3 py-2 text-sm text-gray-400">...</span>
+                      ) : (
+                        <button
+                          onClick={() => handlePageChange(page)}
+                          className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${currentPage === page
+                              ? 'bg-blue-600 text-white'
+                              : 'text-gray-700 hover:bg-gray-100'
+                            }`}
+                        >
+                          {page}
+                        </button>
+                      )}
+                    </React.Fragment>
+                  ))}
+                </div>
+
+                {/* Nút Next */}
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className={`flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${currentPage === totalPages
+                      ? 'text-gray-400 cursor-not-allowed'
+                      : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                >
+                  Sau
+                  <ChevronRight className="w-4 h-4 ml-1" />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Modal xem chi tiết */}
@@ -414,8 +590,8 @@ const PostModeration = () => {
                 <div>
                   <div className="relative mb-4">
                     <img
-                      src={selectedPost.images[currentImageIndex]}
-                      alt={`${selectedPost.title} - ${currentImageIndex + 1}`}
+                      src={selectedPost.image}
+                      alt={`${selectedPost.title}`}
                       className="w-full h-80 object-cover rounded-lg"
                     />
                     {selectedPost.images.length > 1 && (
@@ -438,7 +614,7 @@ const PostModeration = () => {
                       </>
                     )}
                   </div>
-                  
+
                   {selectedPost.images.length > 1 && (
                     <div className="flex gap-2 overflow-x-auto">
                       {selectedPost.images.map((image, index) => (
@@ -446,16 +622,14 @@ const PostModeration = () => {
                           key={index}
                           src={image}
                           alt={`Thumbnail ${index + 1}`}
-                          className={`w-16 h-16 object-cover rounded cursor-pointer border-2 ${
-                            index === currentImageIndex ? 'border-blue-500' : 'border-gray-200'
-                          }`}
+                          className={`w-16 h-16 object-cover rounded cursor-pointer border-2 ${index === currentImageIndex ? 'border-blue-500' : 'border-gray-200'
+                            }`}
                           onClick={() => setCurrentImageIndex(index)}
                         />
                       ))}
                     </div>
                   )}
                 </div>
-
                 {/* Thông tin */}
                 <div className="space-y-4">
                   <div>
@@ -470,17 +644,17 @@ const PostModeration = () => {
                       <DollarSign className="w-5 h-5 mr-2 text-green-600" />
                       <span className="font-semibold text-green-600">{formatPrice(selectedPost.price)}/tháng</span>
                     </div>
-                    
+
                     <div className="flex items-center">
                       <MapPin className="w-5 h-5 mr-2 text-gray-500" />
                       <span>{selectedPost.location}</span>
                     </div>
-                    
+
                     <div className="flex items-center">
                       <Calendar className="w-5 h-5 mr-2 text-gray-500" />
                       <span>Đăng ngày: {formatDate(selectedPost.createdAt)}</span>
                     </div>
-                    
+
                     <div className="border-t pt-3">
                       <span className="inline-flex items-center bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
                         {getCategoryIcon(selectedPost.category)}
