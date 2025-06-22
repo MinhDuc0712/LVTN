@@ -35,15 +35,13 @@ const Login = () => {
         Password: formData.Password,
       });
 
-      // console.log("response from API:", response);
-      // Xử lý kết quả thành công
+      console.log("response from API:", response);
       if (response.user && response.token) {
         toast.success("Đăng nhập thành công!", {
           position: "top-right",
           autoClose: 3000,
         });
-        login(response.user, response.token); // Lưu thông tin người dùng vào context
-        // Chuyển hướng sau khi đăng ký thành công
+        login(response.user, response.token);
         if (response.roles.includes("admin")) {
           navigate("/admin");
         } else if (response.roles.includes("owner")) {

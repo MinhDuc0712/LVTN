@@ -1,77 +1,74 @@
-import { createContext, useContext, useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { axiosAuth } from '../api/axios';
+import { createContext, useContext, useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { axiosAuth } from "../api/axios";
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null); // State lưu thông tin user
-  const [isAuthenticated, setIsAuthenticated] = useState(false); // State kiểm tra đăng nhập
+  const [user, setUser] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const navigate = useNavigate();
 
-//   Kiểm tra localStorage khi component mount
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    const storedToken = localStorage.getItem('token');
+    const storedUser = sessionStorage.getItem("user");
+    const storedToken = sessionStorage.getItem("token");
     if (storedUser && storedToken) {
+      // console.log("Đã tìm thấy user trong sessionStorage:", storedToken);
       setUser(JSON.parse(storedUser));
       setIsAuthenticated(true);
     }
   }, []);
 
   // Hàm xử lý đăng nhập
- const login = (userData, token) => {  // Thêm tham số token
-  setUser(userData);
-  // console.log('Storing token:', token);
-  setIsAuthenticated(true);
-  localStorage.setItem('user', JSON.stringify(userData));
-  localStorage.setItem('token', token);  // Lưu token vào localStorage
-};
+  const login = (userData, token) => {
+    setUser(userData);
+    setIsAuthenticated(true);
+    sessionStorage.setItem("user", JSON.stringify(userData));
+    sessionStorage.setItem("token", token); // Lưu token vào sessionStorage
+  };
 
   // Hàm xử lý đăng xuất
-const logout = async () => {
-  try {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      console.warn('Không tìm thấy token trong localStorage');
-      // Xử lý đăng xuất phía client dù không có token
-      handleClientLogout();
-      return;
+  const logout = async () => {
+    try {
+      const token = sessionStorage.getItem("token");
+      if (!token) {
+        console.warn("Không tìm thấy token trong sessionStorage");
+        handleClientLogout();
+        return;
+      }
+
+      await axiosAuth.post("/logout");
+    } catch (error) {
+      if (error.response?.status === 401) {
+        console.warn("Token không hợp lệ hoặc đã hết hạn");
+      }
     }
 
-    await axiosAuth.post('/logout');
-    // console.log('Token đã được xóa phía server');
-  } catch (error) {
-    // console.error('Lỗi khi gọi API đăng xuất:', error.response || error);
-    // Nếu lỗi 401, vẫn tiến hành đăng xuất phía client
-    if (error.response?.status === 401) {
-      // console.warn('Token không hợp lệ hoặc đã hết hạn');
-    }
-  }
+    handleClientLogout();
+  };
 
-  handleClientLogout();
-};
+  const handleClientLogout = () => {
+    setUser(null);
+    setIsAuthenticated(false);
+    sessionStorage.removeItem("user");
+    sessionStorage.removeItem("token");
+    navigate("/", {
+      state: { message: "Bạn đã đăng xuất thành công!" },
+      replace: true,
+    });
+  };
 
-const handleClientLogout = () => {
-  setUser(null);
-  setIsAuthenticated(false);
-  localStorage.removeItem('user');
-  localStorage.removeItem('token');
-  navigate('/', {
-    state: { message: 'Bạn đã đăng xuất thành công!' },
-    replace: true,
-  });
-};
-
-// Cung cấp giá trị cho các component con
+  // Cung cấp giá trị cho các component con
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      setUser,
-      isAuthenticated, 
-      login, 
-      logout 
-    }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        setUser,
+        isAuthenticated,
+        login,
+        logout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
@@ -81,7 +78,7 @@ const handleClientLogout = () => {
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    console.error("Lôi: useAuth được sử dụng ngoài AuthProvider");
   }
   return context;
 };

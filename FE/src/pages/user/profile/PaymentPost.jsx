@@ -3,7 +3,7 @@ import { useLocation, Link, useNavigate } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import { toast } from "react-hot-toast";
 import { axiosUser } from "@/api/axios";
-import { useAuthUser } from "@/api/homePage/queries";
+import { useAuthUser } from "@/api/homePage/";
 import { useQueryClient } from "@tanstack/react-query";
 
 function useQuery() {
@@ -45,7 +45,7 @@ function PaymentPost() {
       });
 
       toast.success("Thanh toán thành công!");
-      navigate("/my-houses"); // hoặc trang bạn muốn quay lại
+      navigate("/"); // hoặc trang bạn muốn quay lại
     } catch (error) {
       console.error(error);
       toast.error("Có lỗi xảy ra khi thanh toán.");

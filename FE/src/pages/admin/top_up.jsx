@@ -10,7 +10,7 @@ import {
   useGetUserByIdentifier,
 } from "../../api/homePage/queries";
 import { updateUserBalanceAPI } from "../../api/homePage/request";
-import { FaSave, FaPlus, FaEdit, FaTrash } from 'react-icons/fa';
+import { FaSave, FaPlus, FaEdit, FaTrash, FaArrowLeft, FaArrowRight } from 'react-icons/fa';
 import { ImSpinner2 } from 'react-icons/im';
 
 const TRANSACTION_STATUS = {
@@ -126,7 +126,6 @@ export default function NapTienPage() {
       }
       resetForm();
       toast.success(editId ? "Cập nhật giao dịch thành công" : "Thêm giao dịch thành công");
-      // Cập nhật lại dữ liệu sau khi thêm/sửa
       queryClient.invalidateQueries(["depositTransactions"]);
     } catch (error) {
       toast.error(`Lỗi: ${error.response?.data?.message || error.message}`);
@@ -469,20 +468,20 @@ export default function NapTienPage() {
                 <div className="text-sm text-gray-600">
                   Trang {currentPage} / {totalPages}
                 </div>
-                <div className="space-x-2">
+                <div className="space-x-2 flex">
                   <button
                     disabled={currentPage === 1}
                     onClick={() => setCurrentPage((p) => p - 1)}
-                    className="px-3 py-1 bg-white border rounded hover:bg-gray-100 disabled:opacity-50"
+                    className="px-3 py-1 bg-white border rounded hover:bg-gray-100 disabled:opacity-50 flex items-center justify-center"
                   >
-                    ← Trước
+                    <FaArrowLeft/>
                   </button>
                   <button
                     disabled={currentPage === totalPages}
                     onClick={() => setCurrentPage((p) => p + 1)}
-                    className="px-3 py-1 bg-white border rounded hover:bg-gray-100 disabled:opacity-50"
+                    className="px-3 py-1 bg-white border rounded hover:bg-gray-100 disabled:opacity-50 flex items-center justify-center"
                   >
-                    Sau →
+                    <FaArrowRight/>
                   </button>
                 </div>
               </div>

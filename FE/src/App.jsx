@@ -14,7 +14,7 @@ function AppContent() {
 
   return (
     <div className="app">
-      {!isAdminRoute && <Header />}
+      {!isAdminRoute  &&<Header />}
       <main>
         <AppRoutes />
       </main>

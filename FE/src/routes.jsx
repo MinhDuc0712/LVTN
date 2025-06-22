@@ -21,18 +21,21 @@ import Users from "./pages/admin/Users";
 import ChangePassword from "./pages/user/profile/ChangePassword";
 import Dashboard from "./pages/admin/Dashborad";
 import SavedListings from "./pages/user/SavedListing/SavedListing";
-import GoongMap from "./pages/map"; // Assuming this is a test page
+import GoongMap from "./pages/map";
 import PostModeration from "./pages/admin/Post";
+import NotFound from "./pages/NotFound";
 
 const AppRoutes = () => {
   return (
     <Routes>
+      <Route path="/404" element={<NotFound />} />
+      <Route path="*" element={<NotFound />} />
       <Route path="/" element={<Home />} />
-      <Route path="/category/:categoryId" element={<HousesByCategory/>} />
+      <Route path="/category/:categoryId" element={<HousesByCategory />} />
       <Route path="/dang-nhap" element={<Login />} />
       <Route path="/dang-ky-tai-khoan" element={<Register />} />
       <Route path="/user" element={<User />} />
-      <Route path="/change_password" element={<ChangePassword />}/>
+      <Route path="/change_password" element={<ChangePassword />} />
       <Route path="/post" element={<Post />} />
       <Route path="/posts" element={<Posts />} />
       <Route path="/post/paymentpost" element={<PaymentPost />} />
@@ -48,8 +51,8 @@ const AppRoutes = () => {
       <Route path="/admin/Utilities" element={<Utilities />} />
       <Route path="/admin/top_up" element={<Top_up />} />
       <Route path="/admin/users" element={<Users />} />
-      <Route path="/admin/dashboard" element={<Dashboard />} />
-      <Route path="/admin/post" element={<PostModeration/>}/>
+      <Route path="/admin/" element={<Dashboard />} />
+      <Route path="/admin/post" element={<PostModeration />} />
       <Route path="/test" element={<GoongMap />} />
     </Routes>
   );

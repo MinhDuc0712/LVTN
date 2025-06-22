@@ -254,7 +254,7 @@ export default function Users() {
                         <div className="flex items-center">
                           <div className="h-10 w-10 flex-shrink-0">
                             <img
-                              src={`data:image/jpeg;base64,${user.HinhDaiDien}` || Avatar}
+                              src={user?.HinhDaiDien|| Avatar}
                               alt={`${user.HoTen}'s avatar`}
                               className="h-10 w-10 rounded-full object-cover"
                               onError={(e) => {

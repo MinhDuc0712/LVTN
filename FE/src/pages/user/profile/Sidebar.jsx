@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import {
   FaPlus,
@@ -12,7 +12,7 @@ import {
   FaTimes,
 } from "react-icons/fa";
 import avatar from "@/assets/avatar.jpg";
-import { useAuthUser } from "../../../api/homePage/queries";
+import { useAuthUser } from "@/api/homePage";
 
 const menuItems = [
   { icon: <FaPlus />, label: "Đăng tin mới", path: "/post" },
@@ -36,6 +36,7 @@ const Sidebar = () => {
     isLoading: isUserLoading,
     error: userError,
   } = useAuthUser();
+  // console.log("User data:", user);
   // console.log("HinhDaiDien:", user?.HinhDaiDien);
 
   if (isUserLoading)
@@ -75,7 +76,7 @@ const Sidebar = () => {
       )}
 
       {/* Sidebar for Desktop */}
-      <div className="hidden w-1/4 bg-gray-100 p-4 md:block">
+      <div className="hidden w-1/5 bg-gray-100 p-4 md:block">
         <SidebarContent avatar={avatar} user={user} />
       </div>
     </>
@@ -87,12 +88,9 @@ const SidebarContent = ({ avatar, user }) => (
     <div className="mb-4 flex items-center">
       <div className="h-16 w-16 overflow-hidden rounded-full bg-gray-300">
         <img
-          src={`data:image/png;base64,${user?.HinhDaiDien}`}
+          src={user?.HinhDaiDien || avatar}
           alt="Avatar"
           className="h-full w-full object-cover"
-          onError={(e) => {
-            e.target.src = avatar;
-          }}
         />
       </div>
       <div className="ml-2">
