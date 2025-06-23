@@ -7,13 +7,13 @@ import { toast } from "react-toastify";
 import Avatar from "@/assets/avatar.jpg";
 
 const AccountManagement = () => {
-  const { isAuthenticated, user, setUser } = useAuth();
+  const { isAuthenticated, setUser } = useAuth();
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     SDT: "",
     HoTen: "",
     Email: "",
-    avatarBase64: "", // Lưu base64 thay vì file
+    HinhDaiDien: "", // Lưu base64 thay vì file
   });
   const [avatar, setAvatar] = useState(Avatar);
   const [isFocused, setIsFocused] = useState({
@@ -36,7 +36,7 @@ const AccountManagement = () => {
             SDT: result.user.SDT || "",
             HoTen: result.user.HoTen || "",
             Email: result.user.Email || "",
-            avatarBase64: "", // Reset base64
+            HinhDaiDien: "",
           });
           setAvatar(result.user.HinhDaiDien || Avatar);
         } else {
@@ -51,7 +51,7 @@ const AccountManagement = () => {
     fetchProfile();
   }, [setUser]);
 
-  const handleFileChange = (e) => {
+  const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
       if (!file.type.startsWith("image/")) {
@@ -62,16 +62,35 @@ const AccountManagement = () => {
         toast.error("Ảnh không được lớn hơn 2MB!");
         return;
       }
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setAvatar(reader.result); // Hiển thị ảnh base64
-        setFormData((prev) => ({
-          ...prev,
-          avatarBase64: reader.result.split(",")[1], // Lấy phần base64 (bỏ prefix data:image/jpeg;base64,)
-        }));
-        toast.success("Ảnh được tải lên thành công!");
-      };
-      reader.readAsDataURL(file); // Chuyển file thành base64
+
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("upload_preset", "upload-house");
+
+      try {
+        toast.info("Đang tải ảnh lên Cloudinary...");
+        const res = await fetch(
+          "https://api.cloudinary.com/v1_1/df0xgmzfz/image/upload",
+          {
+            method: "POST",
+            body: formData,
+          },
+        );
+        const data = await res.json();
+        if (data.secure_url) {
+          setAvatar(data.secure_url);
+          setFormData((prev) => ({
+            ...prev,
+            HinhDaiDien: data.secure_url,
+          }));
+          toast.success("Tải ảnh lên thành công!");
+        } else {
+          toast.error("Lỗi khi tải ảnh lên!");
+        }
+      } catch (error) {
+        console.error("Upload thất bại:", data);
+        toast.error("Lỗi khi tải ảnh lên Cloudinary!");
+      }
     } else {
       toast.warn("Bạn chưa chọn ảnh!");
     }
@@ -87,8 +106,12 @@ const AccountManagement = () => {
         SDT: formData.SDT,
         HoTen: formData.HoTen,
         Email: formData.Email,
-        avatarBase64: formData.avatarBase64, // Gửi base64
+        HinhDaiDien: formData.HinhDaiDien,
       };
+
+      if (formData.HinhDaiDien) {
+        dataToSend.HinhDaiDien = formData.HinhDaiDien;
+      }
 
       const result = await updateUserProfileAPI(dataToSend);
       if (result.success) {
@@ -100,8 +123,7 @@ const AccountManagement = () => {
         }));
         setAvatar(result.user.HinhDaiDien || Avatar);
 
-
-        setFormData((prev) => ({ ...prev, avatarBase64: "" }));
+        setFormData((prev) => ({ ...prev, HinhDaiDien: "" }));
       } else {
         toast.error(result.message || "Cập nhật thất bại!");
       }
@@ -159,8 +181,7 @@ const AccountManagement = () => {
           <div className="mb-4 flex flex-col items-center sm:flex-row">
             <div className="h-16 w-16 overflow-hidden rounded-full bg-gray-300">
               <img
-                // src={avatar}
-                src={`data:image/jpeg;base64,${avatar}`}
+                src={avatar || Avatar}
                 alt="Avatar"
                 className="h-full w-full object-cover"
                 onError={(e) => {

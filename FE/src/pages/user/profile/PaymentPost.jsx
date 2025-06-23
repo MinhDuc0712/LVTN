@@ -3,7 +3,7 @@ import { useLocation, Link, useNavigate } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import { toast } from "react-hot-toast";
 import { axiosUser } from "@/api/axios";
-import { useAuthUser } from "@/api/homePage/queries";
+import { useAuthUser } from "@/api/homePage/";
 import { useQueryClient } from "@tanstack/react-query";
 import { postPaymentForHouse } from "../../../api/homePage/request";
 function useQuery() {

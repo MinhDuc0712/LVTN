@@ -115,28 +115,28 @@ export const useCreateHouse = () => {
 
   return useMutation({
     mutationFn: async (data) => {
-  try {
-    console.log("Payload sent:", data);
+      try {
+        console.log("Payload sent:", data);
 
-    const resData = await axiosUser.post("/houses", data);
-    console.log("Response (after interceptor):", resData);
+        const resData = await axiosUser.post("/houses", data);
+        console.log("Response (after interceptor):", resData);
 
-    const house = resData?.house;
-    const houseId = house?.MaNha || resData?.MaNha;
+        const house = resData?.house;
+        const houseId = house?.MaNha || resData?.MaNha;
 
-    if (!houseId) {
-      throw new Error("Không tìm thấy ID của bài đăng từ server.");
-    }
+        if (!houseId) {
+          throw new Error("Không tìm thấy ID của bài đăng từ server.");
+        }
 
-    return {
-      ...resData,
-      houseId,
-    };
-  } catch (err) {
-    console.error("Lỗi mutationFn:", err);
-    throw err;
-  }
-},
+        return {
+          ...resData,
+          houseId,
+        };
+      } catch (err) {
+        console.error("Lỗi mutationFn:", err);
+        throw err;
+      }
+    },
 
     onSuccess: (data) => {
       queryClient.invalidateQueries(["houses"]);
@@ -177,7 +177,7 @@ export const useUploadHouseImages = () => {
     mutationFn: async ({ houseId, images }) => {
       const formData = new FormData();
       images.forEach((image) => {
-        formData.append("images[]", image); 
+        formData.append("images[]", image);
       });
 
       const response = await axiosUser.post(
@@ -201,6 +201,7 @@ export const useUploadHouseImages = () => {
   });
 };
 export const useAuthUser = () => {
+  const token = sessionStorage.getItem("token");
   return useQuery({
     queryKey: ["me"],
     queryFn: async () => {
@@ -220,19 +221,15 @@ export const useAuthUser = () => {
         throw error;
       }
     },
+    enabled: !!token,
     retry: false,
     staleTime: 0, // Không lưu dữ liệu cũ
   });
 };
 
-
-
-
-
 export const useUpdateUserRole = () => {
   const queryClient = useQueryClient();
   return useMutation({
-
     mutationFn: async ({ userId, role, status }) => {
       console.log("Sending data:", { Role: role, TrangThai: status });
       const response = await axiosAdmin.put(`/user/${userId}`, {
@@ -287,6 +284,7 @@ export const useGetRoles = () => {
     },
   });
 };
+
 //edit post
 export const useUpdateHouse = () => {
   return useMutation({ mutationFn: updatePost });

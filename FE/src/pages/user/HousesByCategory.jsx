@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import FilterSection from "../../components/FilterSection";
 import ListingCard from "../../components/ListingCard";
 import { getHousesByCategory } from "../../api/homePage/request"; 
 
 const HousesByCategory = () => {
   const { categoryId } = useParams();
+  const navigate = useNavigate();
+
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -15,6 +17,12 @@ const HousesByCategory = () => {
       try {
         setLoading(true);
         const res = await getHousesByCategory(categoryId);
+        console.log("HousesByCategory response:", res);
+        const houses = res?.data || [];
+        if (houses.length === 0) {
+          navigate("/404", { replace: true });
+          return;
+        }
         setListings(res?.data || []);
       } catch (err) {
         console.error(err);
@@ -25,10 +33,10 @@ const HousesByCategory = () => {
     };
 
     fetchCategoryHouses();
-  }, [categoryId]);
+  }, [categoryId, navigate]);
 
   const formatListingData = (houses) => {
-    return houses.map(house => ({
+    return houses.map((house) => ({
       id: house.MaNha,
       title: house.TieuDe,
       price: house.Gia,
@@ -38,11 +46,11 @@ const HousesByCategory = () => {
       address: house.DiaChi,
       description: house.MoTaChiTiet,
       postedTime: formatPostedTime(house.NgayDang),
-      contact: house.user?.SDT || '',
-      posterName: house.user?.HoTen || '',
-      type: house.category?.TenDanhMuc || '',
+      contact: house.user?.SDT || "",
+      posterName: house.user?.HoTen || "",
+      type: house.category?.name || "",
       image: house.HinhAnh || getFirstImage(house.images),
-      isFeatured: house.NoiBat
+      // isFeatured: house.NoiBat,
     }));
   };
 
@@ -55,31 +63,35 @@ const HousesByCategory = () => {
     //tính theo phút
     if (diffInDays < 1) {
       const diffInMinutes = Math.floor((now - postedDate) / (1000 * 60));
-      if (diffInMinutes < 15) return 'Hôm nay';
+      if (diffInMinutes < 15) return "Hôm nay";
       return `${diffInMinutes} phút trước`;
     }
 
-    if (diffInDays === 1) return '1 ngày trước';
+    if (diffInDays === 1) return "1 ngày trước";
     if (diffInDays < 7) return `${diffInDays} ngày trước`;
     if (diffInDays < 30) return `${Math.floor(diffInDays / 7)} tuần trước`;
     return `${Math.floor(diffInDays / 30)} tháng trước`;
   };
 
   const getFirstImage = (images) => {
-    if (!images || images.length === 0) return '';
+    if (!images || images.length === 0) return "";
     return images[0].DuongDanHinh;
   };
 
   const formattedListings = formatListingData(listings);
 
-  if (loading) return <div className="text-center py-8">Đang tải dữ liệu...</div>;
-  if (error) return <div className="text-center py-8 text-red-500">Lỗi: {error}</div>;
+  if (loading)
+    return <div className="py-8 text-center">Đang tải dữ liệu...</div>;
+  if (error)
+    return <div className="py-8 text-center text-red-500">Lỗi: {error}</div>;
 
   return (
     <div className="container mx-auto px-4 py-6">
       <div className="flex flex-col gap-6 md:flex-row">
         <div className="w-full md:w-2/3">
-          <h2 className="mb-4 text-xl font-bold uppercase">Danh sách nhà</h2>
+          <h2 className="mb-4 text-xl font-bold uppercase">
+            {`${listings[0].category?.name}` || "Không có danh mục"}
+          </h2>
           <ListingCard listings={formattedListings} />
         </div>
         <div className="w-full md:w-1/3">

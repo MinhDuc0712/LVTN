@@ -3,9 +3,9 @@ import React from 'react';
 const Footer = () => {
   return (
     <footer className="bg-[#ffce3f]/50 w-full py-8 px-4 md:px-8">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-5xl mx-auto">
         {/* Main Footer Content */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-6 mb-8 text-center">
           {/* Phòng trọ, nhà trọ */}
           <div className="space-y-2">
             <h3 className="text-black text-sm font-bold uppercase mb-2">Phòng trọ, nhà trọ</h3>

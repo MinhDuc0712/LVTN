@@ -1,8 +1,11 @@
-import axios from "axios";
+  import axios from "axios";
 
+  const timeout = +import.meta.env.VITE_APP_API_TIME_OUT || 20000;
 
-const timeout = +import.meta.env.VITE_APP_API_TIME_OUT || 20000;
-
+  export const axiosAuth = axios.create({
+    baseURL: import.meta.env.VITE_API_URI_AUTH,
+    timeout,
+  });
 
 export const axiosUser = axios.create({
   baseURL: import.meta.env.VITE_API_URI_USER,
@@ -11,11 +14,6 @@ export const axiosUser = axios.create({
 
 export const axiosAdmin = axios.create({
   baseURL: import.meta.env.VITE_API_URI_ADMIN,
-  timeout,
-});
-
-export const axiosAuth = axios.create({
-  baseURL: import.meta.env.VITE_API_URI_AUTH,
   timeout,
 });
 

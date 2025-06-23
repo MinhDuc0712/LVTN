@@ -89,7 +89,7 @@ export default function SidebarWithNavbar({ children }) {
 
           {/* Menu */}
           <nav className="space-y-2">
-            <Link to="/admin/dashboard">
+            <Link to="/admin">
               <SidebarItem icon={<BarChart />} label="Dashboard" />
             </Link>
             <Link to="/admin/category">

@@ -5,9 +5,16 @@ import {
   Send,
   MessageCircle,
   MoreHorizontal,
+  Trash,
 } from "lucide-react";
+import Avatar from "@/assets/avatar.jpg"
 import { toast } from "react-toastify";
-import { getRatingsByHouseAPI, postRatingAPI } from "@/api/homePage/request";
+import {
+  getRatingsByHouseAPI,
+  postRatingAPI,
+  toggleRatingLikeAPI,
+  deleteRatingAPI,
+} from "@/api/homePage";
 
 function CommentsSection({ house, user }) {
   const [comments, setComments] = useState([]);
@@ -16,6 +23,7 @@ function CommentsSection({ house, user }) {
   const [hoverRating, setHoverRating] = useState(0);
   const [visibleCount, setVisibleCount] = useState(5);
   const [loading, setLoading] = useState(true);
+  const [openMenuId, setOpenMenuId] = useState(null);
 
   useEffect(() => {
     const fetchRatings = async () => {
@@ -23,18 +31,18 @@ function CommentsSection({ house, user }) {
         if (!house?.MaNha) return;
         setLoading(true);
 
-        const res = await getRatingsByHouseAPI(house.MaNha);
+        const res = await getRatingsByHouseAPI(house.MaNha, user?.MaNguoiDung);
         // console.log("Đánh giá:", res);
 
         const formatted = res.map((item) => ({
           id: item.MaDanhGia,
-          user: item.user?.HoTen || `Người dùng #${item.MaNguoiDung}`,
-          avatar: `data:image/png;base64,${item.user.HinhDaiDien}`,
+          user: item.user?.HoTen || item?.MaNguoiDung,
+          avatar: item.user.HinhDaiDien,
           rating: item.SoSao,
           comment: item.NoiDung,
           date: item.ThoiGian,
           helpful: item.LuotThich || 0,
-          liked: false,
+          liked: item.liked,
         }));
 
         setComments(formatted);
@@ -59,12 +67,13 @@ function CommentsSection({ house, user }) {
         SoSao: newRating,
         NoiDung: newComment,
       };
+      // console.log("User data:", user);
       const res = await postRatingAPI(payload);
 
       const newEntry = {
         id: res.rating.MaDanhGia,
         user: user?.HoTen || "Bạn",
-        avatar: `data:image/png;base64,${user.HinhDaiDien}`,
+        avatar: user?.HinhDaiDien,
         rating: res.rating.SoSao,
         comment: res.rating.NoiDung,
         date: res.rating.ThoiGian,
@@ -77,23 +86,45 @@ function CommentsSection({ house, user }) {
       setNewRating(0);
       toast.success("Đánh giá đã được gửi thành công!");
     } catch (error) {
-      console.error("Lỗi gửi đánh giá:", error);
+      // console.error("Lỗi gửi đánh giá:", error);
       toast.error("Gửi đánh giá thất bại.");
     }
   };
 
-  const toggleCommentLike = (commentId) => {
-    setComments((prev) =>
-      prev.map((c) =>
-        c.id === commentId
-          ? {
-              ...c,
-              liked: !c.liked,
-              helpful: c.liked ? c.helpful - 1 : c.helpful + 1,
-            }
-          : c,
-      ),
-    );
+  const handleDelete = async (commentId) => {
+    try {
+      // Giả sử có API xóa đánh giá
+      await deleteRatingAPI(commentId);
+      setComments((prev) => prev.filter((c) => c.id !== commentId));
+      toast.success("Đánh giá đã được xóa thành công!");
+    } catch (error) {
+      console.error("Lỗi xóa đánh giá:", error);
+      toast.error("Xóa đánh giá thất bại.");
+    } finally {
+      setOpenMenuId(null);
+    }
+  };
+
+  const toggleCommentLike = async (commentId, isLiked) => {
+    try {
+      const action = isLiked ? "unlike" : "like";
+      await toggleRatingLikeAPI(commentId, action);
+
+      setComments((prev) =>
+        prev.map((c) =>
+          c.id === commentId
+            ? {
+                ...c,
+                liked: !isLiked,
+                helpful: isLiked ? c.helpful - 1 : c.helpful + 1,
+              }
+            : c,
+        ),
+      );
+    } catch (err) {
+      console.error("Lỗi khi thích đánh giá:", err);
+      toast.error("Có lỗi xảy ra khi xử lý hành động thích.");
+    }
   };
 
   const averageRating =
@@ -183,34 +214,50 @@ function CommentsSection({ house, user }) {
         <h3 className="mb-4 font-semibold text-gray-800">
           Viết đánh giá của bạn
         </h3>
-        <form onSubmit={handleSubmitComment} className="space-y-4">
-          <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">
-              Đánh giá của bạn
-            </label>
-            <div className="flex gap-1">{renderStars(0, true, "w-6 h-6")}</div>
-          </div>
-          <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">
-              Nhận xét
-            </label>
-            <textarea
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              placeholder="Chia sẻ trải nghiệm của bạn về phòng trọ này..."
-              className="w-full resize-none rounded-xl border border-gray-300 p-3 focus:border-transparent"
-              rows="3"
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={!newComment.trim() || newRating === 0}
-            className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 px-6 py-2 font-medium text-white transition-all duration-300 hover:from-amber-600 hover:to-orange-600 disabled:cursor-not-allowed disabled:from-gray-300 disabled:to-gray-400"
-          >
-            <Send className="h-4 w-4" />
-            Gửi đánh giá
-          </button>
-        </form>
+
+        {user ? (
+          <form onSubmit={handleSubmitComment} className="space-y-4">
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Đánh giá của bạn
+              </label>
+              <div className="flex gap-1">
+                {renderStars(0, true, "w-6 h-6")}
+              </div>
+            </div>
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Nhận xét
+              </label>
+              <textarea
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                placeholder="Chia sẻ trải nghiệm của bạn về phòng trọ này..."
+                className="w-full resize-none rounded-xl border border-gray-300 p-3 focus:border-transparent"
+                rows="3"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={!newComment.trim() || newRating === 0}
+              className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 px-6 py-2 font-medium text-white transition-all duration-300 hover:from-amber-600 hover:to-orange-600 disabled:cursor-not-allowed disabled:from-gray-300 disabled:to-gray-400"
+            >
+              <Send className="h-4 w-4" />
+              Gửi đánh giá
+            </button>
+          </form>
+        ) : (
+          <p className="rounded-lg bg-yellow-50 px-4 py-3 text-sm text-yellow-700">
+            Bạn cần{" "}
+            <a
+              href="/dang-nhap"
+              className="font-semibold underline hover:text-orange-600"
+            >
+              đăng nhập
+            </a>{" "}
+            để gửi đánh giá.
+          </p>
+        )}
       </div>
 
       {/* Danh sách đánh giá */}
@@ -228,7 +275,7 @@ function CommentsSection({ house, user }) {
             >
               <div className="flex items-start gap-3">
                 <img
-                  src={cmt.avatar}
+                  src={cmt.avatar || Avatar}
                   alt={cmt.user}
                   className="h-10 w-10 rounded-full object-cover"
                 />
@@ -238,9 +285,24 @@ function CommentsSection({ house, user }) {
                       <h4 className="font-medium text-gray-800">{cmt.user}</h4>
                       <span className="text-sm text-gray-500">{cmt.date}</span>
                     </div>
-                    <button className="text-gray-400 hover:text-gray-600">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </button>
+                    <div className="relative inline-block items-center">
+                      <button
+                        onClick={() => setOpenMenuId(cmt.id)}
+                        className="text-gray-400 hover:text-gray-600"
+                      >
+                        <MoreHorizontal className="h-4 w-4" />
+                      </button>
+                      {openMenuId === cmt.id && (
+                        <div className="absolute right-0 z-50 mt-2 w-28 rounded border bg-white shadow">
+                          <button
+                            onClick={() => handleDelete(cmt.id)}
+                            className="flex w-full items-center px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                          >
+                            <Trash className="mr-2 h-4 w-4" /> Xóa
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <div className="mb-2 flex items-center gap-2">
                     {renderStars(cmt.rating)}
@@ -253,7 +315,7 @@ function CommentsSection({ house, user }) {
                   </p>
                   <div className="flex items-center gap-4">
                     <button
-                      onClick={() => toggleCommentLike(cmt.id)}
+                      onClick={() => toggleCommentLike(cmt.id, cmt.liked)}
                       className={`flex items-center gap-1 text-sm transition-colors duration-200 ${
                         cmt.liked
                           ? "text-blue-600"

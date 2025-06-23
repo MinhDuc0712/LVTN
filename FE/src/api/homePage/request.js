@@ -145,6 +145,7 @@ export const getUserProfileAPI = async () => {
 export const updateUserProfileAPI = async (data) => {
   try {
     const response = await axiosAuth.post("/updateProfile", data);
+    console.log("RESPONSE", response);
     return {
       success: true,
       message: response.message || "Cập nhật thông tin thành công",
@@ -160,6 +161,7 @@ export const updateUserProfileAPI = async (data) => {
     };
   }
 };
+
 
 // Gửi yêu cầu đổi mật khẩu tới backend
 export const changePasswordAPI = async (data) => {
@@ -235,6 +237,21 @@ export const getRatingsByHouseAPI = async (maNha) => {
 export const postRatingAPI = async (data) => {
   const response = await axiosUser.post(`/ratings`, data);
   return response;
+};
+
+export const toggleRatingLikeAPI = async (ratingId, action) => {
+  const res = await axiosUser.put(`/ratings/${ratingId}`, {
+    action,
+  });
+  return res.data;
+};
+
+export const deleteRatingAPI = async (id) => {
+  return axiosUser.delete(`/ratings/${id}`);
+};
+
+export const getHousesWithFilter = async (params) => {
+  return axiosUser.get("/houses", { params }); // axios tự parse JSON
 };
 export const postPaymentForHouse = async ({ houseId, planType, duration, unit, total }) => {
   const response = await axiosUser.post("/houses/payment", {

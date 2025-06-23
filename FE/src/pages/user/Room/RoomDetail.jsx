@@ -18,9 +18,13 @@ import {
 } from "lucide-react";
 import { getHousesById } from "@/api/homePage"; // Giả sử bạn đã tạo hàm này trong api
 import CommentsSection from "./CommentsSection";
+import avatar from "@/assets/avatar.jpg";
+import { useAuthUser, useGetUtilitiesUS } from "@/api/homePage";
 
 function HouseDetail() {
   const { id } = useParams();
+  const { data: user } = useAuthUser();
+  const { data: utilities=[] } = useGetUtilitiesUS();
   const [house, setHouse] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -62,8 +66,12 @@ function HouseDetail() {
   // Breadcrumbs
   const breadcrumbs = [
     { label: "Trang chủ", href: "/", current: false },
-    { label: "Cho thuê phòng trọ", href: "/houses", current: false },
-    { label: house.TieuDe, href: "", current: true },
+    {
+      label: house.category.name,
+      href: `/category/${house.category.MaDanhMuc}`,
+      current: false,
+    },
+    { label: house.TieuDe, href: house.MaNha, current: true },
   ];
 
   // Format giá
@@ -73,6 +81,7 @@ function HouseDetail() {
       currency: "VND",
     }).format(price);
   };
+
 
   // Format ngày
   const formatDate = (dateString) => {
@@ -256,6 +265,61 @@ function HouseDetail() {
                       {house.MoTaChiTiet}
                     </p>
                   </div>
+                  <div className="mt-6">
+                    <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-gray-800">
+                      <div className="h-5 w-1 rounded-full bg-gradient-to-b from-blue-400 to-purple-500"></div>
+                      Tiện ích
+                    </h3>
+
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                      {utilities.map((util, index) => {
+                        const hasUtility = house.utilities?.some(
+                          (u) => u.MaTienIch === util.MaTienIch,
+                        );
+
+                        return (
+                          <div
+                            key={index}
+                            className={`flex items-center gap-3 text-sm transition-colors duration-200 ${
+                              hasUtility
+                                ? "text-gray-700 hover:text-gray-900"
+                                : "text-gray-400 italic"
+                            }`}
+                          >
+                            <div
+                              className={`flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full ${
+                                hasUtility ? "bg-green-500" : "bg-gray-300"
+                              }`}
+                            >
+                              {hasUtility ? (
+                                <svg
+                                  className="h-3 w-3 text-white"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={3}
+                                    d="M5 13l4 4L19 7"
+                                  />
+                                </svg>
+                              ) : null}
+                            </div>
+
+                            <span
+                              className={
+                                hasUtility ? "font-medium" : "font-normal"
+                              }
+                            >
+                              {util.TenTienIch}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -281,7 +345,7 @@ function HouseDetail() {
             </div>
 
             {/* Comments Section */}
-            <CommentsSection house={house} user={house.user}/>
+            <CommentsSection house={house} user={user} />
           </div>
 
           {/* Sidebar - 1 column */}
@@ -296,7 +360,7 @@ function HouseDetail() {
                     {/* Avatar */}
                     <div className="mb-4 flex justify-center">
                       <img
-                        src={`data:image/jpeg;base64,${house.user.HinhDaiDien}` || "/default-avatar.jpg"}
+                        src={house.user.HinhDaiDien || avatar}
                         alt="avatar"
                         className="h-20 w-20 rounded-full border-4 border-white object-cover shadow-lg"
                       />
@@ -341,14 +405,19 @@ function HouseDetail() {
                   {/* Contact Buttons */}
                   <div className="mb-6 space-y-3">
                     <a
-                      href={`tel:${house.user.SoDienThoai}`}
+                      href={`tel:${house.user.SDT}`}
                       className="flex w-full transform items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 py-3 font-semibold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:from-green-600 hover:to-emerald-700 hover:shadow-xl"
                     >
                       <Phone className="h-4 w-4" />
-                      {house.user.SoDienThoai || "Liên hệ"}
+                      {house.user.SDT }
                     </a>
 
-                    <a href={`zalo:${house.user.SoDienThoai}`} className="flex w-full transform items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 py-3 font-semibold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:from-blue-600 hover:to-blue-700 hover:shadow-xl">
+                    <a
+                      href={`https://zalo.me/${house.user.SDT.replace(/^0/, "84")}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex w-full transform items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 py-3 font-semibold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:from-blue-600 hover:to-blue-700 hover:shadow-xl"
+                    >
                       <MessageCircle className="h-4 w-4" />
                       Nhắn Zalo
                     </a>

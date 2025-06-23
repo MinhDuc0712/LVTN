@@ -1,15 +1,15 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import SearchBar from "./SearchBar";
-import Logo from "../assets/logo.png";
+import Logo from "@/assets/logo.png";
 
 import Avatar from "../assets/avatar.jpg";
 import { Link } from "react-router-dom";
-import { useGetCategoriesUS } from "../api/homePage";
-import { useAuth } from "../context/AuthContext";
+import { useGetCategoriesUS } from "@/api/homePage";
+import { useAuth } from "@/context/AuthContext";
 
 const Header = () => {
   const { isAuthenticated, user, logout } = useAuth();
-  // console.log("HinhDaiDien:", user?.HinhDaiDien);
+  // console.log("HinhDaiDien:", isAuthenticated);
   const { data } = useGetCategoriesUS();
   const categories = data || [];
   // console.log("Categories data:", data);
@@ -173,12 +173,9 @@ const Header = () => {
                 >
                   <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full">
                     <img
-                      src={`data:image/png;base64,${user?.HinhDaiDien}`}
+                      src={user?.HinhDaiDien || Avatar}
                       alt="User Avatar"
                       className="h-full w-full object-cover"
-                      onError={(e) => {
-                        e.target.src = Avatar; // Fallback to default avatar
-                      }}
                     />
                   </div>
                   <span className="inline">Tài khoản</span>
@@ -207,7 +204,7 @@ const Header = () => {
                         {user?.HoTen || "Người dùng"}
                       </span>
                       <span className="block text-xs text-gray-500">
-                        {user?.Email || "Không có thông tin"}
+                        {user?.SDT || "Không có thông tin"}
                       </span>
                     </li>
                     <li>
@@ -390,25 +387,18 @@ const Header = () => {
                       <div className="flex items-center px-2 py-2">
                         <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full">
                           <img
-                            src={
-                              user?.avatar
-                                ? `/storage/${user.HinhDaiDien}`
-                                : "/images/default-avatar.png"
-                            }
+                            src={user?.HinhDaiDien || Avatar}
                             alt="User Avatar"
                             className="h-full w-full object-cover"
-                            onError={(e) => {
-                              e.target.src = Avatar;
-                            }}
                           />
                         </div>
                         <div className="ml-2 text-sm font-medium text-gray-700">
-                        <span className="text-sm font-medium text-gray-700">
-                          Xin chào: {user?.HoTen}
-                        </span>
-                        <span className="block text-xs text-gray-500">
-                          {user?.Email || "Không có thông tin"}
-                        </span>
+                          <span className="text-sm font-medium text-gray-700">
+                            Xin chào: {user?.HoTen}
+                          </span>
+                          <span className="block text-xs text-gray-500">
+                            {user?.Email || "Không có thông tin"}
+                          </span>
                         </div>
                       </div>
                       <Link
