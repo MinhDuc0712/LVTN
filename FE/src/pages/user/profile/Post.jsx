@@ -374,14 +374,14 @@ function UserPost() {
                     <div className="mb-6 rounded bg-white p-4 shadow">
                         <h2 className="mb-2 text-lg font-bold">Thông tin mô tả</h2>
                         <div className="mb-4">
-                            <label className="mb-1 block font-semibold">
+                            <label className="mb-1  block font-semibold">
                                 Tiêu đề <span className="text-red-600">(*)</span>
                             </label>
                             <textarea
                                 name="TieuDe"
                                 value={formData.TieuDe}
                                 onChange={handleInputChange}
-                                className="w-full rounded border p-2"
+                                className="w-full uppercase rounded border p-2"
                                 rows="2"
                                 placeholder="Nhập tiêu đề"
                                 required

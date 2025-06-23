@@ -16,12 +16,9 @@ const Home = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-
-        
         const housesResponse = await getHouses();
         setListings(housesResponse?.data || housesResponse || []);
 
-        
         const featuredResponse = await getFeaturedHouses();
         setFeaturedListings(featuredResponse?.data || featuredResponse || []);
 
@@ -59,7 +56,7 @@ const Home = () => {
     }));
   };
 
-  // Hàm format thời gian đăng
+
   const formatPostedTime = (dateString) => {
     const now = new Date();
     const postedDate = new Date(dateString);
@@ -77,13 +74,13 @@ const Home = () => {
     return `${Math.floor(diffInDays / 30)} tháng trước`;
   };
 
-  // Lấy ảnh đầu tiên nếu có
+ 
   const getFirstImage = (images) => {
     if (!images || images.length === 0) return '';
     return images[0].DuongDanHinh;
   };
 
-  // const formattedListings = formatListingData(listings);
+  
   const formattedFeatured = formatListingData(featuredListings);
 
   return (
