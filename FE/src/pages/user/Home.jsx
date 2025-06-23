@@ -8,6 +8,7 @@ import {
   getHousesWithFilter,
 } from "@/api/homePage";
 
+
 const Home = () => {
   const [allListings, setAllListings] = useState([]);
   const [filteredListings, setFilteredListings] = useState([]);
@@ -73,6 +74,7 @@ const Home = () => {
   }, []);
 
   // Format dữ liệu nhà
+
   const formatListingData = (houses) => {
     return houses.map((house) => ({
       id: house.MaNha,
@@ -92,7 +94,7 @@ const Home = () => {
     }));
   };
 
-  // Hàm format thời gian đăng
+
   const formatPostedTime = (dateString) => {
     const now = new Date();
     const postedDate = new Date(dateString);
@@ -111,7 +113,7 @@ const Home = () => {
     return `${Math.floor(diffInDays / 30)} tháng trước`;
   };
 
-  // Lấy ảnh đầu tiên nếu có
+ 
   const getFirstImage = (images) => {
     if (!images || images.length === 0) return "";
     return images[0].DuongDanHinh;
@@ -161,6 +163,16 @@ const Home = () => {
           </div>
 
           {/* FilterSection */}
+            )}
+
+            {/* Hiển thị tất cả nhà */}
+            {/* <div className="mb-6">
+              <h2 className="mb-4 text-xl font-bold">Đề xuất</h2>
+              <ListingCard listings={formattedListings} />
+            </div> */}
+          </div>
+
+          {/* FilterSection nằm bên trái */}
           <div className="w-full md:w-1/3">
             <FilterSection
               onApplyFilters={handleApplyFilters}

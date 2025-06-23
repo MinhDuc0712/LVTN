@@ -189,7 +189,7 @@ export const postHouseAPI = async (data) => {
 
 export const getHouses = async () => {
   try {
-    const response = await axiosUser.get('/houses'); 
+    const response = await axiosUser.get('/houses');
     return response.data || response;
   } catch (error) {
     console.error('Error fetching public houses:', error.response?.data || error.message);
@@ -199,7 +199,7 @@ export const getHouses = async () => {
 
 export const getFeaturedHouses = async () => {
   try {
-    const response = await axiosUser.get('/houses/featured'); 
+    const response = await axiosUser.get('/houses/featured');
     return response.data || response;
   } catch (error) {
     console.error('Error fetching featured houses:', error.response?.data || error.message);
@@ -252,4 +252,51 @@ export const deleteRatingAPI = async (id) => {
 
 export const getHousesWithFilter = async (params) => {
   return axiosUser.get("/houses", { params }); // axios tự parse JSON
+};
+export const postPaymentForHouse = async ({ houseId, planType, duration, unit, total }) => {
+  const response = await axiosUser.post("/houses/payment", {
+    houseId,
+    planType,
+    duration,
+    unit,
+    total,
+  });
+  return response.data;
+};
+export const getUserHouses = async () => {
+  const res = await axiosUser.get('/houses/user-posts');
+  return res.data; 
+}
+export const fetchUserPayments = async () => {
+  try {
+    const response = await axiosUser.get("/payments");
+    const data = Array.isArray(response) ? response : response.data;
+    return data ?? [];
+  } catch (error) {
+    return [];
+  }
+};
+// kỉm duyet bai dang admin 
+export const getAllHousesForAdmin = async (params = {}) => {
+  const response = await axiosAdmin.get("/houses", { params });
+  return response;
+};
+
+export const approveHouse = async (houseId) => {
+  const response = await axiosAdmin.put(`/houses/${houseId}/approve`);
+  return response;
+};
+
+export const rejectHouse = (id, reason) => {
+  return axiosAdmin.post(`/houses/${id}/reject`, { reason });
+};
+//Edit post
+export const getPostById = async (id) => {
+  const res = await axiosUser.get(`/houses/${id}`);
+  return res.data;
+};
+
+export const updatePost = async (data) => {
+  const res = await axiosUser.put(`/houses/${data.id}`, data);
+  return res.data;
 };

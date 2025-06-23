@@ -285,4 +285,7 @@ export const useGetRoles = () => {
   });
 };
 
-
+//edit post
+export const useUpdateHouse = () => {
+  return useMutation({ mutationFn: updatePost });
+};

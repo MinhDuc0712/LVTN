@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import FilterSection from "../../components/FilterSection";
 import ListingCard from "../../components/ListingCard";
-import { getHousesByCategory } from "../../api/homePage/request"; // Bạn cần tạo hàm này
+import { getHousesByCategory } from "../../api/homePage/request"; 
 
 const HousesByCategory = () => {
   const { categoryId } = useParams();
