@@ -291,12 +291,21 @@ export const rejectHouse = (id, reason) => {
   return axiosAdmin.post(`/houses/${id}/reject`, { reason });
 };
 //Edit post
-export const getPostById = async (id) => {
-  const res = await axiosUser.get(`/houses/${id}`);
-  return res.data;
-};
+// export const getPostById = async (id) => {
+//   const res = await axiosUser.get(`/houses/${id}`);
+//   return res.data;
+// };
 
-export const updatePost = async (data) => {
-  const res = await axiosUser.put(`/houses/${data.id}`, data);
-  return res.data;
+// export const updatePost = async (data) => {
+//   const res = await axiosUser.put(`/houses/${data.id}`, data);
+//   return res.data;
+// };
+// AN Tin
+export const hideHouse = (id) => {
+  return axiosUser.put(`/houses/${id}/hide`);
+};
+// Đăng lại
+export const relistHouse = async (id) => {
+  const res = await axiosUser.put(`/houses/${id}/relist`);
+  return res; // Trả về toàn bộ response thay vì chỉ res.data
 };

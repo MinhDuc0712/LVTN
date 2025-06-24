@@ -101,9 +101,7 @@ useEffect(() => {
       phone: house.user?.SDT || 'Không có',
       email: house.user?.Email || 'Không có',
       image: house.images?.[0]?.DuongDanHinh || house.HinhAnh,
-      avatar: house.user?.HinhDaiDien
-        ? `data:image/jpeg;base64,${house.user.HinhDaiDien}`
-        : null,
+      avatar: house.user?.HinhDaiDien,
       createdAt: house.NgayDang,
       status: getStatusKey(house.TrangThai),
       reason: house.LyDoTuChoi || null
@@ -133,7 +131,7 @@ useEffect(() => {
       'Đã từ chối': 'rejected',
       'Đã cho thuê': 'rented',
       'Đã ẩn': 'hidden',
-      'Tin hết hạn': 'Tin hết hạn',
+      'Tin hết hạn': 'expired',
       'Đã xóa': 'deleted'
     };
     return statusMap[value] || value;

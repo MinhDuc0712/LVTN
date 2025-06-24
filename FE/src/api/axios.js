@@ -20,7 +20,7 @@ export const axiosAdmin = axios.create({
 [axiosUser, axiosAdmin, axiosAuth].forEach(instance => {
   instance.interceptors.request.use(
     config => {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       if (token) {
         config.headers["Authorization"] = `Bearer ${token}`;
       }
