@@ -64,7 +64,7 @@ useEffect(() => {
         ...prev,
         [houseId]: {
           isLiked: true,
-          favoriteId: response.data.favorite_id,
+          favoriteId: response.favorite_id,
         },
       }));
       toast.success("Đã thêm vào yêu thích");
