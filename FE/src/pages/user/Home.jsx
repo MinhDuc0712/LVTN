@@ -128,61 +128,42 @@ const Home = () => {
     return <div className="py-8 text-center text-red-500">Lỗi: {error}</div>;
 
   return (
-    <div>
-      <Banner />
-      <div className="container mx-auto px-4 py-6">
-        <div className="flex flex-col gap-6 md:flex-row">
-          {/* Nội dung chính */}
-          <div className="w-full md:w-2/3">
-            {/* Hiển thị nhà nổi bật */}
-            {/* {formattedFeatured.length > 0 && (
-              <div className="mb-6">
-                <h2 className="mb-4 text-xl font-bold uppercase">
-                  Nhà nổi bật
-                </h2>
-                <ListingCard listings={formattedFeatured} />
+  <div>
+    <Banner />
+    <div className="container mx-auto px-4 py-6">
+      <div className="flex flex-col gap-6 md:flex-row">
+        {/* Nội dung chính */}
+        <div className="w-full md:w-2/3">
+          {/* Hiển thị kết quả lọc */}
+          <div className="mb-6">
+            <h2 className="mb-4 text-xl font-bold">
+              {noResults ? "Không tìm thấy kết quả" : "Danh sách nhà"}
+            </h2>
+
+            {isFilterLoading ? (
+              <div className="py-4 text-center">Đang tải kết quả lọc...</div>
+            ) : noResults ? (
+              <div className="rounded-lg bg-yellow-100 p-4">
+                Không tìm thấy nhà nào phù hợp với tiêu chí lọc của bạn
               </div>
-            )} */}
-
-            {/* Hiển thị kết quả lọc */}
-            <div className="mb-6">
-              <h2 className="mb-4 text-xl font-bold">
-                {noResults ? "Không tìm thấy kết quả" : "Danh sách nhà"}
-              </h2>
-
-              {isFilterLoading ? (
-                <div className="py-4 text-center">Đang tải kết quả lọc...</div>
-              ) : noResults ? (
-                <div className="rounded-lg bg-yellow-100 p-4">
-                  Không tìm thấy nhà nào phù hợp với tiêu chí lọc của bạn
-                </div>
-              ) : (
-                <ListingCard listings={formattedFiltered} />
-              )}
-            </div>
-          </div>
-
-          {/* FilterSection */}
+            ) : (
+              <ListingCard listings={formattedFiltered} />
             )}
-
-            {/* Hiển thị tất cả nhà */}
-            {/* <div className="mb-6">
-              <h2 className="mb-4 text-xl font-bold">Đề xuất</h2>
-              <ListingCard listings={formattedListings} />
-            </div> */}
           </div>
+        </div>
 
-          {/* FilterSection nằm bên trái */}
-          <div className="w-full md:w-1/3">
-            <FilterSection
-              onApplyFilters={handleApplyFilters}
-              isLoading={isFilterLoading}
-            />
-          </div>
+        {/* FilterSection nằm bên trái */}
+        <div className="w-full md:w-1/3">
+          <FilterSection
+            onApplyFilters={handleApplyFilters}
+            isLoading={isFilterLoading}
+          />
         </div>
       </div>
     </div>
-  );
+  </div>
+);
+
 };
 
 export default Home;

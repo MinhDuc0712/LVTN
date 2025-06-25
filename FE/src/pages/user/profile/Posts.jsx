@@ -2,15 +2,16 @@
 import Sidebar from './Sidebar';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { getUserHouses } from '../../../api/homePage/request';
+import { getUserHouses, hideHouse, relistHouse } from '../../../api/homePage/request';
 import { Link } from 'react-router-dom';
 import {
     CreditCard, Edit, EyeOff, RefreshCw, Star, FileText,
     ChevronLeft, ChevronRight, Clock, Check, X, Loader2,
-    RotateCcw, PenTool, Image, Calendar, DollarSign,
-    MapPin, Home, Building, Users, Sparkles
+    RotateCcw, Image, Calendar, DollarSign,
+    MapPin, Home, Building, Sparkles
 } from 'lucide-react';
-
+import { toast } from "react-hot-toast";
+import { useQueryClient } from "@tanstack/react-query";
 function Posts() {
     const [activeTab, setActiveTab] = useState('all');
     const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -18,27 +19,58 @@ function Posts() {
     const [selectedPost, setSelectedPost] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
     const pageSize = 5;
-
+    const queryClient = useQueryClient();
     const { data: houses = [], isLoading } = useQuery({
         queryKey: ['user-houses'],
         queryFn: getUserHouses,
     });
-
-    const handleContinuePayment = (post) => {
-        setSelectedPost(post);
-        setShowPaymentModal(true);
-    };
+    const [paymentMode, setPaymentMode] = useState("new");
 
     const handleHidePost = (post) => {
         setSelectedPost(post);
         setShowHideModal(true);
     };
-
-    
-    const handleReviewTenant = (post) => {
-        setSelectedPost(post);
-        setShowReviewModal(true);
+    const isExpired = (house) => {
+        return new Date(house.NgayHetHan) < new Date();
     };
+    const handleConfirmHide = async () => {
+        try {
+            await hideHouse(selectedPost?.id);
+            toast.success("Ẩn tin đăng thành công");
+            setShowHideModal(false);
+            queryClient.invalidateQueries(["houses"]);
+        } catch (error) {
+            toast.error("Ẩn tin đăng thất bại");
+            console.error(error);
+        }
+    };
+    const handleFreeRelist = async (post) => {
+        try {
+            const res = await relistHouse(post.id);
+            const data = res?.data;
+            if (res?.require_payment) {
+                const mode = res?.mode || "renew";
+                setPaymentMode(mode);
+                setSelectedPost(post);
+                setShowPaymentModal(true);
+                return;
+            }
+
+            toast.success("Đăng lại tin thành công!");
+            queryClient.invalidateQueries(["userHouses"]);
+        } catch (error) {
+            const message = error?.response?.data?.message;
+
+            if (message?.includes("hết hạn")) {
+                setPaymentMode("renew");
+                setSelectedPost(post);
+                setShowPaymentModal(true);
+            } else {
+                toast.error(message || "Đăng lại thất bại");
+            }
+        }
+    };
+
 
     const mapHouseToPost = (house) => ({
         id: house.MaNha,
@@ -63,33 +95,33 @@ function Posts() {
     };
 
     const statusConfig = {
-        'Đang xử lý': { 
-            color: 'text-amber-600', 
+        'Đang xử lý': {
+            color: 'text-amber-600',
             bg: 'bg-amber-50 border-amber-200',
             icon: Clock
         },
-        'Đã từ chối': { 
-            color: 'text-red-600', 
+        'Đã từ chối': {
+            color: 'text-red-600',
             bg: 'bg-red-50 border-red-200',
             icon: X
         },
-        'Đã ẩn': { 
-            color: 'text-gray-600', 
+        'Đã ẩn': {
+            color: 'text-gray-600',
             bg: 'bg-gray-50 border-gray-200',
             icon: EyeOff
         },
-        'Đang chờ thanh toán': { 
-            color: 'text-blue-600', 
+        'Đang chờ thanh toán': {
+            color: 'text-blue-600',
             bg: 'bg-blue-50 border-blue-200',
             icon: CreditCard
         },
-        'Đã duyệt': { 
-            color: 'text-green-600', 
+        'Đã duyệt': {
+            color: 'text-green-600',
             bg: 'bg-green-50 border-green-200',
             icon: Check
         },
-        'Đã cho thuê': { 
-            color: 'text-purple-600', 
+        'Đã cho thuê': {
+            color: 'text-purple-600',
             bg: 'bg-purple-50 border-purple-200',
             icon: Home
         },
@@ -125,16 +157,20 @@ function Posts() {
             case 'Đang chờ thanh toán':
                 return (
                     <button
-                        onClick={() => handleContinuePayment(post)}
+                        onClick={() => {
+                            setSelectedPost(post);
+                            setPaymentMode("new");
+                            setShowPaymentModal(true);
+                        }}
                         className="flex items-center gap-1.5 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
                     >
                         <CreditCard className="w-4 h-4" />
                         Thanh toán
                     </button>
                 );
+
             case 'Đã từ chối':
                 return (
-                    
                     <Link
                         to={`/post/${post.id}`}
                         className="flex items-center justify-center gap-1.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
@@ -143,25 +179,23 @@ function Posts() {
                         Sửa tin
                     </Link>
                 );
+
             case 'Đã ẩn':
+            case 'Tin hết hạn':
                 return (
                     <div className="flex flex-col gap-2 min-w-[130px]">
-                    <button
-                        to={`/post/${post.id}`}
-                        className="flex items-center gap-1.5 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-white px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
-                    >
-                        <RotateCcw className="w-3 h-3" />
-                        Đăng lại
-                    </button>
-                     <Link
-                        to={`/post/${post.id}`}
-                        className="flex items-center gap-1.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
-                    >
-                        <Edit className="w-4 h-4" />
-                        Sửa tin
-                    </Link>
-                     </div>
+                        <button
+                            onClick={() => handleFreeRelist(post)}
+                            className="flex items-center justify-center gap-1.5 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 shadow-sm hover:shadow-md transform hover:scale-105"
+                        >
+                            <RotateCcw className="w-3 h-3" />
+                            Đăng lại
+                        </button>
+                    </div>
                 );
+
+
+
             case 'Đã duyệt':
                 return (
                     <Link
@@ -172,26 +206,7 @@ function Posts() {
                         Ẩn tin
                     </Link>
                 );
-            case 'Đã cho thuê':
-                return (
-                    <div className="flex flex-col gap-2 min-w-[130px]">
-                        <button
-                            onClick={() => handleExtendPost(post)}
-                            className="flex items-center justify-center gap-1.5 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 shadow-sm hover:shadow-md transform hover:scale-105"
-                        >
-                            <RefreshCw className="w-3.5 h-3.5" />
-                            Gia hạn
-                        </button>
-                        <button
-                        onClick={() => handleHidePost(post)}
-                        className="flex items-center justify-center gap-1.5 bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
-                    >
-                        <EyeOff className="w-4 h-4" />
-                        Ẩn tin
-                    </button>
-                        
-                    </div>
-                );
+
             case 'Đang xử lý':
                 return (
                     <div className="flex items-center gap-2 text-amber-600 text-sm font-medium bg-amber-50 px-3 py-2 rounded-lg border border-amber-200">
@@ -199,19 +214,7 @@ function Posts() {
                         Đang xử lý...
                     </div>
                 );
-                case 'Tin hết hạn':
-                return (
-                    <div className="flex flex-col gap-2 min-w-[130px]">
-                        <button
-                            onClick={() => handleExtendPost(post)}
-                            className="flex items-center justify-center gap-1.5 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 shadow-sm hover:shadow-md transform hover:scale-105"
-                        >
-                            <RefreshCw className="w-3.5 h-3.5" />
-                            Gia hạn
-                        </button>
-                        
-                    </div>
-                );
+
             default:
                 return (
                     <div className="text-gray-400 text-sm font-medium px-3 py-2">
@@ -221,28 +224,29 @@ function Posts() {
         }
     };
 
+
     const tabConfig = [
-        { 
-            key: 'all', 
+        {
+            key: 'all',
             label: 'Tất cả',
             icon: Building,
-            count: transformedPosts.length 
+            count: transformedPosts.length
         },
-        { 
-            key: 'active', 
+        {
+            key: 'active',
             label: 'Đang hoạt động',
             icon: Sparkles,
-            count: transformedPosts.filter((post) => 
+            count: transformedPosts.filter((post) =>
                 ['Đã duyệt', 'Đang xử lý', 'Đã cho thuê'].includes(post.status)
-            ).length 
+            ).length
         },
-        { 
-            key: 'expired', 
+        {
+            key: 'expired',
             label: 'Hết hạn',
             icon: Clock,
-            count: transformedPosts.filter((post) => 
+            count: transformedPosts.filter((post) =>
                 ['Đã từ chối', 'Đã ẩn', 'Đang chờ thanh toán', 'Tin hết hạn'].includes(post.status)
-            ).length 
+            ).length
         }
     ];
 
@@ -254,7 +258,7 @@ function Posts() {
                 {/* Header */}
                 <div className="mb-8">
                     <div className="flex items-center gap-3 mb-2">
-                        
+
                         <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-700 to-gray-900 bg-clip-text text-transparent">
                             Danh sách tin đăng
                         </h1>
@@ -273,19 +277,17 @@ function Posts() {
                                     setActiveTab(tab.key);
                                     setCurrentPage(1);
                                 }}
-                                className={`relative flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-300 ${
-                                    activeTab === tab.key
-                                        ? 'bg-white text-blue-600 shadow-md transform scale-105'
-                                        : 'text-gray-600 hover:text-gray-800 hover:bg-white/50'
-                                }`}
+                                className={`relative flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-300 ${activeTab === tab.key
+                                    ? 'bg-white text-blue-600 shadow-md transform scale-105'
+                                    : 'text-gray-600 hover:text-gray-800 hover:bg-white/50'
+                                    }`}
                             >
                                 <IconComponent className="w-4 h-4" />
                                 <span>{tab.label}</span>
-                                <span className={`ml-1 px-2 py-0.5 text-xs rounded-full ${
-                                    activeTab === tab.key 
-                                        ? 'bg-blue-100 text-blue-600' 
-                                        : 'bg-gray-200 text-gray-600'
-                                }`}>
+                                <span className={`ml-1 px-2 py-0.5 text-xs rounded-full ${activeTab === tab.key
+                                    ? 'bg-blue-100 text-blue-600'
+                                    : 'bg-gray-200 text-gray-600'
+                                    }`}>
                                     {tab.count}
                                 </span>
                             </button>
@@ -344,7 +346,7 @@ function Posts() {
                                 {currentPagePosts.map((post, index) => {
                                     const statusInfo = statusConfig[post.status] || {};
                                     const StatusIcon = statusInfo.icon || Clock;
-                                    
+
                                     return (
                                         <tr key={`${post.id}-${index}`} className="hover:bg-blue-50/50 transition-all duration-200 border-b border-gray-100 last:border-b-0">
                                             <td className="p-4">
@@ -354,12 +356,12 @@ function Posts() {
                                             </td>
                                             <td className="p-4">
                                                 <div className="relative group">
-                                                    <img 
-                                                        src={post.image} 
-                                                        alt="Ảnh tin" 
-                                                        className="w-28 h-24 object-cover rounded-xl shadow-md group-hover:shadow-lg transition-shadow duration-200" 
+                                                    <img
+                                                        src={post.image}
+                                                        alt="Ảnh tin"
+                                                        className="w-28 h-24 object-cover rounded-xl shadow-md group-hover:shadow-lg transition-shadow duration-200"
                                                     />
-                                                   
+
                                                 </div>
                                             </td>
                                             <td className="p-4">
@@ -370,18 +372,6 @@ function Posts() {
                                                     <a href="#" className="text-gray-800 hover:text-blue-600 font-semibold text-sm line-clamp-2 transition-colors duration-200">
                                                         {post.title}
                                                     </a>
-                                                    {/* {post.status !== 'Đã cho thuê' && post.status !== 'Đang xử lý' && (
-                                                        <div className="flex flex-wrap gap-3 text-xs">
-                                                            <button className="flex items-center gap-1.5 text-blue-600 hover:text-blue-800 transition-colors duration-200 font-medium">
-                                                                <RotateCcw className="w-3 h-3" />
-                                                                Đăng lại
-                                                            </button>
-                                                            <button className="flex items-center gap-1.5 text-orange-600 hover:text-orange-800 transition-colors duration-200 font-medium">
-                                                                <PenTool className="w-3 h-3" />
-                                                                Sửa tin
-                                                            </button>
-                                                        </div>
-                                                    )} */}
                                                 </div>
                                             </td>
                                             <td className="p-4">
@@ -435,14 +425,14 @@ function Posts() {
                             <ChevronLeft className="w-4 h-4" />
                             Trang trước
                         </button>
-                        
+
                         <div className="flex items-center gap-2">
                             <span className="text-gray-600">Trang</span>
                             <span className="font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-lg">{currentPage}</span>
                             <span className="text-gray-600">trong</span>
                             <span className="font-bold text-gray-800">{totalPages}</span>
                         </div>
-                        
+
                         <button
                             onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
                             disabled={currentPage === totalPages}
@@ -455,7 +445,7 @@ function Posts() {
                 )}
 
                 {/* Enhanced Payment Modal */}
-                {showPaymentModal && (
+                {showPaymentModal && selectedPost && paymentMode && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
                         <div className="bg-white rounded-2xl p-8 w-full max-w-md shadow-2xl border border-gray-200">
                             <div className="flex items-center gap-3 mb-6">
@@ -464,11 +454,13 @@ function Posts() {
                                 </div>
                                 <h2 className="text-2xl font-bold text-gray-800">Tiếp tục thanh toán</h2>
                             </div>
-                            
+
                             <p className="mb-6 text-gray-600 leading-relaxed">
-                                Bạn đang thanh toán để gia hạn tin đăng của mình. Vui lòng xác nhận thông tin bên dưới.
+                                {paymentMode === "renew"
+                                    ? "Bạn đang thanh toán để gia hạn tin đăng của mình. Vui lòng xác nhận thông tin bên dưới."
+                                    : "Bạn đang thanh toán cho bài đăng mới. Vui lòng xác nhận thông tin bên dưới."}
                             </p>
-                            
+
                             <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-xl mb-6 border border-blue-200">
                                 <div className="flex items-center gap-2 mb-2">
                                     <MapPin className="w-4 h-4 text-blue-600" />
@@ -484,8 +476,9 @@ function Posts() {
                                 >
                                     Hủy bỏ
                                 </button>
+
                                 <Link
-                                    to={`/post/paymentpost?id=${selectedPost?.id}`}
+                                    to={`/post/paymentpost?id=${selectedPost?.id}&mode=${paymentMode}`}
                                     className="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all duration-200 font-medium shadow-md hover:shadow-lg transform hover:scale-105"
                                 >
                                     Xác nhận thanh toán
@@ -494,6 +487,9 @@ function Posts() {
                         </div>
                     </div>
                 )}
+
+
+
 
                 {/* Enhanced Hide Post Modal */}
                 {showHideModal && (
@@ -505,11 +501,11 @@ function Posts() {
                                 </div>
                                 <h2 className="text-2xl font-bold text-gray-800">Ẩn tin đăng</h2>
                             </div>
-                            
+
                             <p className="mb-6 text-gray-600 leading-relaxed">
                                 Bạn có chắc chắn muốn ẩn tin đăng này? Tin đăng sẽ không hiển thị với người dùng khác.
                             </p>
-                            
+
                             <div className="bg-gradient-to-r from-gray-50 to-red-50 p-4 rounded-xl mb-6 border border-gray-200">
                                 <div className="flex items-center gap-2 mb-2">
                                     <MapPin className="w-4 h-4 text-gray-600" />
@@ -526,10 +522,7 @@ function Posts() {
                                     Hủy bỏ
                                 </button>
                                 <button
-                                    onClick={() => {
-                                        console.log('Ẩn tin đăng:', selectedPost?.id);
-                                        setShowHideModal(false);
-                                    }}
+                                    onClick={handleConfirmHide}
                                     className="px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 transition-all duration-200 font-medium shadow-md hover:shadow-lg transform hover:scale-105"
                                 >
                                     Xác nhận ẩn
