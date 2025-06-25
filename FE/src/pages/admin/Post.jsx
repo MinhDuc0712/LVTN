@@ -139,14 +139,15 @@ const PostModeration = () => {
 
   const getStatusKey = (value) => {
     const statusMap = {
-      "Đang chờ thanh toán": "waiting_payment",
-      "Đang xử lý": "pending",
-      "Đã duyệt": "approved",
-      "Đã từ chối": "rejected",
-      "Đã cho thuê": "rented",
-      "Đã ẩn": "hidden",
-      "Tin hết hạn": "Tin hết hạn",
-      "Đã xóa": "deleted",
+
+      'Đang chờ thanh toán': 'waiting_payment',
+      'Đang xử lý': 'pending',
+      'Đã duyệt': 'approved',
+      'Đã từ chối': 'rejected',
+      'Đã cho thuê': 'rented',
+      'Đã ẩn': 'hidden',
+      'Tin hết hạn': 'expired',
+      'Đã xóa': 'deleted'
     };
     return statusMap[value] || value;
   };

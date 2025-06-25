@@ -177,10 +177,11 @@ const Home = () => {
               isLoading={isFilterLoading}
             />
           </div>
-        </div>
       </div>
     </div>
-  );
+  </div>
+);
+
 };
 
 export default Home;
