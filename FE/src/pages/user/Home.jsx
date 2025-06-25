@@ -1,13 +1,10 @@
+// src/pages/Home.jsx
 import { useState, useEffect } from "react";
 import FilterSection from "../../components/FilterSection";
 import ListingCard from "../../components/ListingCard";
 import Banner from "../../components/Banner";
-import {
-  getHouses,
-  getFeaturedHouses,
-  getHousesWithFilter,
-} from "@/api/homePage";
-
+import { getHouses, getFeaturedHouses, getHousesWithFilter } from "@/api/homePage";
+import { useFilter } from "@/context/FilterContext";
 
 const Home = () => {
   const [allListings, setAllListings] = useState([]);
@@ -17,21 +14,21 @@ const Home = () => {
   const [error, setError] = useState(null);
   const [isFilterLoading, setIsFilterLoading] = useState(false);
   const [noResults, setNoResults] = useState(false);
+  const { filters } = useFilter();
 
-  // Hàm xử lý lọc dữ liệu
-  const handleApplyFilters = async (filters) => {
+  // Hàm xử lý lọc dữ liệu từ FilterSection
+  const handleApplyFilters = async (sectionFilters) => {
     setIsFilterLoading(true);
     setNoResults(false);
 
     try {
-      // Nếu không có filter nào được chọn, hiển thị tất cả
-      if (Object.keys(filters).length === 0) {
+      // Kết hợp filters từ Header và FilterSection
+      const combinedFilters = { ...filters, ...sectionFilters };
+      if (Object.keys(combinedFilters).length === 0) {
         setFilteredListings(allListings);
         return;
       }
-      const response = await getHousesWithFilter(filters);
-      // console.log("Filters applied:", filters);
-      // console.log("Filtered results:", response.data);
+      const response = await getHousesWithFilter(combinedFilters);
 
       if (response.data && response.data.length > 0) {
         setFilteredListings(response.data);
@@ -52,14 +49,11 @@ const Home = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        // Lấy danh sách tất cả nhà
         const housesResponse = await getHouses();
         const allHouses = housesResponse?.data || housesResponse || [];
-        // console.log('Initial data loaded:', allHouses);
         setAllListings(allHouses);
         setFilteredListings(allHouses);
 
-        // Lấy danh sách nhà nổi bật
         const featuredResponse = await getFeaturedHouses();
         setFeaturedListings(featuredResponse?.data || featuredResponse || []);
       } catch (err) {
@@ -74,7 +68,6 @@ const Home = () => {
   }, []);
 
   // Format dữ liệu nhà
-
   const formatListingData = (houses) => {
     return houses.map((house) => ({
       id: house.MaNha,
@@ -94,7 +87,6 @@ const Home = () => {
     }));
   };
 
-
   const formatPostedTime = (dateString) => {
     const now = new Date();
     const postedDate = new Date(dateString);
@@ -113,13 +105,39 @@ const Home = () => {
     return `${Math.floor(diffInDays / 30)} tháng trước`;
   };
 
- 
   const getFirstImage = (images) => {
     if (!images || images.length === 0) return "";
     return images[0].DuongDanHinh;
   };
 
-  // const formattedFeatured = formatListingData(featuredListings);
+  useEffect(() => {
+    const applyHeaderFilters = async () => {
+      if (Object.keys(filters).length > 0) {
+        setIsFilterLoading(true);
+        try {
+          const response = await getHousesWithFilter(filters);
+          if (response.data && response.data.length > 0) {
+            setFilteredListings(response.data);
+            setNoResults(false);
+          } else {
+            setNoResults(true);
+            setFilteredListings([]);
+          }
+        } catch (error) {
+          console.error("Lỗi khi áp dụng bộ lọc từ Header:", error);
+          setError("Có lỗi xảy ra khi lọc dữ liệu");
+        } finally {
+          setIsFilterLoading(false);
+        }
+      } else {
+        setFilteredListings(allListings);
+        setNoResults(false);
+      }
+    };
+
+    applyHeaderFilters();
+  }, [filters, allListings]);
+
   const formattedFiltered = formatListingData(filteredListings);
 
   if (loading)
@@ -128,37 +146,37 @@ const Home = () => {
     return <div className="py-8 text-center text-red-500">Lỗi: {error}</div>;
 
   return (
-  <div>
-    <Banner />
-    <div className="container mx-auto px-4 py-6">
-      <div className="flex flex-col gap-6 md:flex-row">
-        {/* Nội dung chính */}
-        <div className="w-full md:w-2/3">
-          {/* Hiển thị kết quả lọc */}
-          <div className="mb-6">
-            <h2 className="mb-4 text-xl font-bold">
-              {noResults ? "Không tìm thấy kết quả" : "Danh sách nhà"}
-            </h2>
+    <div>
+      <Banner />
+      <div className="container mx-auto px-4 py-6">
+        <div className="flex flex-col gap-6 md:flex-row">
+          {/* Nội dung chính */}
+          <div className="w-full md:w-2/3">
+            {/* Hiển thị nhà nổi bật */}
+            <div className="mb-6">
+              <h2 className="mb-4 text-xl font-bold">
+                {noResults ? "Không tìm thấy kết quả" : "Danh sách nhà"}
+              </h2>
 
-            {isFilterLoading ? (
-              <div className="py-4 text-center">Đang tải kết quả lọc...</div>
-            ) : noResults ? (
-              <div className="rounded-lg bg-yellow-100 p-4">
-                Không tìm thấy nhà nào phù hợp với tiêu chí lọc của bạn
-              </div>
-            ) : (
-              <ListingCard listings={formattedFiltered} />
-            )}
+              {isFilterLoading ? (
+                <div className="py-4 text-center">Đang tải kết quả lọc...</div>
+              ) : noResults ? (
+                <div className="rounded-lg bg-yellow-100 p-4">
+                  Không tìm thấy nhà nào phù hợp với tiêu chí lọc của bạn
+                </div>
+              ) : (
+                <ListingCard listings={formattedFiltered} />
+              )}
+            </div>
           </div>
-        </div>
 
-        {/* FilterSection nằm bên trái */}
-        <div className="w-full md:w-1/3">
-          <FilterSection
-            onApplyFilters={handleApplyFilters}
-            isLoading={isFilterLoading}
-          />
-        </div>
+          {/* FilterSection */}
+          <div className="w-full md:w-1/3">
+            <FilterSection
+              onApplyFilters={handleApplyFilters}
+              isLoading={isFilterLoading}
+            />
+          </div>
       </div>
     </div>
   </div>

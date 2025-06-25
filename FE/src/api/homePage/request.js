@@ -154,14 +154,16 @@ export const updateUserProfileAPI = async (data) => {
     };
   } catch (error) {
     console.error("Lỗi cập nhật thông tin người dùng:", error);
-    const errorMessage = error.response?.data?.message || error.message || "Cập nhật thông tin thất bại";
+    const errorMessage =
+      error.response?.data?.message ||
+      error.message ||
+      "Cập nhật thông tin thất bại";
     return {
       success: false,
       message: errorMessage,
     };
   }
 };
-
 
 // Gửi yêu cầu đổi mật khẩu tới backend
 export const changePasswordAPI = async (data) => {
@@ -186,23 +188,28 @@ export const postHouseAPI = async (data) => {
   return response.data;
 };
 
-
 export const getHouses = async () => {
   try {
-    const response = await axiosUser.get('/houses');
+    const response = await axiosUser.get("/houses");
     return response.data || response;
   } catch (error) {
-    console.error('Error fetching public houses:', error.response?.data || error.message);
+    console.error(
+      "Error fetching public houses:",
+      error.response?.data || error.message,
+    );
     throw error;
   }
 };
 
 export const getFeaturedHouses = async () => {
   try {
-    const response = await axiosUser.get('/houses/featured');
+    const response = await axiosUser.get("/houses/featured");
     return response.data || response;
   } catch (error) {
-    console.error('Error fetching featured houses:', error.response?.data || error.message);
+    console.error(
+      "Error fetching featured houses:",
+      error.response?.data || error.message,
+    );
     throw error;
   }
 };
@@ -217,9 +224,13 @@ const fetchHousesByCategory = async (categoryId) => {
 };
 
 export function useHousesByCategory(categoryId) {
-  return useQuery(["housesByCategory", categoryId], () => fetchHousesByCategory(categoryId), {
-    enabled: !!categoryId,
-  });
+  return useQuery(
+    ["housesByCategory", categoryId],
+    () => fetchHousesByCategory(categoryId),
+    {
+      enabled: !!categoryId,
+    },
+  );
 }
 export const getHousesByCategory = (categoryId) => {
   return axiosUser.get(`/houses/category/${categoryId}`);
@@ -253,7 +264,13 @@ export const deleteRatingAPI = async (id) => {
 export const getHousesWithFilter = async (params) => {
   return axiosUser.get("/houses", { params }); // axios tự parse JSON
 };
-export const postPaymentForHouse = async ({ houseId, planType, duration, unit, total }) => {
+export const postPaymentForHouse = async ({
+  houseId,
+  planType,
+  duration,
+  unit,
+  total,
+}) => {
   const response = await axiosUser.post("/houses/payment", {
     houseId,
     planType,
@@ -264,9 +281,9 @@ export const postPaymentForHouse = async ({ houseId, planType, duration, unit, t
   return response.data;
 };
 export const getUserHouses = async () => {
-  const res = await axiosUser.get('/houses/user-posts');
-  return res.data; 
-}
+  const res = await axiosUser.get("/houses/user-posts");
+  return res.data;
+};
 export const fetchUserPayments = async () => {
   try {
     const response = await axiosUser.get("/payments");
@@ -276,7 +293,7 @@ export const fetchUserPayments = async () => {
     return [];
   }
 };
-// kỉm duyet bai dang admin 
+// kỉm duyet bai dang admin
 export const getAllHousesForAdmin = async (params = {}) => {
   const response = await axiosAdmin.get("/houses", { params });
   return response;
@@ -296,6 +313,31 @@ export const rejectHouse = (id, reason) => {
 //   return res.data;
 // };
 
+// Thêm yêu thích (nếu chưa tồn tại, backend sẽ tạo)
+export const addFavoriteAPI = async (houseId) => {
+  const response = await axiosUser.post(`/favorites`, { MaNha: houseId });
+  console.log("Add favorite response:", response.data);
+  return response.data;
+};
+
+// Truyền vào MaYeuThich, không phải MaNha
+export const toggleFavoriteAPI = async (favoriteId, action = "like") => {
+  const response = await axiosUser.put(`/favorites/${favoriteId}`, { action });
+  return response;
+};
+
+
+// Xóa khỏi danh sách yêu thích
+export const deleteFavoriteAPI = async (favoriteId) => {
+  const response = await axiosUser.delete(`/favorites/${favoriteId}`);
+  return response.data; // hoặc return response nếu bạn muốn lấy status
+};
+
+// Lấy danh sách nhà yêu thích
+export const getFavoritesAPI = async () => {
+  const response = await axiosUser.get(`/favorites`);
+  return response; // sẽ là { data: [...], meta: {...} }
+};
 // export const updatePost = async (data) => {
 //   const res = await axiosUser.put(`/houses/${data.id}`, data);
 //   return res.data;

@@ -1,4 +1,3 @@
-// Enhanced Posts.jsx with improved UI and lucide-react icons
 import Sidebar from './Sidebar';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
@@ -84,15 +83,15 @@ function Posts() {
         rejectReason: house.LyDoTuChoi || '',
     });
 
-    const transformedPosts = houses.map(mapHouseToPost);
+  const transformedPosts = houses.map(mapHouseToPost);
 
-    const categoryColors = {
-        'Nhà cho thuê': 'bg-gradient-to-r from-red-500 to-red-600',
-        'Căn hộ cao cấp': 'bg-gradient-to-r from-emerald-500 to-emerald-600',
-        'Phòng trọ sinh viên': 'bg-gradient-to-r from-amber-500 to-orange-500',
-        'Nhà nguyên căn': 'bg-gradient-to-r from-purple-500 to-purple-600',
-        'Khác': 'bg-gradient-to-r from-blue-500 to-blue-600',
-    };
+  const categoryColors = {
+    "Nhà cho thuê": "bg-gradient-to-r from-red-500 to-red-600",
+    "Căn hộ cao cấp": "bg-gradient-to-r from-emerald-500 to-emerald-600",
+    "Phòng trọ sinh viên": "bg-gradient-to-r from-amber-500 to-orange-500",
+    "Nhà nguyên căn": "bg-gradient-to-r from-purple-500 to-purple-600",
+    Khác: "bg-gradient-to-r from-blue-500 to-blue-600",
+  };
 
     const statusConfig = {
         'Đang xử lý': {
@@ -127,30 +126,136 @@ function Posts() {
         },
     };
 
-    const filteredPosts =
-        activeTab === 'all'
-            ? transformedPosts
-            : activeTab === 'active'
-                ? transformedPosts.filter((post) =>
-                    ['Đã duyệt', 'Đang xử lý', 'Đã cho thuê'].includes(post.status)
-                )
-                : transformedPosts.filter((post) =>
-                    ['Đã từ chối', 'Đã ẩn', 'Đang chờ thanh toán', 'Tin hết hạn'].includes(post.status)
-                );
+  const filteredPosts =
+    activeTab === "all"
+      ? transformedPosts
+      : activeTab === "active"
+        ? transformedPosts.filter((post) =>
+            ["Đã duyệt", "Đang xử lý", "Đã cho thuê"].includes(post.status),
+          )
+        : transformedPosts.filter((post) =>
+            [
+              "Đã từ chối",
+              "Đã ẩn",
+              "Đang chờ thanh toán",
+              "Tin hết hạn",
+            ].includes(post.status),
+          );
 
-    const totalPages = Math.ceil(filteredPosts.length / pageSize);
-    const currentPagePosts = filteredPosts.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const totalPages = Math.ceil(filteredPosts.length / pageSize);
+  const currentPagePosts = filteredPosts.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize,
+  );
 
-    if (isLoading) {
+  if (isLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+          <span className="text-lg font-medium text-gray-600">
+            Đang tải danh sách tin đăng...
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  const renderActionButton = (post) => {
+    switch (post.status) {
+      case "Đang chờ thanh toán":
         return (
-            <div className="flex items-center justify-center h-screen">
-                <div className="flex flex-col items-center gap-4">
-                    <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
-                    <span className="text-lg text-gray-600 font-medium">Đang tải danh sách tin đăng...</span>
-                </div>
-            </div>
+          <button
+            onClick={() => handleContinuePayment(post)}
+            className="flex transform items-center gap-1.5 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 px-3 py-2 text-sm font-medium text-white shadow-md transition-all duration-200 hover:scale-105 hover:from-blue-600 hover:to-blue-700 hover:shadow-lg"
+          >
+            <CreditCard className="h-4 w-4" />
+            Thanh toán
+          </button>
+        );
+      case "Đã từ chối":
+        return (
+          <Link
+            to={`/post/${post.id}`}
+            className="flex transform items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-orange-500 to-orange-600 px-3 py-2 text-sm font-medium text-white shadow-md transition-all duration-200 hover:scale-105 hover:from-orange-600 hover:to-orange-700 hover:shadow-lg"
+          >
+            <Edit className="h-4 w-4" />
+            Sửa tin
+          </Link>
+        );
+      case "Đã ẩn":
+        return (
+          <div className="flex min-w-[130px] flex-col gap-2">
+            <button
+              to={`/post/${post.id}`}
+              className="flex transform items-center gap-1.5 rounded-lg bg-gradient-to-r from-amber-400 to-amber-500 px-3 py-2 text-xs font-medium text-white shadow-md transition-all duration-200 hover:scale-105 hover:from-amber-500 hover:to-amber-600 hover:shadow-lg"
+            >
+              <RotateCcw className="h-3 w-3" />
+              Đăng lại
+            </button>
+            <Link
+              to={`/post/${post.id}`}
+              className="flex transform items-center gap-1.5 rounded-lg bg-gradient-to-r from-orange-500 to-orange-600 px-3 py-2 text-xs font-medium text-white shadow-md transition-all duration-200 hover:scale-105 hover:from-orange-600 hover:to-orange-700 hover:shadow-lg"
+            >
+              <Edit className="h-4 w-4" />
+              Sửa tin
+            </Link>
+          </div>
+        );
+      case "Đã duyệt":
+        return (
+          <Link
+            onClick={() => handleHidePost(post)}
+            className="flex transform items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-gray-500 to-gray-600 px-3 py-2 text-xs font-medium text-white shadow-md transition-all duration-200 hover:scale-105 hover:from-gray-600 hover:to-gray-700 hover:shadow-lg"
+          >
+            <EyeOff className="h-4 w-4" />
+            Ẩn tin
+          </Link>
+        );
+      case "Đã cho thuê":
+        return (
+          <div className="flex min-w-[130px] flex-col gap-2">
+            <button
+              onClick={() => handleExtendPost(post)}
+              className="flex transform items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-green-500 to-green-600 px-3 py-2 text-xs font-medium text-white shadow-sm transition-all duration-200 hover:scale-105 hover:from-green-600 hover:to-green-700 hover:shadow-md"
+            >
+              <RefreshCw className="h-3.5 w-3.5" />
+              Gia hạn
+            </button>
+            <button
+              onClick={() => handleHidePost(post)}
+              className="flex transform items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-gray-500 to-gray-600 px-3 py-2 text-xs font-medium text-white shadow-md transition-all duration-200 hover:scale-105 hover:from-gray-600 hover:to-gray-700 hover:shadow-lg"
+            >
+              <EyeOff className="h-4 w-4" />
+              Ẩn tin
+            </button>
+          </div>
+        );
+      case "Đang xử lý":
+        return (
+          <div className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-600">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Đang xử lý...
+          </div>
+        );
+      case "Tin hết hạn":
+        return (
+          <div className="flex min-w-[130px] flex-col gap-2">
+            <button
+              onClick={() => handleExtendPost(post)}
+              className="flex transform items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-green-500 to-green-600 px-3 py-2 text-xs font-medium text-white shadow-sm transition-all duration-200 hover:scale-105 hover:from-green-600 hover:to-green-700 hover:shadow-md"
+            >
+              <RefreshCw className="h-3.5 w-3.5" />
+              Gia hạn
+            </button>
+          </div>
+        );
+      default:
+        return (
+          <div className="px-3 py-2 text-sm font-medium text-gray-400">---</div>
         );
     }
+  };
 
     const renderActionButton = (post) => {
         switch (post.status) {
@@ -438,12 +543,26 @@ function Posts() {
                             disabled={currentPage === totalPages}
                             className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 font-medium text-gray-700"
                         >
-                            Trang sau
-                            <ChevronRight className="w-4 h-4" />
-                        </button>
-                    </div>
-                )}
-
+                          <StatusIcon className="h-4 w-4" />
+                          {post.status}
+                        </div>
+                        {post.status === "Đã từ chối" && post.rejectReason && (
+                          <div className="mt-2 rounded border border-red-200 bg-red-50 px-2 py-1 text-xs text-red-500 italic">
+                            <X className="mr-1 inline h-3 w-3" />
+                            {post.rejectReason}
+                          </div>
+                        )}
+                      </td>
+                      <td className="p-4 text-center">
+                        {renderActionButton(post)}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
                 {/* Enhanced Payment Modal */}
                 {showPaymentModal && selectedPost && paymentMode && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -532,8 +651,62 @@ function Posts() {
                     </div>
                 )}
             </div>
-        </div>
-    );
+          </div>
+        )}
+
+        {/* Enhanced Hide Post Modal */}
+        {showHideModal && (
+          <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black p-4">
+            <div className="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-8 shadow-2xl">
+              <div className="mb-6 flex items-center gap-3">
+                <div className="rounded-xl bg-gray-100 p-3">
+                  <EyeOff className="h-6 w-6 text-gray-600" />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-800">
+                  Ẩn tin đăng
+                </h2>
+              </div>
+
+              <p className="mb-6 leading-relaxed text-gray-600">
+                Bạn có chắc chắn muốn ẩn tin đăng này? Tin đăng sẽ không hiển
+                thị với người dùng khác.
+              </p>
+
+              <div className="mb-6 rounded-xl border border-gray-200 bg-gradient-to-r from-gray-50 to-red-50 p-4">
+                <div className="mb-2 flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-gray-600" />
+                  <p className="font-semibold text-gray-800">
+                    Mã tin: #{selectedPost?.id}
+                  </p>
+                </div>
+                <p className="ml-6 text-sm text-gray-700">
+                  {selectedPost?.title}
+                </p>
+              </div>
+
+              <div className="mt-8 flex justify-end gap-4">
+                <button
+                  onClick={() => setShowHideModal(false)}
+                  className="rounded-xl border border-gray-300 px-6 py-3 font-medium text-gray-700 transition-colors duration-200 hover:bg-gray-50"
+                >
+                  Hủy bỏ
+                </button>
+                <button
+                  onClick={() => {
+                    console.log("Ẩn tin đăng:", selectedPost?.id);
+                    setShowHideModal(false);
+                  }}
+                  className="transform rounded-xl bg-gradient-to-r from-red-500 to-red-600 px-6 py-3 font-medium text-white shadow-md transition-all duration-200 hover:scale-105 hover:from-red-600 hover:to-red-700 hover:shadow-lg"
+                >
+                  Xác nhận ẩn
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
 
 export default Posts;
