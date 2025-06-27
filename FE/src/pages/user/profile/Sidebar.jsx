@@ -24,7 +24,7 @@ const menuItems = [
     label: "Lịch sử thanh toán",
     path: "/history/payment",
   },
-  { icon: <FaTags />, label: "Bảng giá dịch vụ", path: "/pricing" },
+  { icon: <FaTags />, label: "Bảng giá dịch vụ", path: "/ServicePrice" },
   { icon: <FaUser />, label: "Quản lý tài khoản", path: "/user" },
   { icon: <FaSignOutAlt />, label: "Đăng xuất", path: "/logout" },
 ];

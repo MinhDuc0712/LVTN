@@ -1,11 +1,13 @@
 import { Routes, Route } from "react-router-dom";
 import Home from "./pages/user/Home";
 import HousesByCategory from "./pages/user/HousesByCategory";
+import RentHouse from "./pages/user/RentHouse";
 import Login from "./layout/Auth/Login";
 import Register from "./layout/Auth/Register";
 import User from "./pages/user/profile/Account";
 import Post from "./pages/user/profile/Post";
 import Posts from "./pages/user/profile/Posts";
+import ServicePrice from "./pages/user/profile/ServicePrice";
 import PaymentPost from "./pages/user/profile/PaymentPost";
 import RoomDetail from "./pages/user/Room/RoomDetail";
 import TopUp from "./pages/user/profile/NapTien/Top-up";
@@ -24,6 +26,7 @@ import SavedListings from "./pages/user/SavedListing/SavedListing";
 import GoongMap from "./pages/map";
 import PostModeration from "./pages/admin/Post";
 import NotFound from "./pages/NotFound";
+import RentalRoomDetail from "./pages/user/AdminRoom/RentalRoomDetail";
 
 const AppRoutes = () => {
   return (
@@ -31,6 +34,7 @@ const AppRoutes = () => {
       <Route path="/404" element={<NotFound />} />
       <Route path="*" element={<NotFound />} />
       <Route path="/" element={<Home />} />
+      <Route path="/RentHouse" element={<RentHouse />} />
       <Route path="/category/:categoryId" element={<HousesByCategory />} />
       <Route path="/dang-nhap" element={<Login />} />
       <Route path="/dang-ky-tai-khoan" element={<Register />} />
@@ -39,6 +43,7 @@ const AppRoutes = () => {
       <Route path="/post" element={<Post />} />
       <Route path="/post/:id" element={<Post />} />
       <Route path="/posts" element={<Posts />} />
+      <Route path="/ServicePrice" element={<ServicePrice />} />
       <Route path="/post/paymentpost" element={<PaymentPost />} />
       <Route path="/room/:id" element={<RoomDetail />} />
       <Route path="/top-up" element={<TopUp />} />
@@ -55,6 +60,8 @@ const AppRoutes = () => {
       <Route path="/admin/" element={<Dashboard />} />
       <Route path="/admin/post" element={<PostModeration />} />
       <Route path="/test" element={<GoongMap />} />
+      <Route path="/RentHouse/RentalRoomDetail" element={<RentalRoomDetail/>} />
+
     </Routes>
   );
 };
