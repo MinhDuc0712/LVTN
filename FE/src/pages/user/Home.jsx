@@ -1,12 +1,10 @@
+// src/pages/Home.jsx
 import { useState, useEffect } from "react";
 import FilterSection from "../../components/FilterSection";
 import ListingCard from "../../components/ListingCard";
 import Banner from "../../components/Banner";
-import {
-  getHouses,
-  getFeaturedHouses,
-  getHousesWithFilter,
-} from "@/api/homePage";
+import { getHouses, getFeaturedHouses, getHousesWithFilter } from "@/api/homePage";
+import { useFilter } from "@/context/FilterContext";
 
 const Home = () => {
   const [allListings, setAllListings] = useState([]);
@@ -15,12 +13,14 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isFilterLoading, setIsFilterLoading] = useState(false);
-  const [noResults, setNoResults] = useState(false);
-  
+  const [noResults, setNoResults] = useState(false);  
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5; 
-
   const handleApplyFilters = async (filters) => {
+  const { filters } = useFilter();
+
+  // Hàm xử lý lọc dữ liệu từ FilterSection
+  const handleApplyFilters = async (sectionFilters) => {
     setIsFilterLoading(true);
     setNoResults(false);
     setCurrentPage(1); 
@@ -32,6 +32,13 @@ const Home = () => {
         return;
       }
       const response = await getHousesWithFilter(filters);
+      // Kết hợp filters từ Header và FilterSection
+      const combinedFilters = { ...filters, ...sectionFilters };
+      if (Object.keys(combinedFilters).length === 0) {
+        setFilteredListings(allListings);
+        return;
+      }
+      const response = await getHousesWithFilter(combinedFilters);
 
       if (response.data && response.data.length > 0) {
         const featuredFromFilter = response.data.filter(item => item.NoiBat === 1);
@@ -55,7 +62,7 @@ const Home = () => {
         const housesResponse = await getHouses();
         const allHouses = housesResponse?.data || housesResponse || [];
         const featuredHouses = allHouses.filter(item => item.NoiBat === 1);
-        
+
         setAllListings(allHouses);
         setFilteredListings(featuredHouses);
 
@@ -71,6 +78,7 @@ const Home = () => {
 
     fetchData();
   }, []);
+
 
   const formatListingData = (houses) => {
     return houses.map((house) => ({
@@ -128,6 +136,35 @@ const Home = () => {
   };
 
   const formattedFiltered = getPaginatedData();
+  useEffect(() => {
+    const applyHeaderFilters = async () => {
+      if (Object.keys(filters).length > 0) {
+        setIsFilterLoading(true);
+        try {
+          const response = await getHousesWithFilter(filters);
+          if (response.data && response.data.length > 0) {
+            setFilteredListings(response.data);
+            setNoResults(false);
+          } else {
+            setNoResults(true);
+            setFilteredListings([]);
+          }
+        } catch (error) {
+          console.error("Lỗi khi áp dụng bộ lọc từ Header:", error);
+          setError("Có lỗi xảy ra khi lọc dữ liệu");
+        } finally {
+          setIsFilterLoading(false);
+        }
+      } else {
+        setFilteredListings(allListings);
+        setNoResults(false);
+      }
+    };
+
+    applyHeaderFilters();
+  }, [filters, allListings]);
+
+  const formattedFiltered = formatListingData(filteredListings);
 
   if (loading)
     return <div className="py-8 text-center">Đang tải dữ liệu...</div>;
@@ -143,6 +180,7 @@ const Home = () => {
             <div className="mb-6">
               <h2 className="mb-4 text-xl font-bold">
                 {noResults ? "Không tìm thấy kết quả" : "Nhà đất nổi bật"}
+
               </h2>
 
               {isFilterLoading ? (

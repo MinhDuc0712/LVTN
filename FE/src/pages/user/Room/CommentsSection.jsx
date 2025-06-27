@@ -47,7 +47,7 @@ function CommentsSection({ house, user }) {
 
         setComments(formatted);
       } catch (err) {
-        console.error("Lỗi khi tải đánh giá:", err);
+        console.error("Chưa đăng nhập để đánh giá");
       } finally {
         setLoading(false);
       }

@@ -290,7 +290,7 @@ function UserPost() {
   return (
     <div className="flex min-h-screen flex-col bg-gray-50 p-4 md:flex-row md:p-6">
       <Sidebar />
-      <div className="w-full overflow-auto rounded-lg bg-white p-4 shadow-lg md:w-3/4 md:p-6">
+      <div className="w-full overflow-auto rounded-lg bg-white p-4 shadow-lg ">
         <h1 className="mb-6 text-2xl font-bold text-gray-700 md:text-3xl">
           Đăng tin cho thuê
         </h1>

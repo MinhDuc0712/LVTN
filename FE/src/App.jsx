@@ -3,6 +3,7 @@ import AppRoutes from "./routes";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import { AuthProvider } from "./context/AuthContext";
+import { FilterProvider } from "./context/FilterContext";
 import { ToastContainer } from "react-toastify";
 
 function AppContent() {
@@ -27,7 +28,9 @@ function App() {
   return (
     <Router>
       <AuthProvider>
+        <FilterProvider>
         <AppContent />
+        </FilterProvider>
         <div>
           {/* Your routes and components */}
           <ToastContainer

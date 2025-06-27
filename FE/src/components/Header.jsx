@@ -1,23 +1,44 @@
+// src/components/Header.jsx
 import { useState, useEffect, useRef } from "react";
 import SearchBar from "./SearchBar";
 import Logo from "@/assets/logo.png";
-
 import Avatar from "../assets/avatar.jpg";
 import { Link } from "react-router-dom";
 import { useGetCategoriesUS } from "@/api/homePage";
 import { useAuth } from "@/context/AuthContext";
+import { useQuery } from "@tanstack/react-query";
+import { useFilter } from "@/context/FilterContext";
+import { Heart, Home, User, LogOut, Menu, X, MapPin } from "lucide-react";
+import { MdArrowDropDown } from "react-icons/md";
+import { getHousesWithFilter } from "@/api/homePage";
 
 const Header = () => {
   const { isAuthenticated, user, logout } = useAuth();
-  // console.log("HinhDaiDien:", isAuthenticated);
-  const { data } = useGetCategoriesUS();
-  const categories = data || [];
-  // console.log("Categories data:", data);
+  const { data: categories = [] } = useGetCategoriesUS();
   const [activeCategoryId, setActiveCategoryId] = useState(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const dropdownRef = useRef(null);
   const mobileMenuRef = useRef(null);
+  const { filters, setFilters } = useFilter();
+
+  // Hàm gọi API để lấy danh sách nhà
+  const fetchListings = async (filters) => {
+    const response = await getHousesWithFilter(filters);
+    return response.data;
+  };
+
+  // Sử dụng useQuery để quản lý dữ liệu
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["listings", filters],
+    queryFn: () => fetchListings(filters),
+    enabled: !!filters.province || Object.keys(filters).length > 0,
+  });
+
+  // Xử lý bộ lọc từ SearchBar
+  const handleFilters = (newFilters) => {
+    setFilters(newFilters);
+  };
 
   // Xử lý click outside để đóng dropdown
   useEffect(() => {
@@ -71,7 +92,7 @@ const Header = () => {
 
             {/* Desktop Search */}
             <div className="hidden md:block">
-              <SearchBar />
+              <SearchBar onApplyFilters={handleFilters} isLoading={isLoading} />
             </div>
           </div>
 
@@ -82,35 +103,9 @@ const Header = () => {
               className="mobile-menu-button text-gray-700 hover:text-orange-700 focus:outline-none"
             >
               {isMobileMenuOpen ? (
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="h-6 w-6"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
+                <X className="h-6 w-6" />
               ) : (
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="h-6 w-6"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
-                  />
-                </svg>
+                <Menu className="h-6 w-6" />
               )}
             </button>
           </div>
@@ -122,20 +117,7 @@ const Header = () => {
               to="/savedList"
               className="flex items-center text-gray-700 hover:text-[#ff5723]"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={1.5}
-                stroke="currentColor"
-                className="mr-1 h-5 w-5"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z"
-                />
-              </svg>
+              <Heart className="mr-1 h-5 w-5" />
               Tin đã lưu
             </Link>
 
@@ -145,20 +127,7 @@ const Header = () => {
                 to="/user"
                 className="flex items-center text-gray-700 hover:text-[#ff5723]"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="mr-1 h-5 w-5"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z"
-                  />
-                </svg>
+                <Home className="mr-1 h-5 w-5" />
                 Quản lý
               </Link>
             )}
@@ -179,21 +148,11 @@ const Header = () => {
                     />
                   </div>
                   <span className="inline">Tài khoản</span>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke="currentColor"
-                    className={`h-4 w-4 transition-transform ${isDropdownOpen ? "rotate-180" : ""
-                      }`}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M19.5 8.25l-7.5 7.5-7.5-7.5"
-                    />
-                  </svg>
+                  <MdArrowDropDown
+                    className={`h-4 w-4 transition-transform ${
+                      isDropdownOpen ? "rotate-180" : ""
+                    }`}
+                  />
                 </button>
 
                 {isDropdownOpen && (
@@ -208,24 +167,11 @@ const Header = () => {
                     </li>
                     <li>
                       <Link
-                        to="user"
+                        to="/user"
                         className="flex cursor-pointer items-center px-4 py-2 hover:bg-gray-100"
                         onClick={() => setIsDropdownOpen(false)}
                       >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          strokeWidth={1.5}
-                          stroke="currentColor"
-                          className="mr-2 h-5 w-5"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
-                          />
-                        </svg>
+                        <User className="mr-2 h-5 w-5" />
                         Hồ sơ
                       </Link>
                     </li>
@@ -237,20 +183,7 @@ const Header = () => {
                         }}
                         className="flex w-full cursor-pointer items-center px-4 py-2 text-left hover:bg-gray-100"
                       >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          strokeWidth={1.5}
-                          stroke="currentColor"
-                          className="mr-2 h-5 w-5"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M8.25 9V5.25A2.25 2.25 0 0 1 10.5 3h6a2.25 2.25 0 0 1 2.25 2.25v13.5A2.25 2.25 0 0 1 16.5 21h-6a2.25 2.25 0 0 1-2.25-2.25V15M12 9l3 3m0 0-3 3m3-3H2.25"
-                          />
-                        </svg>
+                        <LogOut className="mr-2 h-5 w-5" />
                         Đăng xuất
                       </button>
                     </li>
@@ -263,20 +196,7 @@ const Header = () => {
                   to="/dang-nhap"
                   className="flex items-center text-gray-700 hover:text-[#ff5723]"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke="currentColor"
-                    className="mr-2 h-5 w-5"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M8.25 9V5.25A2.25 2.25 0 0 1 10.5 3h6a2.25 2.25 0 0 1 2.25 2.25v13.5A2.25 2.25 0 0 1 16.5 21h-6a2.25 2.25 0 0 1-2.25-2.25V15M12 9l3 3m0 0-3 3m3-3H2.25"
-                    />
-                  </svg>
+                  <LogOut className="mr-2 h-5 w-5" />
                   Đăng nhập
                 </Link>
 
@@ -284,20 +204,7 @@ const Header = () => {
                   to="/dang-ky-tai-khoan"
                   className="flex items-center text-gray-700 hover:text-[#ff5723]"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke="currentColor"
-                    className="mr-2 h-5 w-5"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z"
-                    />
-                  </svg>
+                  <User className="mr-2 h-5 w-5" />
                   Đăng ký
                 </Link>
               </>
@@ -308,20 +215,7 @@ const Header = () => {
               to={isAuthenticated ? "/post" : "/dang-nhap?redirect=/post"}
               className="flex items-center gap-1 rounded-full bg-red-500 px-4 py-2 text-white hover:bg-red-600"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={1.5}
-                stroke="currentColor"
-                className="h-5 w-5"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"
-                />
-              </svg>
+              <MapPin className="h-5 w-5" />
               <span className="inline">Đăng tin</span>
             </Link>
             <Link
@@ -423,20 +317,7 @@ const Header = () => {
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="ml-auto block text-gray-700 hover:text-orange-700"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke="currentColor"
-                    className="h-6 w-6"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
+                  <X className="h-6 w-6" />
                 </button>
                 <nav className="mt-4 flex flex-col space-y-4">
                   {isAuthenticated ? (
@@ -463,20 +344,7 @@ const Header = () => {
                         className="flex items-center px-2 py-2 text-gray-700 hover:text-orange-700"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          strokeWidth={1.5}
-                          stroke="currentColor"
-                          className="mr-3 h-5 w-5"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
-                          />
-                        </svg>
+                        <User className="mr-3 h-5 w-5" />
                         Hồ sơ
                       </Link>
                       <button
@@ -486,20 +354,7 @@ const Header = () => {
                         }}
                         className="flex w-full items-center px-2 py-2 text-gray-700 hover:text-orange-700"
                       >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          strokeWidth={1.5}
-                          stroke="currentColor"
-                          className="mr-3 h-5 w-5"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M8.25 9V5.25A2.25 2.25 0 0 1 10.5 3h6a2.25 2.25 0 0 1 2.25 2.25v13.5A2.25 2.25 0 0 1 16.5 21h-6a2.25 2.25 0 0 1-2.25-2.25V15M12 9l3 3m0 0-3 3m3-3H2.25"
-                          />
-                        </svg>
+                        <LogOut className="mr-3 h-5 w-5" />
                         Đăng xuất
                       </button>
                     </div>
@@ -510,20 +365,7 @@ const Header = () => {
                         className="flex items-center justify-center gap-2 rounded-full border border-gray-300 px-8 py-3 text-gray-700 hover:bg-gray-100"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          strokeWidth={1.5}
-                          stroke="currentColor"
-                          className="h-5 w-5"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M8.25 9V5.25A2.25 2.25 0 0 1 10.5 3h6a2.25 2.25 0 0 1 2.25 2.25v13.5A2.25 2.25 0 0 1 16.5 21h-6a2.25 2.25 0 0 1-2.25-2.25V15M12 9l3 3m0 0-3 3m3-3H2.25"
-                          />
-                        </svg>
+                        <LogOut className="h-5 w-5" />
                         Đăng nhập
                       </Link>
                       <Link
@@ -531,20 +373,7 @@ const Header = () => {
                         className="flex items-center justify-center gap-2 rounded-full border border-gray-300 px-8 py-3 text-gray-700 hover:bg-gray-100"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          strokeWidth={1.5}
-                          stroke="currentColor"
-                          className="h-5 w-5"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z"
-                          />
-                        </svg>
+                        <User className="h-5 w-5" />
                         Đăng ký
                       </Link>
                     </div>
@@ -554,20 +383,7 @@ const Header = () => {
                     className="flex items-center px-2 py-2 text-gray-700 hover:text-orange-700"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={1.5}
-                      stroke="currentColor"
-                      className="mr-3 h-5 w-5"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z"
-                      />
-                    </svg>
+                    <Heart className="mr-3 h-5 w-5" />
                     Tin đã lưu
                   </Link>
 
@@ -577,20 +393,7 @@ const Header = () => {
                       className="flex items-center px-2 py-2 text-gray-700 hover:text-orange-700"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        strokeWidth={1.5}
-                        stroke="currentColor"
-                        className="mr-3 h-5 w-5"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z"
-                        />
-                      </svg>
+                      <Home className="mr-3 h-5 w-5" />
                       Quản lý
                     </Link>
                   )}
@@ -600,20 +403,7 @@ const Header = () => {
                     className="flex items-center justify-center gap-1 rounded-full bg-red-500 py-2 text-white hover:bg-red-600"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={1.5}
-                      stroke="currentColor"
-                      className="h-5 w-5"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"
-                      />
-                    </svg>
+                    <MapPin className="h-5 w-5" />
                     Đăng tin
                   </Link>
                   <Link
@@ -641,7 +431,7 @@ const Header = () => {
                     {categories.map((category) => (
                       <Link
                         to={`/${category.MaDanhMuc}`}
-                        // key={category.id}
+                        key={category.MaDanhMuc}
                         onClick={() => setActiveCategoryId(category.MaDanhMuc)}
                         className={`text-sl relative px-3 py-2 transition-colors ${activeCategoryId === category.MaDanhMuc
                           ? "text-[#ff5723]"
@@ -660,7 +450,7 @@ const Header = () => {
             </div>
           </div>
         )}
-      </div>
+        </div>
     </header>
   );
 };
