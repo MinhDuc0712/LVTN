@@ -1,20 +1,40 @@
 import Sidebar from "./Sidebar";
 import { useState, useEffect } from "react";
-import { useGetUtilitiesUS, useGetCategoriesUS } from "../../../api/homePage";
-import { toast } from "react-toastify";
+import {
+  useGetUtilitiesUS,
+  useGetCategoriesUS,
+  useGetHouseById,
+} from "@/api/homePage";
 
-import { useCreateHouse, useAuthUser } from "@/api/homePage/";
-import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import { useCreateHouse, updateHouse, useAuthUser } from "@/api/homePage/";
+import { useNavigate, useParams } from "react-router-dom";
+import {
+  MapPin,
+  Image,
+  Home,
+  DollarSign,
+  Calendar,
+  Building,
+} from "lucide-react";
+
 function UserPost() {
   const navigate = useNavigate();
+  const { id } = useParams(); // Lấy ID từ URL
+  const isEditMode = !!id;
 
   const {
     data: user,
     isLoading: isUserLoading,
     error: userError,
   } = useAuthUser();
+  const { data: houseData, isLoading: isHouseLoading } = useGetHouseById(id, {
+    enabled: isEditMode,
+  });
 
-  useEffect(() => {}, [user, isUserLoading, userError]);
+  const { data: categories } = useGetCategoriesUS();
+  const { data: utilitiesData } = useGetUtilitiesUS();
+  const utilities = utilitiesData || [];
 
   const [formData, setFormData] = useState({
     TieuDe: "",
@@ -35,18 +55,46 @@ function UserPost() {
   const [selectedDistrict, setSelectedDistrict] = useState("");
   const [selectedWard, setSelectedWard] = useState("");
   const [selectedCategoryId, setSelectedCategoryId] = useState("");
-  const { data: categories } = useGetCategoriesUS();
-  const { data: utilitiesData } = useGetUtilitiesUS();
-  const utilities = utilitiesData || [];
-
   const [images, setImages] = useState([]);
   const [previewImages, setPreviewImages] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
-  const { mutateAsync: createHouse, isLoading } = useCreateHouse();
+  const { mutateAsync: createHouse, isLoading: isCreating } = useCreateHouse();
+  const isUpdating = false;
 
-  //Upload ảnh lên cloudinary
+  // Load dữ liệu bài đăng khi ở chế độ chỉnh sửa
+  useEffect(() => {
+    if (isEditMode && houseData) {
+      setFormData({
+        TieuDe: houseData.TieuDe || "",
+        SoPhongNgu: houseData.SoPhongNgu || 0,
+        SoPhongTam: houseData.SoPhongTam || 0,
+        SoTang: houseData.SoTang || null,
+        DienTich: houseData.DienTich || 0,
+        Gia: houseData.Gia || 0,
+        MoTaChiTiet: houseData.MoTaChiTiet || "",
+        DiaChi: getFullAddress(),
+        Duong: houseData.Duong || "",
+        utilities: houseData.utilities?.map((u) => String(u.MaTienIch)) || [],
+      });
+      setSelectedCategoryId(String(houseData.MaDanhMuc || ""));
+      setSelectedProvince(houseData.Tinh_TP || "");
+      setSelectedDistrict(houseData.Quan_Huyen || "");
+      setSelectedWard(houseData.Phuong_Xa || "");
+
+      const previews =
+        houseData.images?.map((img, index) => ({
+          url: img.DuongDanHinh,
+          name: `image-${index}`,
+          file: null,
+        })) || [];
+      setPreviewImages(previews);
+      setImages(previews.map((p) => p.url));
+    }
+  }, [houseData, isEditMode]);
+
+  // Upload ảnh lên Cloudinary
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
     if (files.length > 15) {
@@ -61,17 +109,19 @@ function UserPost() {
     const previews = files.map((file) => ({
       url: URL.createObjectURL(file),
       name: file.name,
-      file, // Store the file object for later upload
+      file,
     }));
 
-    setPreviewImages(previews);
-    setImages(files); // Store the files for upload
+    setPreviewImages([...previewImages, ...previews]);
+    setImages([...images, ...files]);
   };
 
   const removeImage = (index) => {
     const newImages = [...images];
     const newPreviews = [...previewImages];
-    URL.revokeObjectURL(newPreviews[index].url);
+    if (newPreviews[index].file) {
+      URL.revokeObjectURL(newPreviews[index].url);
+    }
     newImages.splice(index, 1);
     newPreviews.splice(index, 1);
     setImages(newImages);
@@ -83,9 +133,10 @@ function UserPost() {
 
   const uploadToCloudinary = async (files) => {
     const uploadedUrls = [];
+    const filesToUpload = files.filter((item) => typeof item !== "string");
 
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
+    for (let i = 0; i < filesToUpload.length; i++) {
+      const file = filesToUpload[i];
       const formData = new FormData();
       formData.append("file", file);
       formData.append("upload_preset", "upload-house");
@@ -105,16 +156,17 @@ function UserPost() {
 
         const data = await response.json();
         uploadedUrls.push(data.secure_url);
-
-        // Update progress
-        setUploadProgress(Math.round(((i + 1) / files.length) * 100));
+        setUploadProgress(Math.round(((i + 1) / filesToUpload.length) * 100));
       } catch (error) {
         console.error("Error uploading image:", error);
         throw error;
       }
     }
 
-    return uploadedUrls;
+    return [
+      ...files.filter((item) => typeof item === "string"),
+      ...uploadedUrls,
+    ];
   };
 
   const handleInputChange = (e) => {
@@ -145,6 +197,7 @@ function UserPost() {
 
     if (!user || !user.MaNguoiDung) {
       toast.error("Vui lòng đăng nhập để đăng bài");
+      navigate("/dang-nhap");
       return;
     }
 
@@ -162,29 +215,8 @@ function UserPost() {
       toast.error("Vui lòng tải lên ít nhất một ảnh");
       return;
     }
-    if (isUserLoading) {
-      toast.error("Đang xác thực thông tin người dùng...");
-      return;
-    }
 
-    if (!user || !user.MaNguoiDung) {
-      toast.error("Vui lòng đăng nhập để đăng bài");
-      navigate("/dang-nhap");
-      return;
-    }
-
-    const provinceObj = provinces.find(
-      (p) => String(p.code) === String(selectedProvince),
-    );
-    const districtObj = districts.find(
-      (d) => String(d.code) === String(selectedDistrict),
-    );
-    const wardObj = wards.find((w) => String(w.code) === String(selectedWard));
-
-    const provinceName = provinceObj?.name || "";
-    const districtName = districtObj?.name || "";
-    const wardName = wardObj?.name || "";
-
+    const fullAddress = getFullAddress().trim();
     try {
       setIsUploading(true);
       setUploadProgress(0);
@@ -193,11 +225,7 @@ function UserPost() {
 
       const postData = {
         TieuDe: formData.TieuDe.trim(),
-        Tinh_TP: provinceName,
-        Quan_Huyen: districtName,
-        Phuong_Xa: wardName,
-        Duong: formData.Duong ? formData.Duong.trim() : null,
-        DiaChi: formData.DiaChi.trim(),
+        DiaChi: fullAddress,
         SoPhongNgu: parseInt(formData.SoPhongNgu) || 0,
         SoPhongTam: parseInt(formData.SoPhongTam) || 0,
         SoTang: formData.SoTang ? parseInt(formData.SoTang) : null,
@@ -205,36 +233,35 @@ function UserPost() {
         Gia: parseFloat(formData.Gia) || 0,
         MoTaChiTiet: formData.MoTaChiTiet.trim(),
         MaDanhMuc: parseInt(selectedCategoryId),
-        utilities: formData.utilities
-          ? formData.utilities.map((id) => parseInt(id))
-          : [],
+        utilities: formData.utilities.map((id) => parseInt(id)),
         images: imageUrls,
       };
 
-      // console.log("Submitting payload:", postData);
-      // console.log("Post data being sent:", postData);
-
-      console.log("Submitting with user ID:", user.MaNguoiDung);
-      const { houseId } = await createHouse(postData);
-
-      toast.success("Đăng tin thành công!");
-      navigate(`/post/paymentpost?id=${houseId}`);
+      if (isEditMode) {
+        await updateHouse({ id, data: postData });
+        toast.success("Cập nhật tin thành công!");
+        navigate("/posts");
+      } else {
+        const { houseId } = await createHouse(postData);
+        toast.success("Đăng tin thành công!");
+        navigate(`/post/paymentpost?id=${houseId}`);
+      }
     } catch (error) {
       console.error("Error:", error);
       toast.error(
-        error.response?.data?.message || "Có lỗi xảy ra khi đăng tin",
+        error.response?.data?.message || "Có lỗi xảy ra khi xử lý tin",
       );
     } finally {
       setIsUploading(false);
-
       setUploadProgress(0);
-
-      // Clean up object URLs
       previewImages.forEach((image) => {
-        URL.revokeObjectURL(image.url);
+        if (image.file) URL.revokeObjectURL(image.url);
       });
     }
   };
+
+ const getFullAddress = () => formData.DiaChi?.trim() || "";
+
 
   useEffect(() => {
     const fetchProvinces = async () => {
@@ -257,17 +284,19 @@ function UserPost() {
             `https://provinces.open-api.vn/api/p/${selectedProvince}?depth=2`,
           );
           const data = await response.json();
-          setDistricts(data.districts);
-          setSelectedDistrict("");
-          setWards([]);
-          setSelectedWard("");
+          setDistricts(data.districts || []);
+          if (!isEditMode || selectedDistrict !== houseData?.Quan_Huyen) {
+            setSelectedDistrict("");
+            setWards([]);
+            setSelectedWard("");
+          }
         } catch (error) {
           console.error("Error fetching districts:", error);
         }
       };
       fetchDistricts();
     }
-  }, [selectedProvince]);
+  }, [selectedProvince, isEditMode, houseData]);
 
   useEffect(() => {
     if (selectedDistrict) {
@@ -277,22 +306,58 @@ function UserPost() {
             `https://provinces.open-api.vn/api/d/${selectedDistrict}?depth=2`,
           );
           const data = await response.json();
-          setWards(data.wards);
-          setSelectedWard("");
+          setWards(data.wards || []);
+          if (!isEditMode || selectedWard !== houseData?.Phuong_Xa) {
+            setSelectedWard("");
+          }
         } catch (error) {
           console.error("Error fetching wards:", error);
         }
       };
       fetchWards();
     }
-  }, [selectedDistrict]);
+  }, [selectedDistrict, isEditMode, houseData]);
+
+  useEffect(() => {
+    const provinceObj = provinces.find((p) => p.code === +selectedProvince);
+    const districtObj = districts.find((d) => d.code === +selectedDistrict);
+    const wardObj = wards.find((w) => w.code === +selectedWard);
+
+    const provinceName = provinceObj?.name || "";
+    const districtName = districtObj?.name || "";
+    const wardName = wardObj?.name || "";
+
+    const fullAddress =
+      `${formData.Duong || ""}, ${wardName}, ${districtName}, ${provinceName}`
+        .replace(/,\s*,/g, ",")
+        .replace(/(^,\s*|\s*,\s*$)/g, "")
+        .trim();
+
+    setFormData((prev) => ({
+      ...prev,
+      DiaChi: fullAddress,
+    }));
+  }, [selectedProvince, selectedDistrict, selectedWard, formData.Duong]);
+
+  if (isEditMode && isHouseLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Building className="h-8 w-8 animate-spin text-blue-500" />
+          <span className="text-lg font-medium text-gray-600">
+            Đang tải dữ liệu bài đăng...
+          </span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-50 p-4 md:flex-row md:p-6">
       <Sidebar />
-      <div className="w-full overflow-auto rounded-lg bg-white p-4 shadow-lg ">
+      <div className="w-full overflow-auto rounded-lg bg-white p-4 shadow-lg">
         <h1 className="mb-6 text-2xl font-bold text-gray-700 md:text-3xl">
-          Đăng tin cho thuê
+          {isEditMode ? "Chỉnh sửa tin đăng" : "Đăng tin cho thuê"}
         </h1>
         <div className="mb-6 border-b">
           <button className="mr-4">Thông tin mô tả</button>
@@ -397,7 +462,14 @@ function UserPost() {
                 className="w-full rounded border p-2"
                 placeholder="Nhập số nhà & tên đường"
                 required
+                readOnly
               />
+            </div>
+            <div className="mb-6 rounded bg-white p-4 shadow">
+              <h2 className="mb-2 text-lg font-bold">Bản đồ vị trí</h2>
+              <div className="h-[400px] w-full">
+                <GoongMapLibre address={getFullAddress()} />
+              </div>
             </div>
           </div>
           <div className="mb-6 rounded bg-white p-4 shadow">
@@ -535,7 +607,7 @@ function UserPost() {
                     className="accent-blue-500"
                     value={utility.MaTienIch}
                     checked={formData.utilities.includes(
-                      utility.MaTienIch.toString(),
+                      String(utility.MaTienIch),
                     )}
                     onChange={handleUtilityChange}
                   />
@@ -546,7 +618,6 @@ function UserPost() {
           </div>
           <div className="mb-6 rounded bg-white p-4 shadow">
             <h2 className="mb-4 text-lg font-bold">Hình ảnh</h2>
-
             {isUploading && (
               <div className="mb-4">
                 <div className="mb-1 flex justify-between">
@@ -588,7 +659,7 @@ function UserPost() {
                 className="hidden"
                 onChange={handleImageChange}
                 accept="image/*"
-                required
+                required={!isEditMode || images.length === 0}
               />
             </label>
             {previewImages.length > 0 && (
@@ -681,9 +752,13 @@ function UserPost() {
             <button
               type="submit"
               className="w-full rounded-full bg-[#ff1e56] py-3 font-semibold text-white transition duration-300 hover:bg-[#e60042] md:w-1/2"
-              disabled={isLoading || isUploading}
+              disabled={isCreating || isUpdating || isUploading}
             >
-              {isLoading || isUploading ? "Đang xử lý..." : "Tiếp tục →"}
+              {isCreating || isUpdating || isUploading
+                ? "Đang xử lý..."
+                : isEditMode
+                  ? "Cập nhật tin"
+                  : "Tiếp tục →"}
             </button>
           </div>
         </form>
@@ -693,3 +768,4 @@ function UserPost() {
 }
 
 export default UserPost;
+import GoongMapLibre from "../../map";

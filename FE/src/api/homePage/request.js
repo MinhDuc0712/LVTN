@@ -313,6 +313,8 @@ export const rejectHouse = (id, reason) => {
 //   return res.data;
 // };
 
+
+
 // Thêm yêu thích (nếu chưa tồn tại, backend sẽ tạo)
 export const addFavoriteAPI = async (houseId) => {
   const response = await axiosUser.post(`/favorites`, { MaNha: houseId });
@@ -333,15 +335,13 @@ export const deleteFavoriteAPI = async (favoriteId) => {
   return response.data; // hoặc return response nếu bạn muốn lấy status
 };
 
+
 // Lấy danh sách nhà yêu thích
 export const getFavoritesAPI = async () => {
   const response = await axiosUser.get(`/favorites`);
   return response; // sẽ là { data: [...], meta: {...} }
 };
-// export const updatePost = async (data) => {
-//   const res = await axiosUser.put(`/houses/${data.id}`, data);
-//   return res.data;
-// };
+
 // AN Tin
 export const hideHouse = (id) => {
   return axiosUser.put(`/houses/${id}/hide`);

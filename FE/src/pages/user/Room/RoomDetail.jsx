@@ -20,11 +20,27 @@ import { getHousesById } from "@/api/homePage"; // Giả sử bạn đã tạo h
 import CommentsSection from "./CommentsSection";
 import avatar from "@/assets/avatar.jpg";
 import { useAuthUser, useGetUtilitiesUS } from "@/api/homePage";
+import GoongMapLibre from "../../map";
+const getDistrict = (DiaChi) => {
+  if (!DiaChi) return { district: "" };
+  const parts = DiaChi.split(",")
+    .map((p) => p.trim())
+    .reverse();
 
+  let district = "";
+
+  for (const part of parts) {
+    if ((!district && part.startsWith("Quận")) || part.startsWith("Huyện")) {
+      district = part;
+    }
+  }
+
+  return { district };
+};
 function HouseDetail() {
   const { id } = useParams();
   const { data: user } = useAuthUser();
-  const { data: utilities=[] } = useGetUtilitiesUS();
+  const { data: utilities = [] } = useGetUtilitiesUS();
   const [house, setHouse] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -81,7 +97,6 @@ function HouseDetail() {
       currency: "VND",
     }).format(price);
   };
-
 
   // Format ngày
   const formatDate = (dateString) => {
@@ -146,11 +161,11 @@ function HouseDetail() {
 
               {/* Thumbnails */}
               {house.images && house.images.length > 0 ? (
-                <div className="mt-4 flex gap-3 overflow-x-auto pb-2">
+                <div className="mt-4 flex gap-3 overflow-x-auto p-2">
                   {house.images.map((image, i) => (
                     <div
                       key={i}
-                      className={`relative flex-shrink-0 cursor-pointer transition-all duration-300 ${
+                      className={`relative flex-shrink-0 cursor-pointer p-1 transition-all duration-300 ${
                         selectedImage === image.DuongDanHinh
                           ? "scale-105 rounded-xl ring-1 ring-amber-400"
                           : "rounded-xl hover:scale-102 hover:ring-2 hover:ring-gray-300"
@@ -207,9 +222,14 @@ function HouseDetail() {
                   <MapPin className="h-5 w-5 text-purple-600" />
                   <div>
                     <p className="text-sm text-gray-600">Quận/Huyện</p>
-                    <p className="font-bold text-purple-600">
-                      {house.Quan_Huyen}
-                    </p>
+                    {(() => {
+                      const { district } = getDistrict(house.DiaChi);
+                      return (
+                        <div className="font-bold text-purple-600">
+                          {district}
+                        </div>
+                      );
+                    })()}
                   </div>
                 </div>
 
@@ -235,9 +255,8 @@ function HouseDetail() {
                 </h2>
                 <div className="prose prose-gray max-w-none">
                   <p className="text-base leading-relaxed text-gray-700">
-                    <strong className="text-amber-600">Địa chỉ đầy đủ:</strong>{" "}
-                    {house.Duong || ""} {house.DiaChi}, {house.Phuong_Xa},{" "}
-                    {house.Quan_Huyen}, {house.Tinh_TP}
+                    <strong className="text-amber-600">Địa chỉ đầy đủ: </strong>
+                    {house.DiaChi}
                   </p>
 
                   <div className="mt-4 grid grid-cols-2 gap-4">
@@ -331,15 +350,14 @@ function HouseDetail() {
                 </h2>
                 <div className="rounded-xl border border-blue-100 bg-gradient-to-r from-blue-50 to-sky-50 p-4">
                   <p className="leading-relaxed font-medium text-gray-700">
-                    📍 {house.Duong || ""} {house.DiaChi}, {house.Phuong_Xa},{" "}
-                    {house.Quan_Huyen}, {house.Tinh_TP}
+                    📍 {house.DiaChi}
                   </p>
                 </div>
-                {/* Đây sẽ là nơi nhúng Google Maps sau này */}
-                <div className="mt-4 flex h-64 w-full items-center justify-center rounded-lg bg-gray-200">
-                  <span className="text-gray-500">
-                    Bản đồ sẽ hiển thị ở đây
-                  </span>
+                <div className="mb-6 rounded bg-white p-4 shadow">
+                  <h2 className="mb-2 text-lg font-bold">Bản đồ vị trí</h2>
+                  <div className="h-[400px] w-full">
+                    <GoongMapLibre address={house.DiaChi} />
+                  </div>
                 </div>
               </div>
             </div>
@@ -409,7 +427,7 @@ function HouseDetail() {
                       className="flex w-full transform items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 py-3 font-semibold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:from-green-600 hover:to-emerald-700 hover:shadow-xl"
                     >
                       <Phone className="h-4 w-4" />
-                      {house.user.SDT }
+                      {house.user.SDT}
                     </a>
 
                     <a

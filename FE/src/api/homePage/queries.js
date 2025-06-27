@@ -285,4 +285,22 @@ export const useGetRoles = () => {
   });
 };
 
+export const updateHouse = async ({ id, data }) => {
+  const response = await axiosUser.put(`/houses/${id}`, data);
+  return response.data;
+};
 
+export const useGetHouseById = (id, options = {}) =>
+  useQuery({
+    queryKey: ['house', id],
+    queryFn: async () => {
+      const response = await axiosUser.get(`/houses/${id}`);
+      const house = response?.data;
+
+      if (!house) throw new Error("Không tìm thấy bài đăng");
+
+      return house;
+    },
+    enabled: !!id,
+    ...options,
+  });
