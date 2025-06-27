@@ -10,70 +10,91 @@ import { toast } from "react-toastify";
 
 const formatnumber = (num) => new Intl.NumberFormat("vi-VN").format(num);
 
+const getDistrictAndCity = (address) => {
+  if (!address) return { district: "", city: "" };
+  const parts = address
+    .split(",")
+    .map((p) => p.trim())
+    .reverse();
+
+  let district = "";
+  let city = "";
+
+  for (const part of parts) {
+    if ((!district && part.startsWith("Quận")) || part.startsWith("Huyện")) {
+      district = part;
+    } else if (
+      (!city && part.startsWith("Thành phố")) ||
+      part.startsWith("Tỉnh")
+    ) {
+      city = part;
+    }
+  }
+
+  return { district, city };
+};
+
 const ListingCard = ({ listings }) => {
   const [favoritesStatus, setFavoritesStatus] = useState({});
 
-useEffect(() => {
-  const fetchFavorites = async () => {
-    try {
-      const token = sessionStorage.getItem("token"); // Hoặc kiểm tra qua context
-      if (!token) return; // Chưa đăng nhập → bỏ qua, không gọi API
+  useEffect(() => {
+    const fetchFavorites = async () => {
+      try {
+        const token = sessionStorage.getItem("token"); // Hoặc kiểm tra qua context
+        if (!token) return; // Chưa đăng nhập → bỏ qua, không gọi API
 
-      const response = await getFavoritesAPI();
-      const data = Array.isArray(response) ? response : response.data;
+        const response = await getFavoritesAPI();
+        const data = Array.isArray(response) ? response : response.data;
 
-      const statusMap = {};
-      data.forEach((item) => {
-        statusMap[item.id] = {
-          isLiked: true,
-          favoriteId: item.favorite_id,
-        };
-      });
+        const statusMap = {};
+        data.forEach((item) => {
+          statusMap[item.id] = {
+            isLiked: true,
+            favoriteId: item.favorite_id,
+          };
+        });
 
-      setFavoritesStatus(statusMap);
-    } catch (error) {
-      console.error("Lỗi tải danh sách yêu thích:", error);
-      // Không hiện toast nếu là lỗi 401
-      if (error.response?.status !== 401) {
-        toast.error("Lỗi khi tải danh sách yêu thích");
+        setFavoritesStatus(statusMap);
+      } catch (error) {
+        console.error("Lỗi tải danh sách yêu thích:", error);
+        // Không hiện toast nếu là lỗi 401
+        if (error.response?.status !== 401) {
+          toast.error("Lỗi khi tải danh sách yêu thích");
+        }
       }
+    };
+
+    if (listings.length > 0) {
+      fetchFavorites();
     }
-  };
-
-  if (listings.length > 0) {
-    fetchFavorites();
-  }
-}, [listings]);
-
-
+  }, [listings]);
 
   const handleToggleFavorite = async (houseId) => {
-  const current = favoritesStatus[houseId];
-  try {
-    if (current?.isLiked) {
-      const response = await toggleFavoriteAPI(current.favoriteId, "unlike");
-      if (response.message?.includes("xóa")) {
-        const updated = { ...favoritesStatus };
-        delete updated[houseId];
-        setFavoritesStatus(updated);
-        toast.success("Đã bỏ yêu thích");
+    const current = favoritesStatus[houseId];
+    try {
+      if (current?.isLiked) {
+        const response = await toggleFavoriteAPI(current.favoriteId, "unlike");
+        if (response.message?.includes("xóa")) {
+          const updated = { ...favoritesStatus };
+          delete updated[houseId];
+          setFavoritesStatus(updated);
+          toast.success("Đã bỏ yêu thích");
+        }
+      } else {
+        const response = await addFavoriteAPI(houseId);
+        setFavoritesStatus((prev) => ({
+          ...prev,
+          [houseId]: {
+            isLiked: true,
+            favoriteId: response.favorite_id,
+          },
+        }));
+        toast.success("Đã thêm vào yêu thích");
       }
-    } else {
-      const response = await addFavoriteAPI(houseId);
-      setFavoritesStatus((prev) => ({
-        ...prev,
-        [houseId]: {
-          isLiked: true,
-          favoriteId: response.data.favorite_id,
-        },
-      }));
-      toast.success("Đã thêm vào yêu thích");
+    } catch (err) {
+      toast.error(err.message || "Lỗi khi xử lý yêu thích");
     }
-  } catch (err) {
-    toast.error(err.message || "Lỗi khi xử lý yêu thích");
-  }
-};
-
+  };
 
   return (
     <div className="grid grid-cols-1 gap-6">
@@ -129,10 +150,21 @@ useEffect(() => {
                   <Square className="h-4 w-4" />
                   {listing.area} m²
                 </div>
-                <div className="flex items-center gap-1">
-                  <MapPin className="h-4 w-4" />
-                  {listing.district}, {listing.city}
-                </div>
+                {(() => {
+                  const { district, city } = getDistrictAndCity(
+                    listing.address,
+                  );
+                  return (
+                    <div className="mb-2 flex gap-4 text-sm text-gray-600">
+                      <div className="flex items-center gap-1">
+                        <MapPin className="h-4 w-4" />
+                        {district}
+                        {district && city ? ", " : ""}
+                        {city}
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
               <p className="text-sm text-gray-600">
                 <MapPin className="mr-1 inline h-4 w-4" />

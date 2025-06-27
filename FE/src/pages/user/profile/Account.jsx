@@ -143,7 +143,7 @@ const AccountManagement = () => {
   };
 
   if (!isAuthenticated) return <Navigate to="/user" replace />;
-  if (loading) return <div className="mt-10 text-center">Đang tải...</div>;
+  // if (loading) return <div className="mt-10 text-center">Đang tải...</div>;
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-50 p-4 md:flex-row md:p-6">
