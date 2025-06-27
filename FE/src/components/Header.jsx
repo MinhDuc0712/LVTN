@@ -218,6 +218,65 @@ const Header = () => {
               <MapPin className="h-5 w-5" />
               <span className="inline">Đăng tin</span>
             </Link>
+            <Link
+              to="/RentHouse"
+              className="
+    relative overflow-hidden group
+    px-4 py-2  // Giảm kích thước padding
+    bg-gradient-to-r from-[#2e7d32] to-[#4caf50]  
+    text-white font-semibold text-sm  
+    rounded-full
+    border-2 border-transparent
+    shadow-md hover:shadow-lg  
+    transform transition-all duration-300 ease-out
+    hover:scale-105 hover:shadow-md  
+    hover:from-[#1b5e20] hover:to-[#2e7d32]  
+    focus:outline-none focus:ring-2 focus:ring-green-300  
+    active:scale-95
+  "
+            >
+              {/* Hiệu ứng sáng chạy */}
+              <div className="
+    absolute top-0 left-0 w-full h-full
+    bg-gradient-to-r from-transparent via-white to-transparent
+    opacity-0 transform -skew-x-12 translate-x-[-100%]
+    transition-all duration-700 ease-out
+    group-hover:opacity-20 group-hover:translate-x-[100%]
+  " />
+
+              {/* Content */}
+              <div className="relative flex items-center space-x-1">
+                {/* House Icon */}
+                <svg
+                  className="w-5 h-5 transform transition-transform duration-300 group-hover:rotate-12 group-hover:scale-110"  // Giảm kích thước icon
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
+                </svg>
+
+                {/* Text */}
+                <span className="tracking-tight">THUÊ NHÀ NHANH</span>
+
+                {/* Lightning Icon */}
+                <svg
+                  className="w-4 h-4 transform transition-all duration-300 group-hover:scale-125 group-hover:rotate-12"  // Giảm kích thước icon
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M7 2v11h3v9l7-12h-4l4-8z" />
+                </svg>
+              </div>
+
+              {/* Glow effect */}
+              <div className="
+    absolute inset-0 rounded-full
+    bg-gradient-to-r from-green-400 to-green-500  // Màu xanh cho hiệu ứng glow
+    opacity-0 blur-md  // Giảm blur
+    transition-opacity duration-300
+    group-hover:opacity-30
+  " />
+            </Link>
           </div>
         </div>
 
@@ -228,11 +287,10 @@ const Header = () => {
                 to={`/category/${category.MaDanhMuc}`}
                 key={category.MaDanhMuc}
                 onClick={() => setActiveCategoryId(category.MaDanhMuc)}
-                className={`text-sl relative px-3 py-2 font-medium transition-colors ${
-                  activeCategoryId === category.MaDanhMuc
-                    ? "text-[#ff5723]"
-                    : "text-gray-700 hover:text-[#ff5723]"
-                }`}
+                className={`text-sl relative px-3 py-2 font-medium transition-colors ${activeCategoryId === category.MaDanhMuc
+                  ? "text-[#ff5723]"
+                  : "text-gray-700 hover:text-[#ff5723]"
+                  }`}
               >
                 {category.name}
                 {activeCategoryId === category.MaDanhMuc && (
@@ -348,17 +406,37 @@ const Header = () => {
                     <MapPin className="h-5 w-5" />
                     Đăng tin
                   </Link>
+                  <Link
+                    to="/RentHouse"
+                    className="
+    flex items-center justify-center
+    w-full py-2 mt-4  
+    bg-gradient-to-r from-[#2e7d32] to-[#4caf50]  
+    text-white font-semibold text-sm  
+    rounded-full
+    shadow-md active:scale-95  
+    transition-transform duration-200
+  "
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 24 24">  // Giảm kích thước icon và khoảng cách
+                      <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
+                    </svg>
+                    THUÊ NHÀ NHANH
+                    <svg className="w-3 h-3 ml-1" fill="currentColor" viewBox="0 0 24 24">  // Giảm kích thước icon và khoảng cách
+                      <path d="M7 2v11h3v9l7-12h-4l4-8z" />
+                    </svg>
+                  </Link>
                   <div className="flex flex-col justify-start space-x-4 py-2">
                     {categories.map((category) => (
                       <Link
                         to={`/${category.MaDanhMuc}`}
                         key={category.MaDanhMuc}
                         onClick={() => setActiveCategoryId(category.MaDanhMuc)}
-                        className={`text-sl relative px-3 py-2 transition-colors ${
-                          activeCategoryId === category.MaDanhMuc
-                            ? "text-[#ff5723]"
-                            : "text-gray-700 hover:text-[#ff5723]"
-                        }`}
+                        className={`text-sl relative px-3 py-2 transition-colors ${activeCategoryId === category.MaDanhMuc
+                          ? "text-[#ff5723]"
+                          : "text-gray-700 hover:text-[#ff5723]"
+                          }`}
                       >
                         {category.name}
                         {activeCategoryId === category.MaDanhMuc && (
