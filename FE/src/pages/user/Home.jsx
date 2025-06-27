@@ -3,7 +3,11 @@ import { useState, useEffect } from "react";
 import FilterSection from "../../components/FilterSection";
 import ListingCard from "../../components/ListingCard";
 import Banner from "../../components/Banner";
-import { getHouses, getFeaturedHouses, getHousesWithFilter } from "@/api/homePage";
+import {
+  getHouses,
+  getFeaturedHouses,
+  getHousesWithFilter,
+} from "@/api/homePage";
 import { useFilter } from "@/context/FilterContext";
 
 const Home = () => {
@@ -13,25 +17,25 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isFilterLoading, setIsFilterLoading] = useState(false);
-  const [noResults, setNoResults] = useState(false);  
+  const [noResults, setNoResults] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5; 
-  const handleApplyFilters = async (filters) => {
+  const itemsPerPage = 5;
+  // const handleApplyFilters = async (filters) => {
   const { filters } = useFilter();
 
   // Hàm xử lý lọc dữ liệu từ FilterSection
   const handleApplyFilters = async (sectionFilters) => {
     setIsFilterLoading(true);
     setNoResults(false);
-    setCurrentPage(1); 
+    setCurrentPage(1);
 
     try {
       if (Object.keys(filters).length === 0) {
-        const featuredOnly = allListings.filter(item => item.NoiBat === 1);
+        const featuredOnly = allListings.filter((item) => item.NoiBat === 1);
         setFilteredListings(featuredOnly);
         return;
       }
-      const response = await getHousesWithFilter(filters);
+      // const response = await getHousesWithFilter(filters);
       // Kết hợp filters từ Header và FilterSection
       const combinedFilters = { ...filters, ...sectionFilters };
       if (Object.keys(combinedFilters).length === 0) {
@@ -41,7 +45,9 @@ const Home = () => {
       const response = await getHousesWithFilter(combinedFilters);
 
       if (response.data && response.data.length > 0) {
-        const featuredFromFilter = response.data.filter(item => item.NoiBat === 1);
+        const featuredFromFilter = response.data.filter(
+          (item) => item.NoiBat === 1,
+        );
         setFilteredListings(featuredFromFilter);
       } else {
         setNoResults(true);
@@ -61,7 +67,7 @@ const Home = () => {
         setLoading(true);
         const housesResponse = await getHouses();
         const allHouses = housesResponse?.data || housesResponse || [];
-        const featuredHouses = allHouses.filter(item => item.NoiBat === 1);
+        const featuredHouses = allHouses.filter((item) => item.NoiBat === 1);
 
         setAllListings(allHouses);
         setFilteredListings(featuredHouses);
@@ -79,15 +85,14 @@ const Home = () => {
     fetchData();
   }, []);
 
-
   const formatListingData = (houses) => {
     return houses.map((house) => ({
       id: house.MaNha,
       title: house.TieuDe,
       price: house.Gia,
       area: house.DienTich,
-      // district: house.Quan_Huyen,
-      // city: house.Tinh_TP,
+      district: house.Quan_Huyen,
+      city: house.Tinh_TP,
       address: house.DiaChi,
       description: house.MoTaChiTiet,
       postedTime: formatPostedTime(house.NgayDang),
@@ -164,7 +169,7 @@ const Home = () => {
     applyHeaderFilters();
   }, [filters, allListings]);
 
-  const formattedFiltered = formatListingData(filteredListings);
+  // const formattedFiltered = formatListingData(filteredListings);
 
   if (loading)
     return <div className="py-8 text-center">Đang tải dữ liệu...</div>;
@@ -180,44 +185,47 @@ const Home = () => {
             <div className="mb-6">
               <h2 className="mb-4 text-xl font-bold">
                 {noResults ? "Không tìm thấy kết quả" : "Nhà đất nổi bật"}
-
               </h2>
 
               {isFilterLoading ? (
                 <div className="py-4 text-center">Đang tải kết quả lọc...</div>
               ) : noResults ? (
                 <div className="rounded-lg bg-yellow-100 p-4">
-                  Không tìm thấy nhà nổi bật nào phù hợp với tiêu chí lọc của bạn
+                  Không tìm thấy nhà nổi bật nào phù hợp với tiêu chí lọc của
+                  bạn
                 </div>
               ) : (
                 <>
                   <ListingCard listings={formattedFiltered} />
-                  
+
                   {totalPages > 1 && (
                     <div className="mt-6 flex justify-center">
                       <nav className="inline-flex rounded-md shadow">
                         <button
                           onClick={() => goToPage(currentPage - 1)}
                           disabled={currentPage === 1}
-                          className={`rounded-l-md px-3 py-2 ${currentPage === 1 ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-100'}`}
+                          className={`rounded-l-md px-3 py-2 ${currentPage === 1 ? "cursor-not-allowed bg-gray-200 text-gray-500" : "bg-white text-gray-700 hover:bg-gray-100"}`}
                         >
                           &laquo; Trước
                         </button>
-                        
-                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+
+                        {Array.from(
+                          { length: totalPages },
+                          (_, i) => i + 1,
+                        ).map((page) => (
                           <button
                             key={page}
                             onClick={() => goToPage(page)}
-                            className={`px-3 py-2 ${currentPage === page ? 'bg-blue-500 text-white' : 'bg-white text-gray-700 hover:bg-gray-100'}`}
+                            className={`px-3 py-2 ${currentPage === page ? "bg-blue-500 text-white" : "bg-white text-gray-700 hover:bg-gray-100"}`}
                           >
                             {page}
                           </button>
                         ))}
-                        
+
                         <button
                           onClick={() => goToPage(currentPage + 1)}
                           disabled={currentPage === totalPages}
-                          className={`rounded-r-md px-3 py-2 ${currentPage === totalPages ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-100'}`}
+                          className={`rounded-r-md px-3 py-2 ${currentPage === totalPages ? "cursor-not-allowed bg-gray-200 text-gray-500" : "bg-white text-gray-700 hover:bg-gray-100"}`}
                         >
                           Sau &raquo;
                         </button>
