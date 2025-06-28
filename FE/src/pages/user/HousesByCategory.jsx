@@ -11,10 +11,6 @@ const HousesByCategory = () => {
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
-
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5; 
 
   useEffect(() => {
     const fetchCategoryHouses = async () => {
@@ -28,7 +24,6 @@ const HousesByCategory = () => {
           return;
         }
         setListings(res?.data || []);
-        setCurrentPage(1);
       } catch (err) {
         console.error(err);
         setError("Không thể tải danh sách nhà.");
@@ -39,7 +34,6 @@ const HousesByCategory = () => {
 
     fetchCategoryHouses();
   }, [categoryId, navigate]);
-
 
   const formatListingData = (houses) => {
     return houses.map((house) => ({
@@ -56,6 +50,7 @@ const HousesByCategory = () => {
       posterName: house.user?.HoTen || "",
       type: house.category?.name || "",
       image: house.HinhAnh || getFirstImage(house.images),
+      // isFeatured: house.NoiBat,
     }));
   };
 
@@ -64,6 +59,8 @@ const HousesByCategory = () => {
     const postedDate = new Date(dateString);
     const diffInDays = Math.floor((now - postedDate) / (1000 * 60 * 60 * 24));
 
+    // if (diffInDays === 0) return 'Hôm nay';
+    //tính theo phút
     if (diffInDays < 1) {
       const diffInMinutes = Math.floor((now - postedDate) / (1000 * 60));
       if (diffInMinutes < 15) return "Hôm nay";
@@ -81,23 +78,7 @@ const HousesByCategory = () => {
     return images[0].DuongDanHinh;
   };
 
- 
-  const getPaginatedData = () => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return formatListingData(listings.slice(startIndex, endIndex));
-  };
-
-
-  const totalPages = Math.ceil(listings.length / itemsPerPage);
-
-
-  const goToPage = (page) => {
-    setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  const formattedListings = getPaginatedData();
+  const formattedListings = formatListingData(listings);
 
   if (loading)
     return <div className="py-8 text-center">Đang tải dữ liệu...</div>;
@@ -109,54 +90,10 @@ const HousesByCategory = () => {
       <div className="flex flex-col gap-6 md:flex-row">
         <div className="w-full md:w-2/3">
           <h2 className="mb-4 text-xl font-bold uppercase">
-            {listings[0]?.category?.name || "Không có danh mục"}
+            {`${listings[0].category?.name}` || "Không có danh mục"}
           </h2>
-          
           <ListingCard listings={formattedListings} />
-          {totalPages > 1 && (
-            <div className="mt-6 flex justify-center">
-              <nav className="inline-flex rounded-md shadow">
-                <button
-                  onClick={() => goToPage(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  className={`rounded-l-md px-3 py-2 ${
-                    currentPage === 1 
-                      ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
-                      : 'bg-white text-gray-700 hover:bg-gray-100'
-                  }`}
-                >
-                  &laquo; Trước
-                </button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                  <button
-                    key={page}
-                    onClick={() => goToPage(page)}
-                    className={`px-3 py-2 ${
-                      currentPage === page 
-                        ? 'bg-blue-500 text-white' 
-                        : 'bg-white text-gray-700 hover:bg-gray-100'
-                    }`}
-                  >
-                    {page}
-                  </button>
-                ))}
-                
-                <button
-                  onClick={() => goToPage(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                  className={`rounded-r-md px-3 py-2 ${
-                    currentPage === totalPages 
-                      ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
-                      : 'bg-white text-gray-700 hover:bg-gray-100'
-                  }`}
-                >
-                  Sau &raquo;
-                </button>
-              </nav>
-            </div>
-          )}
         </div>
-        
         <div className="w-full md:w-1/3">
           <FilterSection />
         </div>

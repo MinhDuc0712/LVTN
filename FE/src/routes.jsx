@@ -27,6 +27,8 @@ import GoongMap from "./pages/map";
 import PostModeration from "./pages/admin/Post";
 import NotFound from "./pages/NotFound";
 import RentalRoomDetail from "./pages/user/AdminRoom/RentalRoomDetail";
+import HouseList from "./pages/user/AdminRoom/HouseList";
+import Contract from "./pages/user/AdminRoom/Contract";
 
 const AppRoutes = () => {
   return (
@@ -61,7 +63,8 @@ const AppRoutes = () => {
       <Route path="/admin/post" element={<PostModeration />} />
       <Route path="/test" element={<GoongMap />} />
       <Route path="/RentHouse/RentalRoomDetail" element={<RentalRoomDetail/>} />
-
+      <Route path="/HouseList" element={<HouseList/>} />
+      <Route path="/Contract" element={<Contract/>} />
     </Routes>
   );
 };

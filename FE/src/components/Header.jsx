@@ -12,6 +12,7 @@ import { Heart, Home, User, LogOut, Menu, X, MapPin } from "lucide-react";
 import { MdArrowDropDown } from "react-icons/md";
 import { getHousesWithFilter } from "@/api/homePage";
 
+
 const Header = () => {
   const { isAuthenticated, user, logout } = useAuth();
   const { data: categories = [] } = useGetCategoriesUS();
@@ -22,7 +23,7 @@ const Header = () => {
   const mobileMenuRef = useRef(null);
   const { filters, setFilters } = useFilter();
 
-  // Hàm gọi API để lấy danh sách nhà
+
   const fetchListings = async (filters) => {
     const response = await getHousesWithFilter(filters);
     return response.data;
@@ -131,7 +132,6 @@ const Header = () => {
                 Quản lý
               </Link>
             )}
-
             {/* User Dropdown */}
             {isAuthenticated ? (
               <div className="relative" ref={dropdownRef}>
@@ -149,9 +149,8 @@ const Header = () => {
                   </div>
                   <span className="inline">Tài khoản</span>
                   <MdArrowDropDown
-                    className={`h-4 w-4 transition-transform ${
-                      isDropdownOpen ? "rotate-180" : ""
-                    }`}
+                    className={`h-4 w-4 transition-transform ${isDropdownOpen ? "rotate-180" : ""
+                      }`}
                   />
                 </button>
 
@@ -222,12 +221,12 @@ const Header = () => {
               to="/RentHouse"
               className="
     relative overflow-hidden group
-    px-4 py-2  // Giảm kích thước padding
+    px-4 py-2 
     bg-gradient-to-r from-[#2e7d32] to-[#4caf50]  
     text-white font-semibold text-sm  
     rounded-full
     border-2 border-transparent
-    shadow-md hover:shadow-lg  
+    shadow-md 
     transform transition-all duration-300 ease-out
     hover:scale-105 hover:shadow-md  
     hover:from-[#1b5e20] hover:to-[#2e7d32]  
@@ -271,8 +270,8 @@ const Header = () => {
               {/* Glow effect */}
               <div className="
     absolute inset-0 rounded-full
-    bg-gradient-to-r from-green-400 to-green-500  // Màu xanh cho hiệu ứng glow
-    opacity-0 blur-md  // Giảm blur
+    bg-gradient-to-r from-green-400 to-green-500  
+    opacity-0 
     transition-opacity duration-300
     group-hover:opacity-30
   " />
@@ -450,7 +449,7 @@ const Header = () => {
             </div>
           </div>
         )}
-        </div>
+      </div>
     </header>
   );
 };
