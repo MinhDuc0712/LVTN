@@ -1,15 +1,15 @@
-import { useState, useEffect } from "react";
 import {
-  MapPin,
-  Square,
-  DollarSign,
-  Heart,
-  Eye,
   ChevronLeft,
   ChevronRight,
-  Star,
+  DollarSign,
+  Eye,
+  Heart,
+  MapPin,
   Sparkles,
+  Square,
+  Star,
 } from "lucide-react";
+import { useEffect, useState } from "react";
 
 function RoomNew() {
   const [likedRooms, setLikedRooms] = useState(new Set());

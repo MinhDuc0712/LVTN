@@ -1,18 +1,18 @@
+import { useAuthUser } from "@/api/homePage";
+import avatar from "@/assets/avatar.jpg";
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import {
-  FaPlus,
+  FaBars,
+  FaHistory,
   FaList,
   FaMoneyBill,
-  FaHistory,
-  FaTags,
-  FaUser,
+  FaPlus,
   FaSignOutAlt,
-  FaBars,
+  FaTags,
   FaTimes,
+  FaUser,
 } from "react-icons/fa";
-import avatar from "@/assets/avatar.jpg";
-import { useAuthUser } from "@/api/homePage";
+import { Link } from "react-router-dom";
 
 const menuItems = [
   { icon: <FaPlus />, label: "Đăng tin mới", path: "/post" },

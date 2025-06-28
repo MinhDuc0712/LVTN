@@ -1,15 +1,15 @@
-import React, { useState, useEffect } from "react";
+import { deleteFavoriteAPI, getFavoritesAPI, toggleFavoriteAPI } from "@/api/homePage";
 import {
+  Calendar,
+  Eye,
   Heart,
   MapPin,
-  Calendar,
-  Square,
   Phone,
+  Square,
   Trash2,
-  Eye,
 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { getFavoritesAPI, toggleFavoriteAPI, deleteFavoriteAPI } from "@/api/homePage";
 import { toast } from "react-toastify";
 
 const SavedListings = () => {
@@ -21,7 +21,9 @@ const SavedListings = () => {
       try {
         setLoading(true);
         const response = await getFavoritesAPI();
-        console.log(response);
+
+        // console.log(response);
+
         const data = Array.isArray(response) ? response : response.data;
         if (data && Array.isArray(data)) {
           setSavedListings(data);
@@ -30,7 +32,7 @@ const SavedListings = () => {
           toast.error("Dữ liệu không hợp lệ");
         }
       } catch (err) {
-        toast.error(err.message || "Lỗi kết nối API");
+        toast.error( "Lỗi kết nối API");
       } finally {
         setLoading(false);
       }

@@ -1,15 +1,15 @@
-import { useState, useEffect } from "react";
 import {
-  MapPin,
-  Square,
-  DollarSign,
-  Heart,
-  Eye,
+  AreaChart,
   ChevronLeft,
   ChevronRight,
+  DollarSign,
+  Eye,
+  Heart,
+  MapPin,
+  Square,
   Star,
-  AreaChart,
 } from "lucide-react";
+import { useEffect, useState } from "react";
 
 function RoomSameArea() {
   const [likedRooms, setLikedRooms] = useState(new Set());

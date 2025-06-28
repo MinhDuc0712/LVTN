@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { MapPin, Home, DollarSign, Maximize, Star, Heart, Search, Filter } from 'lucide-react';
+import { DollarSign, Filter, Heart, Home, MapPin, Search, Square, Star } from 'lucide-react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 const RoomListing = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -208,7 +208,7 @@ const RoomListing = () => {
                     <span className="font-semibold text-green-600">{formatPrice(room.price)}/tháng</span>
                   </div>
                   <div className="flex items-center gap-1">
-                    <Maximize className="w-4 h-4" />
+                    <Square className="w-4 h-4" />
                     <span>{room.area}m²</span>
                   </div>
                 </div>

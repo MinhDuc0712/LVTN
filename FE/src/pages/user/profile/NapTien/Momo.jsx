@@ -1,9 +1,8 @@
 
 
-import Sidebar from '../Sidebar';
-import { FaQrcode, FaWallet, FaUniversity } from 'react-icons/fa';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import React, { useState } from 'react';
+import Sidebar from '../Sidebar';
 
 function Momo() {
     const [amount, setAmount] = useState(50000);

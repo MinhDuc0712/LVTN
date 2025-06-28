@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from "react";
-import { Heart, MapPin, Square, Phone, Eye } from "lucide-react";
-import { Link } from "react-router-dom";
 import {
-  getFavoritesAPI,
   addFavoriteAPI,
+  getFavoritesAPI,
   toggleFavoriteAPI,
 } from "@/api/homePage";
+import { Eye, Heart, MapPin, Phone, Square } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 
 const formatnumber = (num) => new Intl.NumberFormat("vi-VN").format(num);
@@ -122,6 +122,13 @@ const ListingCard = ({ listings }) => {
                       Giá rẻ
                     </span>
                   )}
+                  {listing.isFeatured === 1 && (
+                    <span className="rounded-full bg-yellow-100 px-2 py-1 text-xs text-yellow-600">
+                      Nổi bật
+                    </span>
+                  )
+
+                  }
                 </div>
                 <button
                   onClick={() => handleToggleFavorite(listing.id)}

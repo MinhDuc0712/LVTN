@@ -1,22 +1,18 @@
-import Sidebar from "./Sidebar";
-import { useState, useEffect } from "react";
 import {
-  useGetUtilitiesUS,
   useGetCategoriesUS,
   useGetHouseById,
+  useGetUtilitiesUS,
 } from "@/api/homePage";
+import { useEffect, useState } from "react";
+import Sidebar from "./Sidebar";
 
-import { toast } from "react-toastify";
-import { useCreateHouse, updateHouse, useAuthUser } from "@/api/homePage/";
-import { useNavigate, useParams } from "react-router-dom";
+import { updateHouse, useAuthUser, useCreateHouse } from "@/api/homePage/";
 import {
-  MapPin,
-  Image,
-  Home,
-  DollarSign,
-  Calendar,
-  Building,
+  Building
 } from "lucide-react";
+import { useNavigate, useParams } from "react-router-dom";
+import { toast } from "react-toastify";
+import GoongMapLibre from "../../map";
 
 function UserPost() {
   const navigate = useNavigate();
@@ -768,4 +764,4 @@ function UserPost() {
 }
 
 export default UserPost;
-import GoongMapLibre from "../../map";
+
