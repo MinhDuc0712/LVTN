@@ -1,26 +1,25 @@
-import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { getHousesById, useAuthUser, useGetUtilitiesUS } from "@/api/homePage"; // Giả sử bạn đã tạo hàm này trong api
+import avatar from "@/assets/avatar.jpg";
 import {
-  Heart,
-  Share2,
   AlertTriangle,
-  Phone,
-  MessageCircle,
-  MapPin,
+  Bath,
+  Bed,
   Calendar,
   DollarSign,
+  Heart,
+  Layers,
+  Mail,
+  MapPin,
+  MessageCircle,
+  Phone,
+  Share2,
   Square,
   User,
-  Mail,
-  Bed,
-  Bath,
-  Layers,
 } from "lucide-react";
-import { getHousesById } from "@/api/homePage"; // Giả sử bạn đã tạo hàm này trong api
-import CommentsSection from "./CommentsSection";
-import avatar from "@/assets/avatar.jpg";
-import { useAuthUser, useGetUtilitiesUS } from "@/api/homePage";
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import GoongMapLibre from "../../map";
+import CommentsSection from "./CommentsSection";
 const getDistrict = (DiaChi) => {
   if (!DiaChi) return { district: "" };
   const parts = DiaChi.split(",")

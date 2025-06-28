@@ -313,12 +313,14 @@ export const rejectHouse = (id, reason) => {
 //   return res.data;
 // };
 
-
-
 // Thêm yêu thích (nếu chưa tồn tại, backend sẽ tạo)
 export const addFavoriteAPI = async (houseId) => {
+  if (!sessionStorage.getItem("user")) return false;
+  // const response = await axiosUser.post(`/favorite/${houseId}`);
+  // return response.data;
+
   const response = await axiosUser.post(`/favorites`, { MaNha: houseId });
-  console.log("Add favorite response:", response.data);
+  // console.log("Add favorite response:", response.data);
   return response.data;
 };
 
@@ -328,18 +330,17 @@ export const toggleFavoriteAPI = async (favoriteId, action = "like") => {
   return response;
 };
 
-
 // Xóa khỏi danh sách yêu thích
 export const deleteFavoriteAPI = async (favoriteId) => {
   const response = await axiosUser.delete(`/favorites/${favoriteId}`);
-  return response.data; // hoặc return response nếu bạn muốn lấy status
+  return response.data;
 };
-
 
 // Lấy danh sách nhà yêu thích
 export const getFavoritesAPI = async () => {
-  const response = await axiosUser.get(`/favorites`);
-  return response; // sẽ là { data: [...], meta: {...} }
+  if (!sessionStorage.getItem("user")) return false;
+  const response = await axiosUser.get("/favorites");
+  return response.data;
 };
 
 // AN Tin

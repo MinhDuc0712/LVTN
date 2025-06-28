@@ -1,14 +1,15 @@
 // src/pages/Home.jsx
-import { useState, useEffect } from "react";
-import FilterSection from "../../components/FilterSection";
-import ListingCard from "../../components/ListingCard";
-import Banner from "../../components/Banner";
 import {
-  getHouses,
   getFeaturedHouses,
+  getHouses,
   getHousesWithFilter,
 } from "@/api/homePage";
 import { useFilter } from "@/context/FilterContext";
+import { useEffect, useState } from "react";
+import Banner from "../../components/Banner";
+import FilterSection from "../../components/FilterSection";
+import ListingCard from "../../components/ListingCard";
+import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
 
 const Home = () => {
   const [allListings, setAllListings] = useState([]);
@@ -20,7 +21,6 @@ const Home = () => {
   const [noResults, setNoResults] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
-  // const handleApplyFilters = async (filters) => {
   const { filters } = useFilter();
 
   // Hàm xử lý lọc dữ liệu từ FilterSection
@@ -30,19 +30,15 @@ const Home = () => {
     setCurrentPage(1);
 
     try {
-      if (Object.keys(filters).length === 0) {
+      const combinedFilters = { ...filters, ...sectionFilters };
+      if (Object.keys(combinedFilters).length === 0) {
         const featuredOnly = allListings.filter((item) => item.NoiBat === 1);
         setFilteredListings(featuredOnly);
         return;
       }
-      // const response = await getHousesWithFilter(filters);
-      // Kết hợp filters từ Header và FilterSection
-      const combinedFilters = { ...filters, ...sectionFilters };
-      if (Object.keys(combinedFilters).length === 0) {
-        setFilteredListings(allListings);
-        return;
-      }
       const response = await getHousesWithFilter(combinedFilters);
+      // console.log("Filters gửi đi: ", combinedFilters);
+      // console.log("Kết quả: ", response.data);
 
       if (response.data && response.data.length > 0) {
         const featuredFromFilter = response.data.filter(
@@ -204,9 +200,9 @@ const Home = () => {
                         <button
                           onClick={() => goToPage(currentPage - 1)}
                           disabled={currentPage === 1}
-                          className={`rounded-l-md px-3 py-2 ${currentPage === 1 ? "cursor-not-allowed bg-gray-200 text-gray-500" : "bg-white text-gray-700 hover:bg-gray-100"}`}
+                          className={`flex items-center rounded-l-md px-3 py-2 ${currentPage === 1 ? "cursor-not-allowed bg-gray-200 text-gray-500" : "bg-white text-gray-700 hover:bg-gray-100"}`}
                         >
-                          &laquo; Trước
+                          <FaArrowLeft />
                         </button>
 
                         {Array.from(
@@ -225,9 +221,9 @@ const Home = () => {
                         <button
                           onClick={() => goToPage(currentPage + 1)}
                           disabled={currentPage === totalPages}
-                          className={`rounded-r-md px-3 py-2 ${currentPage === totalPages ? "cursor-not-allowed bg-gray-200 text-gray-500" : "bg-white text-gray-700 hover:bg-gray-100"}`}
+                          className={`flex items-center rounded-r-md px-3 py-2 ${currentPage === totalPages ? "cursor-not-allowed bg-gray-200 text-gray-500" : "bg-white text-gray-700 hover:bg-gray-100"}`}
                         >
-                          Sau &raquo;
+                          <FaArrowRight />
                         </button>
                       </nav>
                     </div>

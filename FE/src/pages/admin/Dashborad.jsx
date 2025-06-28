@@ -1,13 +1,26 @@
-import { useState, useEffect } from "react";
-import { 
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  LineChart, Line, PieChart, Pie, Cell, Legend 
+import {
+  Activity,
+  CreditCard,
+  DollarSign,
+  Eye,
+  Home, TrendingUp,
+  Users
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell, Legend,
+  Line,
+  LineChart,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis, YAxis
 } from "recharts";
 import SidebarWithNavbar from "./SidebarWithNavbar";
-import { 
-  Users, CreditCard, Home, TrendingUp, 
-  DollarSign, Calendar, Activity, Eye 
-} from "lucide-react";
 
 // Mock API functions - thay thế bằng API thực tế của bạn
 const fetchDashboardStats = async () => {

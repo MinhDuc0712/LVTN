@@ -1,14 +1,14 @@
-import { useState } from "react";
-import SidebarWithNavbar from "./SidebarWithNavbar";
-import {
-  postCategoryAPI,
-  deleteCategoryAPI,
-  updateCategoryAPI,
-} from "../../api/homePage/request";
-import { useGetCategoriesUS } from "../../api/homePage/queries";
 import { useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import { FaEdit, FaTrash } from "react-icons/fa";
 import { toast } from "react-toastify";
+import { useGetCategoriesUS } from "../../api/homePage/queries";
+import {
+  deleteCategoryAPI,
+  postCategoryAPI,
+  updateCategoryAPI,
+} from "../../api/homePage/request";
+import SidebarWithNavbar from "./SidebarWithNavbar";
 
 export default function Category() {
   const [name, setName] = useState("");

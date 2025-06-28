@@ -1,14 +1,13 @@
 import { useState } from "react";
 import SidebarWithNavbar from "./SidebarWithNavbar";
-
-import {
-  postUtilitiesAPI ,
-  updateUtilitiesAPI,
-  deleteUtilitiesAPI,
-} from "../../api/homePage/request";
-import { useGetUtilitiesUS } from "../../api/homePage/queries";
 import { useQueryClient } from "@tanstack/react-query";
 import { FaEdit, FaTrash } from 'react-icons/fa';
+import { useGetUtilitiesUS } from "../../api/homePage/queries";
+import {
+  deleteUtilitiesAPI,
+  postUtilitiesAPI,
+  updateUtilitiesAPI,
+} from "../../api/homePage/request";
 export default function Utilities() {
   const [TenTienIch, setName] = useState("");
   const [message, setMessage] = useState("");

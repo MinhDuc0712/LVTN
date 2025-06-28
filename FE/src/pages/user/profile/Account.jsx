@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
-import Sidebar from "./Sidebar";
-import { useAuth } from "@/context/AuthContext";
-import { Link, Navigate } from "react-router-dom";
 import { getUserProfileAPI, updateUserProfileAPI } from "@/api/homePage";
-import { toast } from "react-toastify";
 import Avatar from "@/assets/avatar.jpg";
+import { useAuth } from "@/context/AuthContext";
+import { useEffect, useState } from "react";
+import { Link, Navigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import Sidebar from "./Sidebar";
 
 const AccountManagement = () => {
   const { isAuthenticated, setUser } = useAuth();

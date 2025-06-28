@@ -1,5 +1,5 @@
 // components/BannerSlider.jsx
-import React, { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import banner1 from "../assets/Banner.png";
 import banner2 from "../assets/Banner1.png";
 

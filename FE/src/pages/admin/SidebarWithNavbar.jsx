@@ -1,21 +1,21 @@
+import avatar from '@/assets/avatar.jpg';
+import logo from '@/assets/logo.jpg';
 import {
-  Home,
-  CreditCard,
-  Star,
-  List,
   BarChart,
-  Users,
-  LogOut,
-  Search,
   Bell,
+  CreditCard,
+  Home,
+  List,
+  LogOut,
   Mail,
-  Wallet,
+  Menu,
   Puzzle,
-  Menu
+  Search,
+  Star,
+  Users,
+  Wallet
 } from "lucide-react";
 import { useState } from "react";
-import avatar from '@/assets/avatar.jpg'
-import logo from '@/assets/logo.jpg'
 import { Link } from "react-router-dom";
 export default function SidebarWithNavbar({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
