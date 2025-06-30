@@ -1,6 +1,6 @@
-import Sidebar from '../Sidebar';
-import { FaQrcode, FaWallet, FaUniversity } from 'react-icons/fa';
+import { FaUniversity, FaWallet } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
+import Sidebar from '../Sidebar';
 
 function Deposit() {
     return (

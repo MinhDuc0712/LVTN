@@ -1,17 +1,17 @@
-import { useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import SidebarWithNavbar from "./SidebarWithNavbar";
+import { useEffect, useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
+import { FaArrowLeft, FaArrowRight, FaEdit, FaPlus, FaSave, FaTrash } from 'react-icons/fa';
+import { ImSpinner2 } from 'react-icons/im';
 import {
+  useDeleteDepositTransaction,
   useGetDepositTransactions,
+  useGetUserByIdentifier,
   usePostDepositTransaction,
   useUpdateDepositTransaction,
-  useDeleteDepositTransaction,
-  useGetUserByIdentifier,
 } from "../../api/homePage/queries";
 import { updateUserBalanceAPI } from "../../api/homePage/request";
-import { FaSave, FaPlus, FaEdit, FaTrash, FaArrowLeft, FaArrowRight } from 'react-icons/fa';
-import { ImSpinner2 } from 'react-icons/im';
+import SidebarWithNavbar from "./SidebarWithNavbar";
 
 const TRANSACTION_STATUS = {
   PENDING: "Đang xử lý",

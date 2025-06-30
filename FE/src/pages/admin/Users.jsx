@@ -1,26 +1,23 @@
+import {
+  useBanUser,
+  useGetRoles,
+  useGetUsers,
+  useUnbanUser,
+  useUpdateUserRole,
+} from "@/api/homePage/queries";
+import Avatar from "@/assets/avatar.jpg";
+import { AlertCircle } from "lucide-react";
 import { useState } from "react";
 import {
-  FaEdit,
-  FaTrash,
   FaBan,
   FaCheck,
-  FaUserShield,
+  FaEdit,
   FaUser,
-  FaFilter,
-  FaSearch,
+  FaUserShield
 } from "react-icons/fa";
-import SidebarWithNavbar from "./SidebarWithNavbar";
-import Avatar from "@/assets/avatar.jpg";
-import {
-  useGetUsers,
-  useUpdateUserRole,
-  useBanUser,
-  useUnbanUser,
-  useGetRoles,
-} from "@/api/homePage/queries";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { AlertCircle } from "lucide-react";
+import SidebarWithNavbar from "./SidebarWithNavbar";
 
 export default function Users() {
   const { isLoading: isLoadingUsers, error: errorUsers, data: users = [] } = useGetUsers();

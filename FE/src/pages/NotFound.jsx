@@ -1,5 +1,4 @@
-import React from 'react';
-import { Home, ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Home } from 'lucide-react';
 
 const NotFound = () => {
   const handleGoHome = () => {

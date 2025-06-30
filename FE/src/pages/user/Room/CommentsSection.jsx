@@ -1,20 +1,20 @@
-import { useEffect, useState } from "react";
 import {
-  Star,
-  ThumbsUp,
-  Send,
-  MessageCircle,
-  MoreHorizontal,
-  Trash,
-} from "lucide-react";
-import Avatar from "@/assets/avatar.jpg"
-import { toast } from "react-toastify";
-import {
+  deleteRatingAPI,
   getRatingsByHouseAPI,
   postRatingAPI,
   toggleRatingLikeAPI,
-  deleteRatingAPI,
 } from "@/api/homePage";
+import Avatar from "@/assets/avatar.jpg";
+import {
+  MessageCircle,
+  MoreHorizontal,
+  Send,
+  Star,
+  ThumbsUp,
+  Trash,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 
 function CommentsSection({ house, user }) {
   const [comments, setComments] = useState([]);
