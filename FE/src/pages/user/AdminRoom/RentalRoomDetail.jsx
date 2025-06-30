@@ -425,21 +425,6 @@ const RentalRoomDetail = () => {
                     </select>
                   </div>
                 </div>
-
-                {/* <label className="flex items-start gap-3 text-sm">
-                  <input 
-                    type="checkbox" 
-                    name="termsAgreed" 
-                    checked={formData.termsAgreed} 
-                    onChange={handleInputChange} 
-                    className="mt-1 w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-                  />
-                  <span className="text-gray-700">
-                    Tôi đồng ý với <a href="#" className="text-blue-600 hover:underline font-medium">điều khoản thuê phòng</a> và 
-                    <a href="#" className="text-blue-600 hover:underline font-medium"> chính sách bảo mật</a>
-                  </span>
-                </label> */}
-
                 <button 
                   onClick={handleSubmitContract}
                   className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-4 rounded-xl font-bold text-lg hover:from-blue-700 hover:to-blue-800 transition-all"

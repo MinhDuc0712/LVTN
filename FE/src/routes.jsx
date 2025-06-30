@@ -29,6 +29,9 @@ import NotFound from "./pages/NotFound";
 import RentalRoomDetail from "./pages/user/AdminRoom/RentalRoomDetail";
 import BankingConfirm from "./pages/user/profile/NapTien/Confirm";
 import QR_Post from "./pages/user/profile/QR_Post";
+import HouseList from "./pages/user/AdminRoom/HouseList";
+import Contract from "./pages/user/AdminRoom/Contract";
+
 const AppRoutes = () => {
   return (
     <Routes>
@@ -63,10 +66,9 @@ const AppRoutes = () => {
       <Route path="/admin/" element={<Dashboard />} />
       <Route path="/admin/post" element={<PostModeration />} />
       <Route path="/test" element={<GoongMap />} />
-      <Route
-        path="/RentHouse/RentalRoomDetail"
-        element={<RentalRoomDetail />}
-      />
+      <Route path="/RentHouse/RentalRoomDetail" element={<RentalRoomDetail/>} />
+      <Route path="/HouseList" element={<HouseList/>} />
+      <Route path="/Contract" element={<Contract/>} />
     </Routes>
   );
 };
