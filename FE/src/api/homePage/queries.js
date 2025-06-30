@@ -14,6 +14,13 @@ import {
   getUserByIdentifierAPI,
 } from "./request";
 
+import {
+  postUserDepositAPI,
+  getUserDepositsAPI,
+  updateUserDepositAPI,
+  deleteUserDepositAPI,
+} from "./request";
+
 export const useGetCategoriesUS = () => {
   return useQuery({
     queryKey: ["categories"],
@@ -32,6 +39,61 @@ export const useGetUtilitiesUS = (page = 1) => {
 };
 const DEPOSIT_QUERY_KEY = "deposits";
 
+export const useGetUserDepositTransactions = (params) => {
+  return useQuery({
+    queryKey: [DEPOSIT_QUERY_KEY, params],
+    queryFn: () => getUserDepositsAPI(params),
+    keepPreviousData: true,
+  });
+};
+
+export const usePostUserDepositTransaction = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (formData) => {
+      const response = await axiosUser.post("/deposits", formData);
+       console.log("✅ RESPONSE:", response);
+      return response; // 🔥 Phải return response.data ở đây!
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries("deposits");
+      toast.success("Tạo giao dịch thành công");
+    },
+    onError: (error) => {
+      toast.error(error?.response?.data?.message || "Lỗi tạo giao dịch");
+    },
+  });
+};
+
+
+export const useUpdateUserDepositTransaction = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, formData }) => updateUserDepositAPI(id, formData),
+    onSuccess: () => {
+      queryClient.invalidateQueries(DEPOSIT_QUERY_KEY);
+      toast.success("Cập nhật giao dịch thành công!");
+    },
+    onError: (error) => {
+      toast.error(`Lỗi: ${error.response?.data?.message || error.message}`);
+    },
+  });
+};
+
+export const useDeleteUserDepositTransaction = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deleteUserDepositAPI,
+    onSuccess: () => {
+      queryClient.invalidateQueries(DEPOSIT_QUERY_KEY);
+      toast.success("Xóa giao dịch thành công!");
+    },
+    onError: (error) => {
+      toast.error(`Lỗi: ${error.response?.data?.message || error.message}`);
+    },
+  });
+};
+
 export const useGetDepositTransactions = (params) => {
   return useQuery({
     queryKey: [DEPOSIT_QUERY_KEY, params],
@@ -39,6 +101,7 @@ export const useGetDepositTransactions = (params) => {
     keepPreviousData: true,
   });
 };
+
 
 export const usePostDepositTransaction = () => {
   const queryClient = useQueryClient();
