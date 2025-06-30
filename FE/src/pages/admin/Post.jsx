@@ -106,7 +106,7 @@ const PostModeration = () => {
       title: house.TieuDe,
       description: house.MoTaChiTiet,
       price: house.Gia,
-      location: `${house.Phuong_Xa}, ${house.Quan_Huyen}, ${house.Tinh_TP}`,
+      location: house.DiaChi,
       category: house.category?.name || "Không xác định",
       author: house.user?.HoTen || "Ẩn danh",
       phone: house.user?.SDT || "Không có",

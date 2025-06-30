@@ -39,6 +39,32 @@ export const updateUtilitiesAPI = async (id, data) => {
 export const deleteUtilitiesAPI = async (id) => {
   return await axiosAdmin.delete(`/utilities/${id}`);
 };
+export const getUserDepositsAPI = async (params = {}) => {
+  const response = await axiosUser.get("/deposits", {
+    params: {
+      page: params.page,
+      per_page: params.limit,
+      ma_nguoi_dung: params.ma_nguoi_dung,
+    },
+  });
+  return response.data;
+};
+
+export const updateUserDepositAPI = async (id, data) => {
+  const response = await axiosUser.put(`/deposits/${id}`, data);
+  return response.data;
+};
+
+export const deleteUserDepositAPI = async (id) => {
+  const response = await axiosUser.delete(`/deposits/${id}`);
+  return response.data;
+};
+
+export const postUserDepositAPI = async (data) => {
+  const response = await axiosUser.post("/deposits", data);
+  return response.data;
+};
+
 // Lấy danh sách giao dịch nạp tiền
 export const getDepositTransactionsAPI = async (params = {}) => {
   try {

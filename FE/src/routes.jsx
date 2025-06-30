@@ -27,6 +27,8 @@ import GoongMap from "./pages/map";
 import PostModeration from "./pages/admin/Post";
 import NotFound from "./pages/NotFound";
 import RentalRoomDetail from "./pages/user/AdminRoom/RentalRoomDetail";
+import BankingConfirm from "./pages/user/profile/NapTien/Confirm";
+import QR_Post from "./pages/user/profile/QR_Post";
 import HouseList from "./pages/user/AdminRoom/HouseList";
 import Contract from "./pages/user/AdminRoom/Contract";
 
@@ -51,6 +53,8 @@ const AppRoutes = () => {
       <Route path="/top-up" element={<TopUp />} />
       <Route path="/top-up/momo" element={<Momo />} />
       <Route path="/top-up/QR" element={<QR />} />
+      <Route path="/banking-confirm" element={<BankingConfirm />} />
+      <Route path="/Top-up-qr-post" element={<QR_Post />} />
       <Route path="/savedList" element={<SavedListings />} />
       <Route path="/history/top-up" element={<HistoryTopUp />} />
       <Route path="/history/payment" element={<HistoryPayment />} />
