@@ -16,6 +16,7 @@ const HousesByCategory = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+
   const { filters } = useFilter();
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -69,7 +70,6 @@ const HousesByCategory = () => {
           return;
         }
         setListings(res?.data || []);
-        setCurrentPage(1);
       } catch (err) {
         console.error(err);
         setError("Không thể tải danh sách nhà.");
@@ -105,6 +105,8 @@ const HousesByCategory = () => {
     const postedDate = new Date(dateString);
     const diffInDays = Math.floor((now - postedDate) / (1000 * 60 * 60 * 24));
 
+    // if (diffInDays === 0) return 'Hôm nay';
+    //tính theo phút
     if (diffInDays < 1) {
       const diffInMinutes = Math.floor((now - postedDate) / (1000 * 60));
       if (diffInMinutes < 15) return "Hôm nay";
@@ -155,8 +157,9 @@ const HousesByCategory = () => {
       <div className="flex flex-col gap-6 md:flex-row">
         <div className="w-full md:w-2/3">
           <h2 className="mb-4 text-xl font-bold uppercase">
-            {listings[0]?.category?.name || "Không có danh mục"}
+            {`${listings[0].category?.name}` || "Không có danh mục"}
           </h2>
+
           {noResults ? (
             <div className="rounded bg-yellow-100 p-4 text-gray-700">
               Không tìm thấy kết quả phù hợp với tiêu chí lọc.

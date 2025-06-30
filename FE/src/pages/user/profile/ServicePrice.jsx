@@ -160,6 +160,9 @@ export default function PricingTable() {
                       <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
                         <Home className="inline w-4 h-4 mr-1" /> Trang chủ
                       </span>
+                      <span className="bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm font-medium">
+                        <List className="inline w-4 h-4 mr-1" /> Trong danh mục
+                      </span>
                     </td>
                     <td className="py-4 px-4 text-center">
                       <span className="bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm font-medium">
