@@ -1,23 +1,10 @@
-
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import {
-    MapPin,
-    Calendar,
-    DollarSign,
-    User,
-    Phone,
-    Mail,
-    Eye,
-    FileText,
-    AlertCircle,
-    CheckCircle,
-    Clock,
-    Wifi,
-    Car,
-    Shield,
-    Building2,
-    MessageCircle,
+    MapPin, Calendar, DollarSign, User, Phone, Mail, Eye,
+    FileText, AlertCircle, CheckCircle, Clock, Wifi, Car,
+    Shield, Building2, MessageCircle, Zap, Droplet, Home
 } from 'lucide-react';
 
 export default function HouseList() {
@@ -26,9 +13,9 @@ export default function HouseList() {
     const myRentals = [
         {
             id: 1,
-            propertyName: 'Căn hộ Saigon Pearl',
+            propertyName: 'Chung cư Mini HOME CONVENIENT',
             address: '92 Nguyễn Hữu Cảnh, Bình Thạnh, TP.HCM',
-            roomNumber: 'A-1205',
+            roomNumber: 'Phòng 101',
             monthlyRent: 15_000_000,
             deposit: 30_000_000,
             startDate: '2024-01-15',
@@ -45,35 +32,17 @@ export default function HouseList() {
             nextPayment: '2024-12-01',
             contractFile: 'hop-dong-thue-nha.pdf',
             unpaidBills: 2,
+            bills: [
+                { type: 'electricity', amount: 320000, period: '11/2024', status: 'unpaid' },
+                { type: 'water', amount: 110000, period: '11/2024', status: 'unpaid' },
+                { type: 'rent', amount: 15000000, period: '12/2024', status: 'pending' }
+            ]
         },
-        {
-            id: 2,
-            propertyName: 'Nhà phố Quận 7',
-            address: '123 Nguyễn Văn Linh, Quận 7, TP.HCM',
-            roomNumber: 'Tầng 2',
-            monthlyRent: 8_500_000,
-            deposit: 17_000_000,
-            startDate: '2023-06-01',
-            endDate: '2024-05-31',
-            status: 'expired',
-            landlord: {
-                name: 'Trần Thị Bình',
-                phone: '0909876543',
-                email: 'tranthib@email.com',
-            },
-            amenities: ['wifi', 'parking'],
-            area: '120m²',
-            lastPayment: '2024-05-01',
-            nextPayment: null,
-            contractFile: 'hop-dong-nha-pho.pdf',
-            unpaidBills: 0,
-        },
+        // ... (other rental data)
     ];
 
-    const formatCurrency = (v) =>
-        new Intl.NumberFormat('vi-VN').format(v) + 'đ';
-    const formatDate = (s) =>
-        new Date(s).toLocaleDateString('vi-VN');
+    const formatCurrency = (v) => new Intl.NumberFormat('vi-VN').format(v) + 'đ';
+    const formatDate = (s) => new Date(s).toLocaleDateString('vi-VN');
 
     const statusBadge = {
         active: (
@@ -88,18 +57,18 @@ export default function HouseList() {
                 Hết hạn
             </span>
         ),
-        pending: (
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                <Clock className="h-3 w-3 mr-1" />
-                Chờ duyệt
-            </span>
-        ),
     };
 
     const amenityIcon = {
         wifi: <Wifi className="h-4 w-4 text-blue-600" />,
         parking: <Car className="h-4 w-4 text-green-600" />,
         security: <Shield className="h-4 w-4 text-purple-600" />,
+    };
+
+    const billTypeIcon = {
+        electricity: <Zap className="h-4 w-4 text-yellow-500" />,
+        water: <Droplet className="h-4 w-4 text-blue-400" />,
+        rent: <Home className="h-4 w-4 text-green-500" />
     };
 
     const RentalCard = ({ rental }) => (
@@ -144,6 +113,40 @@ export default function HouseList() {
                     </p>
                 </div>
             </div>
+
+            {/* Danh sách hóa đơn */}
+            {rental.bills && rental.bills.length > 0 && (
+                <div className="mb-4">
+                    <h4 className="text-sm font-medium text-gray-700 mb-2">Hóa đơn gần đây:</h4>
+                    <div className="space-y-2">
+                        {rental.bills.map((bill, index) => (
+                            <div key={index} className="flex items-center justify-between p-2 border rounded-lg">
+                                <div className="flex items-center">
+                                    {billTypeIcon[bill.type]}
+                                    <span className="ml-2 text-sm">
+                                        {bill.type === 'electricity' ? 'Điện' : 
+                                         bill.type === 'water' ? 'Nước' : 'Tiền phòng'} {bill.period}
+                                    </span>
+                                </div>
+                                <div className="flex items-center">
+                                    <span className={`text-sm font-medium ${
+                                        bill.status === 'paid' ? 'text-green-600' : 'text-red-600'
+                                    }`}>
+                                        {formatCurrency(bill.amount)}
+                                    </span>
+                                    <Link 
+                                        to={`/${bill.type === 'electricity' ? 'ElectricityBill' : 
+                                            bill.type === 'water' ? 'WaterTicket' : 'RentBill'}`}
+                                        className="ml-3 text-blue-600 hover:text-blue-800 text-sm"
+                                    >
+                                        Xem chi tiết
+                                    </Link>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             {/* Thời gian */}
             <div className="flex items-center justify-between mb-4 p-3 border border-gray-200 rounded-lg">
@@ -192,29 +195,30 @@ export default function HouseList() {
 
             {/* Actions */}
             <div className="flex flex-wrap gap-2">
-                <button className="flex items-center px-3 py-2 bg-blue-100 text-blue-700 rounded-lg text-sm hover:bg-blue-200 transition-colors">
+                <Link 
+                    to="/RentHouse/RentalRoomDetail" 
+                    className="flex items-center px-3 py-2 bg-blue-100 text-blue-700 rounded-lg text-sm hover:bg-blue-200 transition-colors"
+                >
                     <Eye className="h-4 w-4 mr-1" />
                     Xem chi tiết
-                </button>
-                <button className="flex items-center px-3 py-2 bg-green-100 text-green-700 rounded-lg text-sm hover:bg-green-200 transition-colors">
+                </Link>
+                <Link 
+                to="/Contract"
+                className="flex items-center px-3 py-2 bg-green-100 text-green-700 rounded-lg text-sm hover:bg-green-200 transition-colors">
                     <FileText className="h-4 w-4 mr-1" />
                     Hợp đồng
-                </button>
-                <button className="flex items-center px-3 py-2 bg-purple-100 text-purple-700 rounded-lg text-sm hover:bg-purple-200 transition-colors">
-                    <MessageCircle className="h-4 w-4 mr-1" />
-                    Nhắn tin
-                </button>
-                {rental.unpaidBills > 0 && (
-                    <button className="flex items-center px-3 py-2 bg-red-100 text-red-700 rounded-lg text-sm hover:bg-red-200 transition-colors">
-                        <AlertCircle className="h-4 w-4 mr-1" />
-                        Xem hóa đơn
-                    </button>
-                )}
+                </Link>
+                <Link 
+                    to="/RentHouse/RoomRentBill" 
+                    className="flex items-center px-3 py-2 bg-orange-100 text-orange-700 rounded-lg text-sm hover:bg-orange-200 transition-colors"
+                >
+                    <DollarSign className="h-4 w-4 mr-1" />
+                    Tiền phòng
+                </Link>
             </div>
         </div>
     );
 
-    /* ------------------- MAIN RETURN ------------------- */
     return (
         <div className="flex h-screen bg-gray-50">
             {/* Sidebar */}
@@ -229,7 +233,7 @@ export default function HouseList() {
                 </header>
 
                 {/* Quick stats */}
-                <section className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                     <div className="bg-white p-4 rounded-lg shadow">
                         <div className="flex items-center">
                             <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
@@ -262,7 +266,7 @@ export default function HouseList() {
                                 <DollarSign className="h-6 w-6 text-blue-600" />
                             </div>
                             <div className="ml-3">
-                                <p className="text-sm font-medium text-gray-600">Tổng tiền thuê/tháng</p>
+                                <p className="text-sm font-medium text-gray-600">Tổng tiền thuê</p>
                                 <p className="text-xl font-bold text-gray-900">
                                     {formatCurrency(
                                         myRentals
@@ -273,7 +277,22 @@ export default function HouseList() {
                             </div>
                         </div>
                     </div>
-                </section>
+                    <div className="bg-white p-4 rounded-lg shadow">
+                        <div className="flex items-center">
+                            <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
+                                <Zap className="h-6 w-6 text-yellow-600" />
+                            </div>
+                            <div className="ml-3">
+                                <p className="text-sm font-medium text-gray-600">Hóa đơn điện</p>
+                                <p className="text-xl font-bold text-gray-900">
+                                    {myRentals
+                                        .filter((r) => r.status === 'active')
+                                        .reduce((sum, r) => sum + (r.bills?.filter(b => b.type === 'electricity').length || 0), 0)}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
                 {/* Rental list */}
                 <section className="space-y-6">

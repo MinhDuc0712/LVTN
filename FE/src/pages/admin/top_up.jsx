@@ -39,7 +39,6 @@ export default function NapTienPage() {
 
   const queryClient = useQueryClient();
 
-  // Sử dụng custom hooks từ queries.js
   const {
     data: depositsResponse,
     isLoading,
