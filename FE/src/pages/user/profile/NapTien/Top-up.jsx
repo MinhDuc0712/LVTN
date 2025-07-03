@@ -54,14 +54,14 @@ function Deposit() {
 
                     {/* Phương thức nạp tiền */}
                     <div className="grid gap-4 md:grid-cols-2">
-                        <Link to="/Top-up/Momo">
+                        <Link to="/Top-up/ZaloPay">
                             <div className="flex items-center p-6 bg-white rounded-lg border border-gray-200 shadow-sm hover:border-blue-500 hover:shadow-md transition-all duration-200 cursor-pointer">
                                 <div className="p-3 rounded-full bg-pink-50 mr-4">
-                                    <FaWallet className="text-pink-500 text-2xl" />
+                                    <FaWallet className="text-blue-500 text-2xl" />
                                 </div>
                                 <div>
-                                    <h3 className="text-lg font-semibold text-gray-800">Ví điện tử MOMO</h3>
-                                    <p className="text-sm text-gray-500 mt-1">Nạp tiền nhanh qua ví MoMo</p>
+                                    <h3 className="text-lg font-semibold text-gray-800">Ví điện tử ZaloPay</h3>
+                                    <p className="text-sm text-gray-500 mt-1">Nạp tiền nhanh qua ví ZaloPay</p>
                                 </div>
                                 <svg className="ml-auto h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                     <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />

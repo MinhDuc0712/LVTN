@@ -3,7 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { postPaymentForHouse } from "../../../api/homePage/request";
+import { postPaymentForHouse } from "@/api/homePage/request";
 import Sidebar from "./Sidebar";
 function useQuery() {
   return new URLSearchParams(useLocation().search);
@@ -36,7 +36,14 @@ function PaymentPost() {
       }
 
       try {
-        await postPaymentForHouse({ houseId, planType: type, duration: quantity, unit: durationUnit, total });
+        await postPaymentForHouse({
+          houseId,
+          type,
+          quantity,
+          unit: durationUnit,
+          total,
+        });
+
         queryClient.setQueryData(["me"], (oldData) => {
           if (!oldData) return oldData;
           return {
@@ -53,11 +60,10 @@ function PaymentPost() {
       }
     } else if (paymentMethod === "qr") {
       // navigate(`/Top-up-qr-post?amount=${total}&reason=ThanhToanTinDang&id=${houseId}&type=${type}&quantity=${quantity}&unit=${durationUnit}`);
-    } else if (paymentMethod === "momo") {
-      toast.info("Đang chuyển sang cổng thanh toán MoMo...");
-      window.location.href = `https://payment.yourdomain.com/momo?amount=${total}&houseId=${houseId}`;
     } else if (paymentMethod === "bank") {
-      navigate(`/Top-up-qr-post?amount=${total}&reason=ThanhToanTinDang&id=${houseId}&type=${type}&quantity=${quantity}&unit=${durationUnit}`);
+      navigate(
+        `/Top-up-qr-post?amount=${total}&reason=ThanhToanTinDang&id=${houseId}&type=${type}&quantity=${quantity}&unit=${durationUnit}`,
+      );
       toast.info("Vui lòng chuyển khoản theo thông tin hiển thị.");
     } else {
       toast.error("Vui lòng chọn phương thức thanh toán.");
@@ -158,15 +164,17 @@ function PaymentPost() {
             <h3 className="mb-2 text-lg font-semibold">Thông tin thanh toán</h3>
             <ul className="space-y-1 text-sm">
               <li>
-                <span className="font-medium">Loại tin:</span> {plans[type].label}
+                <span className="font-medium">Loại tin:</span>{" "}
+                {plans[type].label}
               </li>
               <li>
-                <span className="font-medium">Thời gian:</span> {quantity} {durationOptions[durationUnit].label.toLowerCase()} ({
-                  quantity * durationOptions[durationUnit].factor
-                } ngày)
+                <span className="font-medium">Thời gian:</span> {quantity}{" "}
+                {durationOptions[durationUnit].label.toLowerCase()} (
+                {quantity * durationOptions[durationUnit].factor} ngày)
               </li>
               <li>
-                <span className="font-medium">Đơn giá:</span> {plans[type].pricePerDay.toLocaleString()} ₫/ngày
+                <span className="font-medium">Đơn giá:</span>{" "}
+                {plans[type].pricePerDay.toLocaleString()} ₫/ngày
               </li>
               <li>
                 <span className="font-medium">Tổng cộng:</span>
@@ -178,7 +186,9 @@ function PaymentPost() {
           </div>
 
           <div className="mt-6 space-y-4">
-            <h2 className="text-xl font-semibold">Chọn phương thức thanh toán</h2>
+            <h2 className="text-xl font-semibold">
+              Chọn phương thức thanh toán
+            </h2>
 
             <div className="relative rounded border p-4">
               <label className="flex items-start space-x-2">
@@ -191,21 +201,28 @@ function PaymentPost() {
                   className="mt-1"
                 />
                 <div className="flex-1">
-                  <p className="font-semibold">Trừ tiền trong tài khoản HOME CONVENIENT</p>
+                  <p className="font-semibold">
+                    Trừ tiền trong tài khoản HOME CONVENIENT
+                  </p>
                   <p className="text-sm text-green-600">
                     (Bạn đang có: {user?.so_du?.toLocaleString() || 0}₫)
                   </p>
                   {user?.so_du < total && (
                     <p className="text-sm text-red-600">
                       Số tiền không đủ. Vui lòng
-                      <Link to="/top-up" className="text-blue-600 underline ml-1">nạp thêm</Link>
+                      <Link
+                        to="/top-up"
+                        className="ml-1 text-blue-600 underline"
+                      >
+                        nạp thêm
+                      </Link>
                     </p>
                   )}
                 </div>
               </label>
             </div>
 
-            <div className="flex items-center justify-between rounded border p-4">
+            {/* <div className="flex items-center justify-between rounded border p-4">
               <label className="flex items-center space-x-2">
                 <input
                   type="radio"
@@ -217,7 +234,7 @@ function PaymentPost() {
                 <span>Thanh toán quét mã QRCode</span>
               </label>
               <img className="w-10" src="https://img.icons8.com/ios-filled/24/000000/qr-code.png" alt="QR Code" />
-            </div>
+            </div> */}
 
             <div className="flex items-center justify-between rounded border p-4">
               <label className="flex items-center space-x-2">
@@ -246,11 +263,6 @@ function PaymentPost() {
               </label>
               <p className="text-sm text-red-600">
                 Số tiền chuyển khoản: <strong>{total.toLocaleString()}₫</strong>
-              </p>
-              <p className="text-sm">
-                Nội dung chuyển khoản: <span className="rounded bg-blue-100 px-2 py-1 font-semibold text-blue-800">
-                  TT-{houseId}-{type.toUpperCase()}-{quantity}
-                </span>
               </p>
             </div>
 

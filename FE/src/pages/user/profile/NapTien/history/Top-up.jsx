@@ -7,9 +7,9 @@ import { useAuth } from '../../../../../context/AuthContext';
 
 const PAYMENT_METHODS = {
   Banking: "Chuyển khoản ngân hàng",
-  MoMo: "Ví MoMo",
+  // MoMo: "Ví MoMo",
   ZaloPay: "Ví ZaloPay",
-  ViettelPay: "Ví ViettelPay"
+  // ViettelPay: "Ví ViettelPay"
 };
 
 function HistoryTopUp() {

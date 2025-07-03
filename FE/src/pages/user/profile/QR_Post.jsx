@@ -1,9 +1,9 @@
+import { axiosUser } from "@/api/axios";
+import { useAuth } from "@/context/AuthContext";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { CheckCircle, Copy, Info } from "lucide-react";
-import { axiosUser } from "@/api/axios";
-import { useAuth } from "@/context/AuthContext";
+import { postUserDepositAPI } from "@/api/homePage";
 
 function useQuery() {
   return new URLSearchParams(useLocation().search);
@@ -27,15 +27,15 @@ function TopUpQrPost() {
   useEffect(() => {
     const createTransaction = async () => {
       try {
-        const response = await axiosUser.post("/deposits", {
-          ma_nguoi_dung: user?.SDT, // ✔️ lấy từ user context
+        const response = await postUserDepositAPI({
+          ma_nguoi_dung: user?.MaNguoiDung,
           so_tien: amount,
+          noi_dung: reason,
           khuyen_mai: 0,
           phuong_thuc: "Banking",
           trang_thai: "Đang xử lý",
-          ghi_chu: `${reason} | ${type} ${quantity} ${unit}`,
         });
-
+console.log("Deposit API response:", response);
         setMaGiaoDich(response.ma_giao_dich);
       } catch (error) {
         toast.error("Không thể tạo giao dịch QR cho tin đăng");
