@@ -55,8 +55,8 @@ export default function TenantSidebar() {
             label: 'Hóa đơn & Phiếu',
             expandable: true,
             children: [
-                { id: 'electric-bills', label: 'Phiếu điện', path: '/electric-bills', icon: Zap },
-                { id: 'water-bills', label: 'Phiếu nước', path: '/water-bills', icon: Droplets },
+                { id: 'ElectricityBill', label: 'Phiếu điện', path: '/Electricity', icon: Zap },
+                { id: 'water-bills', label: 'Phiếu nước', path: '/WaterTicket', icon: Droplets },
                 { id: 'rent-bills', label: 'Phiếu tiền nhà', path: '/rent-bills', icon: DollarSign }
             ]
         },
