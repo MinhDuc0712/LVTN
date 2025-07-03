@@ -11,7 +11,7 @@ import ServicePrice from "./pages/user/profile/ServicePrice";
 import PaymentPost from "./pages/user/profile/PaymentPost";
 import RoomDetail from "./pages/user/Room/RoomDetail";
 import TopUp from "./pages/user/profile/NapTien/Top-up";
-import Momo from "./pages/user/profile/NapTien/Momo";
+import ZaloPay from "./pages/user/profile/NapTien/ZaloPay";
 import QR from "./pages/user/profile/NapTien/QR";
 import HistoryTopUp from "./pages/user/profile/NapTien/history/Top-up";
 import HistoryPayment from "./pages/user/profile/NapTien/history/Payment";
@@ -27,6 +27,8 @@ import GoongMap from "./pages/map";
 import PostModeration from "./pages/admin/Post";
 import NotFound from "./pages/NotFound";
 import RentalRoomDetail from "./pages/user/AdminRoom/RentalRoomDetail";
+import BankingConfirm from "./pages/user/profile/NapTien/Confirm";
+import QR_Post from "./pages/user/profile/QR_Post";
 import HouseList from "./pages/user/AdminRoom/HouseList";
 import Contract from "./pages/user/AdminRoom/Contract";
 import ElectricityBill from "./pages/user/AdminRoom/Bill/ElectricityBill";
@@ -55,8 +57,10 @@ const AppRoutes = () => {
       <Route path="/post/paymentpost" element={<PaymentPost />} />
       <Route path="/room/:id" element={<RoomDetail />} />
       <Route path="/top-up" element={<TopUp />} />
-      <Route path="/top-up/momo" element={<Momo />} />
+      <Route path="/top-up/ZaloPay" element={<ZaloPay />} />
       <Route path="/top-up/QR" element={<QR />} />
+      <Route path="/banking-confirm" element={<BankingConfirm />} />
+      <Route path="/Top-up-qr-post" element={<QR_Post />} />
       <Route path="/savedList" element={<SavedListings />} />
       <Route path="/history/top-up" element={<HistoryTopUp />} />
       <Route path="/history/payment" element={<HistoryPayment />} />

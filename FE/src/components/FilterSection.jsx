@@ -1,11 +1,8 @@
-import React, { useEffect, useState } from "react";
+import { useState } from "react";
 
 const FilterSection = ({ onApplyFilters, isLoading }) => {
   const [selectedPrice, setSelectedPrice] = useState(null);
   const [selectedArea, setSelectedArea] = useState(null);
-
-
- 
 
   const handleApply = () => {
     if (isLoading) return; // Ngăn chặn click khi đang loading

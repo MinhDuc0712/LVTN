@@ -1,31 +1,28 @@
-import React, { useState, useEffect } from "react";
+import Avatar from "@/assets/avatar.jpg";
 import {
-  Eye,
-  Check,
-  X,
-  Clock,
-  MapPin,
+  AlertCircle,
   Calendar,
-  User,
-  DollarSign,
-  Filter,
-  Search,
+  Check,
   ChevronLeft,
   ChevronRight,
-  AlertCircle,
-  MessageSquare,
+  DollarSign,
+  Eye,
+  Filter,
   Home,
-  Users,
-  Edit,
   Loader2,
+  MapPin,
+  MessageSquare,
+  Search,
+  Users,
+  X
 } from "lucide-react";
-import SidebarWithNavbar from "./SidebarWithNavbar";
+import React, { useEffect, useState } from "react";
 import {
-  getAllHousesForAdmin,
   approveHouse,
+  getAllHousesForAdmin,
   rejectHouse,
 } from "../../api/homePage/request";
-import Avatar from "@/assets/avatar.jpg";
+import SidebarWithNavbar from "./SidebarWithNavbar";
 
 const PostModeration = () => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -109,7 +106,7 @@ const PostModeration = () => {
       title: house.TieuDe,
       description: house.MoTaChiTiet,
       price: house.Gia,
-      location: `${house.Phuong_Xa}, ${house.Quan_Huyen}, ${house.Tinh_TP}`,
+      location: house.DiaChi,
       category: house.category?.name || "Không xác định",
       author: house.user?.HoTen || "Ẩn danh",
       phone: house.user?.SDT || "Không có",

@@ -1,17 +1,17 @@
-import { useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import SidebarWithNavbar from "./SidebarWithNavbar";
+import { useEffect, useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
+import { FaArrowLeft, FaArrowRight, FaEdit, FaPlus, FaSave, FaTrash } from 'react-icons/fa';
+import { ImSpinner2 } from 'react-icons/im';
 import {
+  useDeleteDepositTransaction,
   useGetDepositTransactions,
+  useGetUserByIdentifier,
   usePostDepositTransaction,
   useUpdateDepositTransaction,
-  useDeleteDepositTransaction,
-  useGetUserByIdentifier,
 } from "../../api/homePage/queries";
 import { updateUserBalanceAPI } from "../../api/homePage/request";
-import { FaSave, FaPlus, FaEdit, FaTrash, FaArrowLeft, FaArrowRight } from 'react-icons/fa';
-import { ImSpinner2 } from 'react-icons/im';
+import SidebarWithNavbar from "./SidebarWithNavbar";
 
 const TRANSACTION_STATUS = {
   PENDING: "Đang xử lý",
@@ -405,6 +405,9 @@ export default function NapTienPage() {
                         Phương thức
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-bold text-blue-700 uppercase">
+                        Ghi chú
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-bold text-blue-700 uppercase">
                         Ngày nạp
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-bold text-blue-700 uppercase">
@@ -413,6 +416,7 @@ export default function NapTienPage() {
                       <th className="px-4 py-3 text-center text-xs font-bold text-blue-700 uppercase">
                         Hành động
                       </th>
+
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
@@ -430,6 +434,9 @@ export default function NapTienPage() {
                           {formatCurrency(txn.thuc_nhan)}
                         </td>
                         <td className="px-4 py-4">{txn.phuong_thuc}</td>
+                        <td className="px-4 py-4">
+                          {txn.ghi_chu || "Không có ghi chú"}
+                        </td>
                         <td className="px-4 py-4">{txn.ngay_nap}</td>
                         <td className="px-4 py-4">
                           <span className={`px-3 py-1 rounded-full text-xs font-medium ${txn.trang_thai === "Hoàn tất"

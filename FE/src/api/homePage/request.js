@@ -39,6 +39,32 @@ export const updateUtilitiesAPI = async (id, data) => {
 export const deleteUtilitiesAPI = async (id) => {
   return await axiosAdmin.delete(`/utilities/${id}`);
 };
+export const getUserDepositsAPI = async (params = {}) => {
+  const response = await axiosUser.get("/deposits", {
+    params: {
+      page: params.page,
+      per_page: params.limit,
+      ma_nguoi_dung: params.ma_nguoi_dung,
+    },
+  });
+  return response.data;
+};
+
+export const updateUserDepositAPI = async (id, data) => {
+  const response = await axiosUser.put(`/deposits/${id}`, data);
+  return response.data;
+};
+
+export const deleteUserDepositAPI = async (id) => {
+  const response = await axiosUser.delete(`/deposits/${id}`);
+  return response.data;
+};
+
+export const postUserDepositAPI = async (data) => {
+  const response = await axiosUser.post("/deposits", data);
+  return response;
+};
+
 // Lấy danh sách giao dịch nạp tiền
 export const getDepositTransactionsAPI = async (params = {}) => {
   try {
@@ -57,7 +83,7 @@ export const getDepositTransactionsAPI = async (params = {}) => {
 // Thêm giao dịch nạp tiền
 export const postDepositTransactionAPI = async (data) => {
   const response = await axiosAdmin.post("/deposits", data);
-  return response.data;
+  return response;
 };
 // Cập nhật giao dịch nạp tiền
 export const updateDepositTransactionAPI = async (id, data) => {
@@ -264,22 +290,11 @@ export const deleteRatingAPI = async (id) => {
 export const getHousesWithFilter = async (params) => {
   return axiosUser.get("/houses", { params }); // axios tự parse JSON
 };
-export const postPaymentForHouse = async ({
-  houseId,
-  planType,
-  duration,
-  unit,
-  total,
-}) => {
-  const response = await axiosUser.post("/houses/payment", {
-    houseId,
-    planType,
-    duration,
-    unit,
-    total,
-  });
-  return response.data;
+export const postPaymentForHouse = async (payload) => {
+  const response = await axiosUser.post("/payments", payload);
+  return response;
 };
+
 export const getUserHouses = async () => {
   const res = await axiosUser.get("/houses/user-posts");
   return res.data;
@@ -313,12 +328,14 @@ export const rejectHouse = (id, reason) => {
 //   return res.data;
 // };
 
-
-
 // Thêm yêu thích (nếu chưa tồn tại, backend sẽ tạo)
 export const addFavoriteAPI = async (houseId) => {
+  if (!sessionStorage.getItem("user")) return false;
+  // const response = await axiosUser.post(`/favorite/${houseId}`);
+  // return response.data;
+
   const response = await axiosUser.post(`/favorites`, { MaNha: houseId });
-  console.log("Add favorite response:", response.data);
+  // console.log("Add favorite response:", response.data);
   return response.data;
 };
 
@@ -328,18 +345,17 @@ export const toggleFavoriteAPI = async (favoriteId, action = "like") => {
   return response;
 };
 
-
 // Xóa khỏi danh sách yêu thích
 export const deleteFavoriteAPI = async (favoriteId) => {
   const response = await axiosUser.delete(`/favorites/${favoriteId}`);
-  return response.data; // hoặc return response nếu bạn muốn lấy status
+  return response.data;
 };
-
 
 // Lấy danh sách nhà yêu thích
 export const getFavoritesAPI = async () => {
-  const response = await axiosUser.get(`/favorites`);
-  return response; // sẽ là { data: [...], meta: {...} }
+  if (!sessionStorage.getItem("user")) return false;
+  const response = await axiosUser.get("/favorites");
+  return response.data;
 };
 
 // AN Tin
@@ -350,4 +366,14 @@ export const hideHouse = (id) => {
 export const relistHouse = async (id) => {
   const res = await axiosUser.put(`/houses/${id}/relist`);
   return res; // Trả về toàn bộ response thay vì chỉ res.data
+};
+
+export const createZaloPayPayment = async (payload) => {
+  try {
+    const res = await axiosUser.post("/zalopay/create-payment", payload);
+    return res;
+  } catch (error) {
+    console.error("Error creating ZaloPay payment:", error);
+    throw error;
+  }
 };
