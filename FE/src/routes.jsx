@@ -29,6 +29,12 @@ import NotFound from "./pages/NotFound";
 import RentalRoomDetail from "./pages/user/AdminRoom/RentalRoomDetail";
 import HouseList from "./pages/user/AdminRoom/HouseList";
 import Contract from "./pages/user/AdminRoom/Contract";
+import ElectricityBill from "./pages/user/AdminRoom/Bill/ElectricityBill";
+import RentBill from "./pages/user/AdminRoom/Bill/RentBill";
+import WaterTicket from "./pages/user/AdminRoom/Bill/WaterTicket";
+import Electricity from "./pages/user/AdminRoom/TransactionHistory/Electricity";
+import Water from "./pages/user/AdminRoom/TransactionHistory/Water";
+import Rent from "./pages/user/AdminRoom/TransactionHistory/Rent";
 
 const AppRoutes = () => {
   return (
@@ -65,6 +71,12 @@ const AppRoutes = () => {
       <Route path="/RentHouse/RentalRoomDetail" element={<RentalRoomDetail/>} />
       <Route path="/HouseList" element={<HouseList/>} />
       <Route path="/Contract" element={<Contract/>} />
+      <Route path="/ElectricityBill" element={<ElectricityBill/>} />
+      <Route path="/WaterTicket" element={<WaterTicket/>} />
+      <Route path="/RentBill" element={<RentBill/>} />
+      <Route path="/Electricity" element={<Electricity/>} />
+      <Route path="/Water" element={<Water/>} />
+      <Route path="/Rent" element={<Rent/>} />
     </Routes>
   );
 };
