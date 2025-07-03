@@ -50,11 +50,7 @@ export const useGetUserDepositTransactions = (params) => {
 export const usePostUserDepositTransaction = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (formData) => {
-      const response = await axiosUser.post("/deposits", formData);
-       console.log("✅ RESPONSE:", response);
-      return response; // 🔥 Phải return response.data ở đây!
-    },
+    mutationFn: async (formData) =>postUserDepositAPI(formData),
     onSuccess: () => {
       queryClient.invalidateQueries("deposits");
       toast.success("Tạo giao dịch thành công");
