@@ -300,13 +300,8 @@ export const getUserHouses = async () => {
   return res.data;
 };
 export const fetchUserPayments = async () => {
-  try {
-    const response = await axiosUser.get("/payments");
-    const data = Array.isArray(response) ? response : response.data;
-    return data ?? [];
-  } catch (error) {
-    return [];
-  }
+  const { data } = await axiosUser.get("/payments");   
+  return data;                               
 };
 // kỉm duyet bai dang admin
 export const getAllHousesForAdmin = async (params = {}) => {

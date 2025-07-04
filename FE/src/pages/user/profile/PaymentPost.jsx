@@ -24,51 +24,60 @@ function PaymentPost() {
   useEffect(() => {}, [user, isUserLoading, userError]);
 
   const handlePayment = async () => {
-    if (!houseId) {
-      toast.error("Không tìm thấy bài đăng.");
+  if (!houseId) {
+    toast.error("Không tìm thấy bài đăng.");
+    return;
+  }
+
+  if (paymentMethod === "wallet") {
+    if (user?.so_du < total) {
+      toast.error("Số dư không đủ để thanh toán.");
       return;
     }
 
-    if (paymentMethod === "wallet") {
-      if (user?.so_du < total) {
-        toast.error("Số dư không đủ để thanh toán.");
-        return;
+    try {
+      await postPaymentForHouse({
+        houseId,
+        type,
+        quantity,
+        unit: durationUnit,
+        total,
+      });
+
+      queryClient.setQueryData(["me"], (oldData) => {
+        if (!oldData) return oldData;
+        return {
+          ...oldData,
+          so_du: oldData.so_du - total,
+        };
+      });
+
+      // Show different notifications based on post type
+      if (type === "vip") {
+        toast.success("Thanh toán thành công! Bài đăng của bạn đã được đăng.");
+      } else {
+        toast.success("Thanh toán thành công! Bài đăng của bạn sẽ được xét duyệt trong 24h tới.");
       }
-
-      try {
-        await postPaymentForHouse({
-          houseId,
-          type,
-          quantity,
-          unit: durationUnit,
-          total,
-        });
-
-        queryClient.setQueryData(["me"], (oldData) => {
-          if (!oldData) return oldData;
-          return {
-            ...oldData,
-            so_du: oldData.so_du - total,
-          };
-        });
-
-        toast.success("Thanh toán thành công!");
-        navigate("/");
-      } catch (error) {
-        console.error(error);
-        toast.error("Có lỗi xảy ra khi thanh toán.");
-      }
-    } else if (paymentMethod === "qr") {
-      // navigate(`/Top-up-qr-post?amount=${total}&reason=ThanhToanTinDang&id=${houseId}&type=${type}&quantity=${quantity}&unit=${durationUnit}`);
-    } else if (paymentMethod === "bank") {
-      navigate(
-        `/Top-up-qr-post?amount=${total}&reason=ThanhToanTinDang&id=${houseId}&type=${type}&quantity=${quantity}&unit=${durationUnit}`,
-      );
-      toast.info("Vui lòng chuyển khoản theo thông tin hiển thị.");
-    } else {
-      toast.error("Vui lòng chọn phương thức thanh toán.");
+      
+      navigate("/");
+    } catch (error) {
+      console.error(error);
+      toast.error("Có lỗi xảy ra khi thanh toán.");
     }
-  };
+  } else if (paymentMethod === "momo") {
+    // Handle MoMo payment
+    navigate(
+      `/Top-up-qr-post?amount=${total}&reason=ThanhToanTinDang&id=${houseId}&type=${type}&quantity=${quantity}&unit=${durationUnit}`,
+    );
+  } else if (paymentMethod === "bank") {
+    navigate(
+      `/Top-up-qr-post?amount=${total}&reason=ThanhToanTinDang&id=${houseId}&type=${type}&quantity=${quantity}&unit=${durationUnit}`,
+    );
+    toast.info("Vui lòng chuyển khoản theo thông tin hiển thị.");
+  } else {
+    toast.error("Vui lòng chọn phương thức thanh toán.");
+  }
+};
 
   const plans = {
     normal: {
