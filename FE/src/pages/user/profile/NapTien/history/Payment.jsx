@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { fetchUserPayments } from "../../../../../api/homePage/request";
+import { fetchUserPayments } from "@/api/homePage";
 import Sidebar from "../../Sidebar";
 import { Link } from "react-router-dom";
 import dayjs from "dayjs";
 
-const ITEMS_PER_PAGE = 5;
+const ITEMS_PER_PAGE = 10;
 
-function HistoryTopUp() {
+function PostPaymentHistory() {
     const [page, setPage] = useState(1);
     const { data: allTransactions = [], isLoading } = useQuery({
         queryKey: ["payments"],
@@ -31,8 +31,8 @@ function HistoryTopUp() {
 
                     <div className="flex border-b border-gray-200">
                         <div className="flex space-x-1">
-                            <Link to="/Top-up"><button className="px-4 py-3 text-gray-600 hover:text-blue-600">Nạp tiền</button></Link>
-                            <Link to="/history/top-up"><button className="px-4 py-3 text-gray-600 hover:text-blue-600">Lịch sử nạp</button></Link>
+                            <Link to="/Top-up"><button className="px-4 py-3 text-gray-600 hover:text-blue-600">Nạp tiền vào tài khoản</button></Link>
+                            <Link to="/history/top-up"><button className="px-4 py-3 text-gray-600 hover:text-blue-600">Lịch sử nạp tiền</button></Link>
                             <Link to="/history/payment"><button className="px-4 py-3 border-b-2 border-blue-600 text-blue-600 font-medium">Lịch sử thanh toán</button></Link>
                         </div>
                     </div>
@@ -41,10 +41,10 @@ function HistoryTopUp() {
                         <table className="min-w-full divide-y divide-gray-200">
                             <thead className="bg-gray-100">
                                 <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">THỜI GIAN</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">PHÍ THANH TOÁN</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">MÃ TIN</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">LOẠI TIN</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">thời gian</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">phí thanh toán</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">mã tin</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">loại tin</th>
                                 </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-200">
@@ -66,6 +66,7 @@ function HistoryTopUp() {
                                             <td className="px-6 py-4 text-sm font-mono text-gray-600">
                                                 #{t.MaNha}
                                             </td>
+                                           
                                             <td className="px-6 py-4">
                                                 <span className="px-2 inline-flex text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
                                                     {t.house?.NoiBat === 1 ? "Vip" : "Thường"}
@@ -110,4 +111,4 @@ function HistoryTopUp() {
     );
 }
 
-export default HistoryTopUp;
+export default PostPaymentHistory;

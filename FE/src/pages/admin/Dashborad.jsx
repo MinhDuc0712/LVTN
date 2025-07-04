@@ -1,9 +1,10 @@
+import { fetchChartData, fetchDashboardStats } from "@/api/homePage";
 import {
-  Activity,
   CreditCard,
   DollarSign,
   Eye,
-  Home, TrendingUp,
+  Home,
+  TrendingUp,
   Users
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -11,64 +12,22 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
-  Cell, Legend,
+  Cell,
+  Legend,
   Line,
   LineChart,
   Pie,
   PieChart,
   ResponsiveContainer,
   Tooltip,
-  XAxis, YAxis
+  XAxis,
+  YAxis
 } from "recharts";
 import SidebarWithNavbar from "./SidebarWithNavbar";
-
-// Mock API functions - thay thế bằng API thực tế của bạn
-const fetchDashboardStats = async () => {
-  // Simulate API call
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  return {
-    totalUsers: 1250,
-    totalPosts: 350,
-    totalRevenue: 15750000,
-    totalTransactions: 89,
-    userGrowth: 12.5,
-    revenueGrowth: 8.3,
-    postGrowth: 15.2,
-    transactionGrowth: -2.1
-  };
-};
-
-const fetchChartData = async () => {
-  await new Promise(resolve => setTimeout(resolve, 800));
-  return {
-    monthlyRevenue: [
-      { month: 'T1', revenue: 12000000, transactions: 45 },
-      { month: 'T2', revenue: 13500000, transactions: 52 },
-      { month: 'T3', revenue: 11800000, transactions: 48 },
-      { month: 'T4', revenue: 15200000, transactions: 61 },
-      { month: 'T5', revenue: 14600000, transactions: 58 },
-      { month: 'T6', revenue: 15750000, transactions: 65 }
-    ],
-    categoryStats: [
-      { name: 'Nhà cho thuê', value: 45, color: '#3B82F6' },
-      { name: 'Phòng trọ', value: 30, color: '#10B981' },
-      { name: 'Căn hộ', value: 15, color: '#F59E0B' },
-      { name: 'Khác', value: 10, color: '#EF4444' }
-    ],
-    userActivity: [
-      { day: 'T2', users: 120 },
-      { day: 'T3', users: 95 },
-      { day: 'T4', users: 140 },
-      { day: 'T5', users: 110 },
-      { day: 'T6', users: 160 },
-      { day: 'T7', users: 180 },
-      { day: 'CN', users: 200 }
-    ]
-  };
-};
+import { Link } from "react-router-dom";
 
 const StatCard = ({ title, value, icon: Icon, growth, color = "blue" }) => {
-  const isPositive = growth > 0;
+  // const isPositive = growth > 0;
   const colorClasses = {
     blue: "bg-blue-50 border-blue-200 text-blue-900",
     green: "bg-green-50 border-green-200 text-green-900",
@@ -82,13 +41,13 @@ const StatCard = ({ title, value, icon: Icon, growth, color = "blue" }) => {
         <div>
           <p className="text-sm font-medium opacity-70">{title}</p>
           <p className="text-2xl font-bold mt-1">{value}</p>
-          <div className="flex items-center mt-2">
+          {/* <div className="flex items-center mt-2">
             <TrendingUp className={`w-4 h-4 mr-1 ${isPositive ? 'text-green-600' : 'text-red-600'}`} />
             <span className={`text-sm font-medium ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
               {isPositive ? '+' : ''}{growth}%
             </span>
             <span className="text-sm text-gray-500 ml-1">so với tháng trước</span>
-          </div>
+          </div> */}
         </div>
         <div className={`p-3 rounded-full ${color === 'blue' ? 'bg-blue-100' : color === 'green' ? 'bg-green-100' : color === 'yellow' ? 'bg-yellow-100' : 'bg-red-100'}`}>
           <Icon className="w-6 h-6 text-current" />
@@ -102,14 +61,14 @@ const formatCurrency = (amount) => {
   return new Intl.NumberFormat('vi-VN', {
     style: 'currency',
     currency: 'VND'
-  }).format(amount);
+  }).format(amount || 0);
 };
 
 export default function Dashboard() {
   const [stats, setStats] = useState(null);
   const [chartData, setChartData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('overview');
+  const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
 
   useEffect(() => {
     const loadData = async () => {
@@ -159,158 +118,83 @@ export default function Dashboard() {
           <p className="text-gray-600">Tổng quan về hệ thống quản lý</p>
         </div>
 
-        {/* Tab Navigation */}
-        <div className="mb-6">
-          <div className="border-b border-gray-200">
-            <nav className="flex space-x-8">
-              <button
-                onClick={() => setActiveTab('overview')}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'overview'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                <Activity className="w-4 h-4 inline mr-2" />
-                Tổng quan
-              </button>
-              <button
-                onClick={() => setActiveTab('analytics')}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'analytics'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                <BarChart className="w-4 h-4 inline mr-2" />
-                Phân tích
-              </button>
-            </nav>
+        {stats && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <StatCard
+              title="Tổng người dùng"
+              value={stats?.totalUsers?.toLocaleString?.() || 0}
+              icon={Users}
+              growth={stats?.userGrowth ?? 0}
+              color="blue"
+            />
+            <StatCard
+              title="Tổng bài đăng"
+              value={stats?.totalPosts?.toLocaleString?.() || 0}
+              icon={Home}
+              growth={stats?.postGrowth ?? 0}
+              color="green"
+            />
+            <StatCard
+              title="Doanh thu"
+              value={formatCurrency(stats?.totalRevenue)}
+              icon={DollarSign}
+              growth={stats?.revenueGrowth ?? 0}
+              color="yellow"
+            />
+            <StatCard
+              title="Giao dịch"
+              value={stats?.totalTransactions?.toLocaleString?.() || 0}
+              icon={CreditCard}
+              growth={stats?.transactionGrowth ?? 0}
+              color="red"
+            />
+          </div>
+        )}
+
+        <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
+          <h2 className="text-lg font-semibold text-blue-800 mb-4">Hành động nhanh</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Link to={`/admin/users`} className="p-4 text-center rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors">
+              <Users className="w-8 h-8 mx-auto mb-2 text-blue-600" />
+              <p className="text-sm font-medium text-blue-800">Quản lý User</p>
+            </Link>
+            <Link to={`/admin/post`} className="p-4 text-center rounded-lg bg-green-50 hover:bg-green-100 transition-colors">
+              <Home className="w-8 h-8 mx-auto mb-2 text-green-600" />
+              <p className="text-sm font-medium text-green-800">Bài đăng mới</p>
+            </Link>
+            <Link to={`/admin/top_up`} className="p-4 text-center rounded-lg bg-yellow-50 hover:bg-yellow-100 transition-colors">
+              <CreditCard className="w-8 h-8 mx-auto mb-2 text-yellow-600" />
+              <p className="text-sm font-medium text-yellow-800">Nạp tiền</p>
+            </Link>
+            <Link to={`/admin/category`} className="p-4 text-center rounded-lg bg-red-50 hover:bg-red-100 transition-colors">
+              <Eye className="w-8 h-8 mx-auto mb-2 text-orange-600" />
+              <p className="text-sm font-medium text-orange-800">Danh mục</p>
+            </Link>
           </div>
         </div>
 
-        {activeTab === 'overview' && (
+        {chartData && (
           <>
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              <StatCard
-                title="Tổng người dùng"
-                value={stats.totalUsers.toLocaleString()}
-                icon={Users}
-                growth={stats.userGrowth}
-                color="blue"
-              />
-              <StatCard
-                title="Tổng bài đăng"
-                value={stats.totalPosts.toLocaleString()}
-                icon={Home}
-                growth={stats.postGrowth}
-                color="green"
-              />
-              <StatCard
-                title="Doanh thu"
-                value={formatCurrency(stats.totalRevenue)}
-                icon={DollarSign}
-                growth={stats.revenueGrowth}
-                color="yellow"
-              />
-              <StatCard
-                title="Giao dịch"
-                value={stats.totalTransactions.toLocaleString()}
-                icon={CreditCard}
-                growth={stats.transactionGrowth}
-                color="red"
-              />
-            </div>
-
-            {/* Quick Actions */}
-            <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
-              <h2 className="text-lg font-semibold text-blue-800 mb-4">Hành động nhanh</h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <button className="p-4 text-center rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors">
-                  <Users className="w-8 h-8 mx-auto mb-2 text-blue-600" />
-                  <p className="text-sm font-medium text-blue-800">Quản lý User</p>
-                </button>
-                <button className="p-4 text-center rounded-lg bg-green-50 hover:bg-green-100 transition-colors">
-                  <Home className="w-8 h-8 mx-auto mb-2 text-green-600" />
-                  <p className="text-sm font-medium text-green-800">Bài đăng mới</p>
-                </button>
-                <button className="p-4 text-center rounded-lg bg-yellow-50 hover:bg-yellow-100 transition-colors">
-                  <CreditCard className="w-8 h-8 mx-auto mb-2 text-yellow-600" />
-                  <p className="text-sm font-medium text-yellow-800">Thanh toán</p>
-                </button>
-                <button className="p-4 text-center rounded-lg bg-red-50 hover:bg-red-100 transition-colors">
-                  <Eye className="w-8 h-8 mx-auto mb-2 text-red-600" />
-                  <p className="text-sm font-medium text-red-800">Báo cáo</p>
-                </button>
-              </div>
-            </div>
-
-            {/* Recent Activity */}
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <h2 className="text-lg font-semibold text-blue-800 mb-4">Hoạt động gần đây</h2>
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                  <span className="text-sm text-gray-600">
-                    <strong>Nguyễn Văn A</strong> đã đăng bài mới
-                  </span>
-                  <span className="text-xs text-gray-400">5 phút trước</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-                  <span className="text-sm text-gray-600">
-                    <strong>Trần Thị B</strong> đã nạp tiền thành công
-                  </span>
-                  <span className="text-xs text-gray-400">15 phút trước</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
-                  <span className="text-sm text-gray-600">
-                    <strong>Lê Văn C</strong> đã đăng ký tài khoản mới
-                  </span>
-                  <span className="text-xs text-gray-400">1 giờ trước</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <div className="w-2 h-2 bg-red-400 rounded-full"></div>
-                  <span className="text-sm text-gray-600">
-                    Bài đăng bị báo cáo cần xem xét
-                  </span>
-                  <span className="text-xs text-gray-400">2 giờ trước</span>
-                </div>
-              </div>
-            </div>
-          </>
-        )}
-
-        {activeTab === 'analytics' && (
-          <>
-            {/* Charts */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-              {/* Revenue Chart */}
               <div className="bg-white rounded-xl shadow-sm p-6">
                 <h3 className="text-lg font-semibold text-blue-800 mb-4">Doanh thu theo tháng</h3>
                 <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={chartData.monthlyRevenue}>
+                  <BarChart data={chartData?.monthlyRevenue || []}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="month" />
                     <YAxis tickFormatter={(value) => `${value / 1000000}M`} />
-                    <Tooltip 
-                      formatter={(value) => [formatCurrency(value), 'Doanh thu']}
-                      labelStyle={{ color: '#1f2937' }}
-                    />
+                    <Tooltip formatter={(value) => [formatCurrency(value), 'Doanh thu']} />
                     <Bar dataKey="revenue" fill="#3B82F6" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
 
-              {/* Category Distribution */}
               <div className="bg-white rounded-xl shadow-sm p-6">
                 <h3 className="text-lg font-semibold text-blue-800 mb-4">Phân bố danh mục</h3>
                 <ResponsiveContainer width="100%" height={300}>
                   <PieChart>
                     <Pie
-                      data={chartData.categoryStats}
+                      data={chartData?.CategoriesStats || []}
                       cx="50%"
                       cy="50%"
                       outerRadius={100}
@@ -318,7 +202,7 @@ export default function Dashboard() {
                       label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                       labelLine={false}
                     >
-                      {chartData.categoryStats.map((entry, index) => (
+                      {(chartData?.CategoriesStats || []).map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
@@ -329,21 +213,19 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* User Activity & Transactions */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* User Activity */}
               <div className="bg-white rounded-xl shadow-sm p-6">
-                <h3 className="text-lg font-semibold text-blue-800 mb-4">Hoạt động người dùng (7 ngày)</h3>
+                <h3 className="text-lg font-semibold text-blue-800 mb-4">Số bài duyệt theo tháng</h3>
                 <ResponsiveContainer width="100%" height={250}>
-                  <LineChart data={chartData.userActivity}>
+                  <LineChart data={chartData?.postTrend || []}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="day" />
+                    <XAxis dataKey="month" />
                     <YAxis />
                     <Tooltip />
-                    <Line 
-                      type="monotone" 
-                      dataKey="users" 
-                      stroke="#10B981" 
+                    <Line
+                      type="monotone"
+                      dataKey="posts"
+                      stroke="#10B981"
                       strokeWidth={3}
                       dot={{ fill: '#10B981', strokeWidth: 2, r: 6 }}
                     />
@@ -351,19 +233,18 @@ export default function Dashboard() {
                 </ResponsiveContainer>
               </div>
 
-              {/* Transaction Trend */}
               <div className="bg-white rounded-xl shadow-sm p-6">
                 <h3 className="text-lg font-semibold text-blue-800 mb-4">Xu hướng giao dịch</h3>
                 <ResponsiveContainer width="100%" height={250}>
-                  <LineChart data={chartData.monthlyRevenue}>
+                  <LineChart data={chartData?.monthlyRevenue || []}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="month" />
                     <YAxis />
                     <Tooltip />
-                    <Line 
-                      type="monotone" 
-                      dataKey="transactions" 
-                      stroke="#F59E0B" 
+                    <Line
+                      type="monotone"
+                      dataKey="transactions"
+                      stroke="#F59E0B"
                       strokeWidth={3}
                       dot={{ fill: '#F59E0B', strokeWidth: 2, r: 6 }}
                     />

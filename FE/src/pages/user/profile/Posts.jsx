@@ -26,7 +26,7 @@ import {
   getUserHouses,
   hideHouse,
   relistHouse,
-} from "../../../api/homePage/request";
+} from "@/api/homePage/request";
 import Sidebar from "./Sidebar";
 function Posts() {
   const [activeTab, setActiveTab] = useState("all");

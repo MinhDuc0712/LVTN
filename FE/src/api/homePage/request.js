@@ -300,8 +300,14 @@ export const getUserHouses = async () => {
   return res.data;
 };
 export const fetchUserPayments = async () => {
-  const { data } = await axiosUser.get("/payments");   
-  return data;                               
+  try {
+    const response = await axiosUser.get("/payments");
+    console.log("fetchUserPayments response:", response);
+    const data = Array.isArray(response) ? response : response.data;
+    return data ?? [];
+  } catch (error) {
+    return [];
+  }
 };
 // kỉm duyet bai dang admin
 export const getAllHousesForAdmin = async (params = {}) => {
@@ -371,4 +377,15 @@ export const createZaloPayPayment = async (payload) => {
     console.error("Error creating ZaloPay payment:", error);
     throw error;
   }
+};
+
+export const fetchDashboardStats = async () => {
+  const res = await axiosAdmin.get("/dashboard-stats");
+  return res;
+};
+
+export const fetchChartData = async () => {
+  const res = await axiosAdmin.get("/dashboard-charts");
+  console.log("Chart data:", res);
+  return res;
 };
