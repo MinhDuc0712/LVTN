@@ -37,8 +37,6 @@ const Home = () => {
         return;
       }
       const response = await getHousesWithFilter(combinedFilters);
-      // console.log("Filters gửi đi: ", combinedFilters);
-      // console.log("Kết quả: ", response.data);
 
       if (response.data && response.data.length > 0) {
         const featuredFromFilter = response.data.filter(
@@ -139,28 +137,33 @@ const Home = () => {
   const formattedFiltered = getPaginatedData();
   useEffect(() => {
     const applyHeaderFilters = async () => {
-      if (Object.keys(filters).length > 0) {
-        setIsFilterLoading(true);
-        try {
-          const response = await getHousesWithFilter(filters);
-          if (response.data && response.data.length > 0) {
-            setFilteredListings(response.data);
-            setNoResults(false);
-          } else {
-            setNoResults(true);
-            setFilteredListings([]);
-          }
-        } catch (error) {
-          console.error("Lỗi khi áp dụng bộ lọc từ Header:", error);
-          setError("Có lỗi xảy ra khi lọc dữ liệu");
-        } finally {
-          setIsFilterLoading(false);
-        }
-      } else {
-        setFilteredListings(allListings);
+  if (Object.keys(filters).length > 0) {
+    setIsFilterLoading(true);
+    try {
+      const response = await getHousesWithFilter(filters);
+      if (response.data && response.data.length > 0) {
+        const featuredFromFilter = response.data.filter(
+          (item) => item.NoiBat === 1,
+        );
+        setFilteredListings(featuredFromFilter);
         setNoResults(false);
+      } else {
+        setNoResults(true);
+        setFilteredListings([]);
       }
-    };
+    } catch (error) {
+      console.error("Lỗi khi áp dụng bộ lọc từ Header:", error);
+      setError("Có lỗi xảy ra khi lọc dữ liệu");
+    } finally {
+      setIsFilterLoading(false);
+    }
+  } else {
+    // Khi không có filter từ header, vẫn chỉ hiển thị nhà nổi bật
+    const featuredOnly = allListings.filter((item) => item.NoiBat === 1);
+    setFilteredListings(featuredOnly);
+    setNoResults(false);
+  }
+};
 
     applyHeaderFilters();
   }, [filters, allListings]);
