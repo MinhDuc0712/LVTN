@@ -99,7 +99,7 @@ const UserRentPaymentHistory = () => {
           {/* Header */}
           <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6 gap-4">
             <div>
-              <Link to="/User/Dashboard" className="flex items-center text-blue-600 hover:text-blue-800 mb-2">
+              <Link to="/HouseList" className="flex items-center text-blue-600 hover:text-blue-800 mb-2">
                 <ArrowLeft className="w-5 h-5 mr-2" />
                 Quay lại trang chủ
               </Link>

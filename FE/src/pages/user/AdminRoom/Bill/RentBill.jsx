@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Printer, ArrowLeft, Download, Home, Key, Calendar, User, CreditCard, Wifi, Droplet, Zap } from 'lucide-react';
+import { Printer, ArrowLeft, Download, Home, Key, Calendar, User, CreditCard, Wifi, Shield, ParkingCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Sidebar from '../Sidebar';
 
@@ -15,12 +15,11 @@ const RoomRentBill = () => {
     issueDate: "25/11/2023",
     dueDate: "05/12/2023",
     roomPrice: 4500000,
-    electricityFee: 320000,
-    waterFee: 110000,
+    managementFee: 500000,
+    parkingFee: 200000,
     wifiFee: 100000,
-    serviceFee: 50000,
     lateFee: 0,
-    total: 5080000,
+    total: 5400000,
     paymentStatus: "Chưa thanh toán",
     paymentMethod: "",
     contractNumber: "HD-2023-201"
@@ -128,17 +127,17 @@ const RoomRentBill = () => {
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <div className="flex items-center gap-2 mb-2">
-                    <Zap className="w-4 h-4 text-yellow-500" />
-                    <h3 className="text-sm text-gray-500">Tiền điện</h3>
+                    <Shield className="w-4 h-4 text-purple-500" />
+                    <h3 className="text-sm text-gray-500">Quản lý chung</h3>
                   </div>
-                  <p className="text-xl font-bold">{formatPrice(bill.electricityFee)}</p>
+                  <p className="text-xl font-bold">{formatPrice(bill.managementFee)}</p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <div className="flex items-center gap-2 mb-2">
-                    <Droplet className="w-4 h-4 text-blue-400" />
-                    <h3 className="text-sm text-gray-500">Tiền nước</h3>
+                    <ParkingCircle className="w-4 h-4 text-green-500" />
+                    <h3 className="text-sm text-gray-500">Tiền gửi xe</h3>
                   </div>
-                  <p className="text-xl font-bold">{formatPrice(bill.waterFee)}</p>
+                  <p className="text-xl font-bold">{formatPrice(bill.parkingFee)}</p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <div className="flex items-center gap-2 mb-2">
@@ -169,21 +168,21 @@ const RoomRentBill = () => {
                       <td className="px-4 py-3 border-b text-right font-medium">{formatPrice(bill.roomPrice)}</td>
                     </tr>
                     <tr>
-                      <td className="px-4 py-3 border-b">Tiền điện</td>
-                      <td className="px-4 py-3 border-b text-right">{formatPrice(bill.electricityFee)}</td>
-                      <td className="px-4 py-3 border-b text-right font-medium">{formatPrice(bill.electricityFee)}</td>
+                      <td className="px-4 py-3 border-b">Quản lý chung</td>
+                      <td className="px-4 py-3 border-b text-right">{formatPrice(bill.managementFee)}</td>
+                      <td className="px-4 py-3 border-b text-right font-medium">{formatPrice(bill.managementFee)}</td>
                     </tr>
                     <tr>
-                      <td className="px-4 py-3 border-b">Tiền nước</td>
-                      <td className="px-4 py-3 border-b text-right">{formatPrice(bill.waterFee)}</td>
-                      <td className="px-4 py-3 border-b text-right font-medium">{formatPrice(bill.waterFee)}</td>
+                      <td className="px-4 py-3 border-b">Tiền gửi xe</td>
+                      <td className="px-4 py-3 border-b text-right">{formatPrice(bill.parkingFee)}</td>
+                      <td className="px-4 py-3 border-b text-right font-medium">{formatPrice(bill.parkingFee)}</td>
                     </tr>
                     <tr>
                       <td className="px-4 py-3 border-b">Internet</td>
                       <td className="px-4 py-3 border-b text-right">{formatPrice(bill.wifiFee)}</td>
                       <td className="px-4 py-3 border-b text-right font-medium">{formatPrice(bill.wifiFee)}</td>
                     </tr>
-                    <tr>
+                    {/* <tr>
                       <td className="px-4 py-3 border-b">Phí dịch vụ</td>
                       <td className="px-4 py-3 border-b text-right">{formatPrice(bill.serviceFee)}</td>
                       <td className="px-4 py-3 border-b text-right font-medium">{formatPrice(bill.serviceFee)}</td>
@@ -192,7 +191,7 @@ const RoomRentBill = () => {
                       <td className="px-4 py-3">Phí trễ hạn</td>
                       <td className="px-4 py-3 text-right">-</td>
                       <td className="px-4 py-3 text-right font-medium">{formatPrice(bill.lateFee)}</td>
-                    </tr>
+                    </tr> */}
                   </tbody>
                   <tfoot className="bg-gray-50">
                     <tr>

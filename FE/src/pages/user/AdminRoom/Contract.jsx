@@ -36,10 +36,10 @@ export default function TenantContractView() {
         {
             id: 1,
             contractNumber: 'HD001',
-            houseName: 'Căn hộ Vinhomes Central Park',
-            address: '208 Nguyễn Hữu Cảnh, Bình Thạnh, TP.HCM',
+            houseName: 'Chung cư Mini HOME CONVENIENT',
+            address: '180 Cao Lỗ Phường 4 Quận 8 TP.HCM',
             landlord: {
-                name: 'Trần Thị Bình',
+                name: 'HOME CONVENIENT',
                 phone: '0908765432',
             },
             startDate: '2024-01-15',
@@ -49,7 +49,7 @@ export default function TenantContractView() {
             status: 'active',
             paymentStatus: 'paid',
             nextPaymentDate: '2024-07-15',
-            roomType: 'Căn hộ 2 phòng ngủ',
+            roomType: 'Phòng 101',
             area: '75m²',
             utilities:
                 'Điện: 4,000đ/số, Nước: 25,000đ/m³, Internet: 300,000đ/tháng, Phí quản lý: 500,000đ/tháng',
@@ -59,11 +59,11 @@ export default function TenantContractView() {
         {
             id: 2,
             contractNumber: 'HD002',
-            houseName: 'Nhà phố Thảo Điền',
-            address: '15 Đường Số 1, Thảo Điền, Quận 2, TP.HCM',
+            houseName: 'Chung cư Mini HOME CONVENIENT',
+            address: '180 Cao Lỗ Phường 4 Quận 8 TP.HCM',
             landlord: {
-                name: 'Lê Văn Cường',
-                phone: '0907654321',
+                name: 'HOME CONVENIENT',
+                phone: '0908765432',
             },
             startDate: '2023-06-01',
             endDate: '2024-05-31',
@@ -72,7 +72,7 @@ export default function TenantContractView() {
             status: 'expired',
             paymentStatus: 'completed',
             nextPaymentDate: null,
-            roomType: 'Nhà nguyên căn 3 tầng',
+            roomType: 'Phòng 103',
             area: '120m²',
             utilities:
                 'Điện: 3,800đ/số, Nước: 22,000đ/m³, Internet: 400,000đ/tháng',
@@ -82,11 +82,11 @@ export default function TenantContractView() {
         {
             id: 3,
             contractNumber: 'HD003',
-            houseName: 'Studio The Sun Avenue',
-            address: '28 Mai Chí Thọ, An Phú, Quận 2, TP.HCM',
+            houseName: 'Chung cư Mini HOME CONVENIENT',
+            address: '180 Cao Lỗ Phường 4 Quận 8 TP.HCM',
             landlord: {
-                name: 'Phạm Minh Đức',
-                phone: '0906543210',
+                name: 'HOME CONVENIENT',
+                phone: '0908765432',
             },
             startDate: '2024-03-01',
             endDate: '2025-02-28',
@@ -95,7 +95,7 @@ export default function TenantContractView() {
             status: 'active',
             paymentStatus: 'pending',
             nextPaymentDate: '2024-07-01',
-            roomType: 'Studio 1 phòng',
+            roomType: 'Phòng 202',
             area: '45m²',
             utilities:
                 'Điện: 4,200đ/số, Nước: 30,000đ/m³, Internet miễn phí, Phí quản lý: 300,000đ/tháng',

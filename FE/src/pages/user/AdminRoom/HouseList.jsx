@@ -14,7 +14,7 @@ export default function HouseList() {
         {
             id: 1,
             propertyName: 'Chung cư Mini HOME CONVENIENT',
-            address: '92 Nguyễn Hữu Cảnh, Bình Thạnh, TP.HCM',
+            address: '180 Cao Lỗ Phường 4 Quận 8 TP.HCM',
             roomNumber: 'Phòng 101',
             monthlyRent: 15_000_000,
             deposit: 30_000_000,
@@ -22,9 +22,9 @@ export default function HouseList() {
             endDate: '2025-01-14',
             status: 'active',
             landlord: {
-                name: 'Nguyễn Văn An',
-                phone: '0901234567',
-                email: 'nguyenvana@email.com',
+                name: 'HOME CONVENIENT',
+                phone: '0908765432',
+                email: 'HOMECONVENIENT@email.com',
             },
             amenities: ['wifi', 'parking', 'security'],
             area: '75m²',

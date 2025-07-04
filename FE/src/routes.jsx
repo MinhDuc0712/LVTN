@@ -39,6 +39,7 @@ import Electricity from "./pages/user/AdminRoom/TransactionHistory/Electricity";
 import Water from "./pages/user/AdminRoom/TransactionHistory/Water";
 import Rent from "./pages/user/AdminRoom/TransactionHistory/Rent";
 import ForgotPassword from "./layout/ForgotPass";
+import Unpail from "./pages/user/AdminRoom/Payment/Unpail";
 
 const AppRoutes = () => {
   return (
@@ -84,6 +85,7 @@ const AppRoutes = () => {
       <Route path="/Electricity" element={<Electricity/>} />
       <Route path="/Water" element={<Water/>} />
       <Route path="/Rent" element={<Rent/>} />
+      <Route path="/Unpail" element={<Unpail/>} />
     </Routes>
   );
 };
