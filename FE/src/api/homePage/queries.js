@@ -6,6 +6,7 @@ import { axiosAdmin } from "../axios";
 import { axiosUser } from "../axios";
 
 import toast from "react-hot-toast";
+import {getAllHousesForAdmin} from "./request";
 import {
   getDepositTransactionsAPI,
   postDepositTransactionAPI,
@@ -363,3 +364,11 @@ export const useGetHouseById = (id, options = {}) =>
     enabled: !!id,
     ...options,
   });
+
+export const useGetAllHousesForAdmin = (params = {}) => {
+  return useQuery({
+    queryKey: ["housesAdmin", params],
+    queryFn: () => getAllHousesForAdmin(params),
+    keepPreviousData: true,
+  });
+};
