@@ -451,8 +451,8 @@ const PostModeration = () => {
                               className="h-16 w-16 rounded-lg border object-cover"
                             />
                           </div>
-                          <div className="min-w-0 flex-1">
-                            <div className="line-clamp-2 text-sm font-medium text-blue-900">
+                          <div className="min-w flex-1">
+                            <div className="line-clamp-1 text-sm font-medium text-blue-900">
                               {post.title}
                             </div>
                             <div className="mt-1 text-xs text-gray-500">

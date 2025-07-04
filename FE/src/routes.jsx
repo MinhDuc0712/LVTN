@@ -20,6 +20,7 @@ import Category from "./pages/admin/Category";
 import Utilities from "./pages/admin/Utilities";
 import Top_up from "./pages/admin/top_up";
 import Users from "./pages/admin/Users";
+// import Role from "./pages/admin/Role";
 import ChangePassword from "./pages/user/profile/ChangePassword";
 import Dashboard from "./pages/admin/Dashborad";
 import SavedListings from "./pages/user/SavedListing/SavedListing";
@@ -63,9 +64,10 @@ const AppRoutes = () => {
       <Route path="/admin/Utilities" element={<Utilities />} />
       <Route path="/admin/top_up" element={<Top_up />} />
       <Route path="/admin/users" element={<Users />} />
+      {/* <Route path="/admin/role" element={<Role />} /> */}
       <Route path="/admin/" element={<Dashboard />} />
       <Route path="/admin/post" element={<PostModeration />} />
-      <Route path="/test" element={<GoongMap />} />
+      {/* <Route path="/test" element={<GoongMap />} /> */}
       <Route path="/RentHouse/RentalRoomDetail" element={<RentalRoomDetail/>} />
       <Route path="/HouseList" element={<HouseList/>} />
       <Route path="/Contract" element={<Contract/>} />

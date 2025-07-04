@@ -104,14 +104,15 @@ const ListingCard = ({ listings }) => {
           className="overflow-hidden rounded-xl bg-white shadow"
         >
           <div className="flex flex-col sm:flex-row">
-            <div className="w-full sm:w-1/3">
+            <div className="h-52 w-full sm:h-auto sm:w-1/3">
               <img
                 src={listing.image}
                 alt={listing.title}
                 className="h-full w-full object-cover"
               />
             </div>
-            <div className="flex-1 p-6">
+
+            <div className="flex-1 p-4">
               <div className="flex items-start justify-between">
                 <div className="flex gap-2">
                   <span className="rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-600">
@@ -126,9 +127,7 @@ const ListingCard = ({ listings }) => {
                     <span className="rounded-full bg-yellow-100 px-2 py-1 text-xs text-yellow-600">
                       Nổi bật
                     </span>
-                  )
-
-                  }
+                  )}
                 </div>
                 <button
                   onClick={() => handleToggleFavorite(listing.id)}
@@ -145,7 +144,7 @@ const ListingCard = ({ listings }) => {
               </div>
               <Link
                 to={`/room/${listing.id}`}
-                className="text-lg font-bold text-gray-800 hover:text-amber-600"
+                className="line-clamp-1 text-lg font-bold text-gray-800 hover:text-amber-600"
               >
                 {listing.title}
               </Link>
@@ -162,13 +161,11 @@ const ListingCard = ({ listings }) => {
                     listing.address,
                   );
                   return (
-                    <div className="mb-2 flex gap-4 text-sm text-gray-600">
-                      <div className="flex items-center gap-1">
-                        <MapPin className="h-4 w-4" />
-                        {district}
-                        {district && city ? ", " : ""}
-                        {city}
-                      </div>
+                    <div className="mb-2 flex items-center gap-1 text-sm text-gray-600">
+                      <MapPin className="h-4 w-4" />
+                      {district}
+                      {district && city ? ", " : ""}
+                      {city}
                     </div>
                   );
                 })()}
@@ -177,7 +174,7 @@ const ListingCard = ({ listings }) => {
                 <MapPin className="mr-1 inline h-4 w-4" />
                 {listing.address}
               </p>
-              <p className="mb-4 text-sm text-gray-700">
+              <p className="mb-4 line-clamp-1 text-sm text-gray-700">
                 {listing.description}
               </p>
               <div className="flex items-center justify-between text-sm text-gray-500">

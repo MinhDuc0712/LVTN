@@ -1,9 +1,9 @@
 import Sidebar from '../../Sidebar';
 import { Link } from 'react-router-dom';
-import { useGetDepositTransactions } from '../../../../../api/homePage/queries';
+import { useGetDepositTransactions } from '@/api/homePage';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
-import { useAuth } from '../../../../../context/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 
 const PAYMENT_METHODS = {
   Banking: "Chuyển khoản ngân hàng",
@@ -15,7 +15,7 @@ const PAYMENT_METHODS = {
 function HistoryTopUp() {
   const { user } = useAuth();
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 5;
+  const pageSize = 10;
 
   const {
     data: allTransactions = [],

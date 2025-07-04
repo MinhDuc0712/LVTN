@@ -19,10 +19,19 @@ function ZaloPay() {
   const amounts = [50000, 100000, 200000, 500000, 1000000, 2000000, 5000000];
 
   const handleZaloPay = async () => {
+    const khuyenMai =
+      amount >= 2000000
+        ? 25
+        : amount >= 1000000
+          ? 20
+          : amount >= 100000
+            ? 10
+            : 0;
     try {
       const payload = {
-        amount: Number(amount), // đảm bảo là số
+        amount: Number(amount),
         ma_nguoi_dung: user?.SDT || user?.MaNguoiDung,
+        khuyen_mai: khuyenMai,
       };
 
       const data  = await createZaloPayPayment(payload);
@@ -38,6 +47,11 @@ function ZaloPay() {
       console.error("ZaloPay error:", error?.response?.data || error);
     }
   };
+
+  if (!isAuthenticated) {
+    toast.error("Bạn cần đăng nhập để nạp tiền.");
+    return <div className="flex items-center justify-center min-h-screen">Vui lòng đăng nhập để tiếp tục.</div>;
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-50 p-4 md:flex-row md:p-6">
