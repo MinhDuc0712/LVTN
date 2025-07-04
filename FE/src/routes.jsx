@@ -38,6 +38,7 @@ import WaterTicket from "./pages/user/AdminRoom/Bill/WaterTicket";
 import Electricity from "./pages/user/AdminRoom/TransactionHistory/Electricity";
 import Water from "./pages/user/AdminRoom/TransactionHistory/Water";
 import Rent from "./pages/user/AdminRoom/TransactionHistory/Rent";
+import ForgotPassword from "./layout/ForgotPass";
 
 const AppRoutes = () => {
   return (
@@ -49,6 +50,7 @@ const AppRoutes = () => {
       <Route path="/category/:categoryId" element={<HousesByCategory />} />
       <Route path="/dang-nhap" element={<Login />} />
       <Route path="/dang-ky-tai-khoan" element={<Register />} />
+      <Route path="/quen-mat-khau" element={<ForgotPassword />} />
       <Route path="/user" element={<User />} />
       <Route path="/change_password" element={<ChangePassword />} />
       <Route path="/post" element={<Post />} />
@@ -73,7 +75,6 @@ const AppRoutes = () => {
       {/* <Route path="/admin/role" element={<Role />} /> */}
       <Route path="/admin/" element={<Dashboard />} />
       <Route path="/admin/post" element={<PostModeration />} />
-      {/* <Route path="/test" element={<GoongMap />} /> */}
       <Route path="/RentHouse/RentalRoomDetail" element={<RentalRoomDetail/>} />
       <Route path="/HouseList" element={<HouseList/>} />
       <Route path="/Contract" element={<Contract/>} />

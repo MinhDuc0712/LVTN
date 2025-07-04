@@ -4,6 +4,7 @@ const timeout = +import.meta.env.VITE_APP_API_TIME_OUT || 20000;
 
 export const axiosAuth = axios.create({
   baseURL: import.meta.env.VITE_API_URI_AUTH,
+  withCredentials: true,
   timeout,
 });
 
@@ -16,6 +17,9 @@ export const axiosAdmin = axios.create({
   baseURL: import.meta.env.VITE_API_URI_ADMIN,
   timeout,
 });
+
+axios.defaults.withCredentials = true;
+
 
 [axiosUser, axiosAdmin, axiosAuth].forEach((instance) => {
   instance.interceptors.request.use(

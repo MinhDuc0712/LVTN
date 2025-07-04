@@ -45,7 +45,7 @@ const Login = () => {
         if (response.roles.includes("admin")) {
           navigate("/admin");
         } else if (response.roles.includes("owner")) {
-          navigate("/owner/dashboard");
+          navigate("/");
         } else {
           navigate("/");
         }
@@ -121,7 +121,7 @@ const Login = () => {
                 {isLoading ? "Đang xử lý..." : "Đăng nhập"}
               </button>
               <div className="mt-4 text-center">
-                <a href="#" className="text-sm text-blue-600 underline">
+                <a href="/quen-mat-khau" className="text-sm text-blue-600 underline">
                   Bạn quên mật khẩu?
                 </a>
               </div>
@@ -139,7 +139,7 @@ const Login = () => {
                 </a>{" "}
                 của chúng tôi
               </p>
-              <p>© 2015 - {new Date().getFullYear()} Phongtro123.com</p>
+              <p>© {new Date().getFullYear()} Home.com</p>
             </div>
           </div>
         </div>

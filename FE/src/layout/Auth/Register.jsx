@@ -244,7 +244,7 @@ const Register = () => {
                 </a>{" "}
                 của chúng tôi
               </p>
-              <p>© 2015 - {new Date().getFullYear()} Phongtro123.com</p>
+              <p>© {new Date().getFullYear()} Home.com</p>
             </div>
           </div>
         </div>
