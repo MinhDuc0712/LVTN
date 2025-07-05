@@ -41,7 +41,7 @@ const Login = () => {
           position: "top-right",
           autoClose: 3000,
         });
-        login(response.user, response.token);
+        login(response.user, response.token, response.roles);
         if (response.roles.includes("admin")) {
           navigate("/admin");
         } else if (response.roles.includes("owner")) {
