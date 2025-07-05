@@ -300,14 +300,15 @@ export const getUserHouses = async () => {
   return res.data;
 };
 export const fetchUserPayments = async () => {
-  try {
+  // try {
     const response = await axiosUser.get("/payments");
-    console.log("fetchUserPayments response:", response);
-    const data = Array.isArray(response) ? response : response.data;
-    return data ?? [];
-  } catch (error) {
-    return [];
-  }
+    return response;
+    // console.log("fetchUserPayments response:", response);
+  //   const data = Array.isArray(response) ? response : response.data;
+  //   return data ?? [];
+  // } catch (error) {
+  //   return [];
+  // }
 };
 // kỉm duyet bai dang admin
 export const getAllHousesForAdmin = async (params = {}) => {
@@ -388,4 +389,23 @@ export const fetchChartData = async () => {
   const res = await axiosAdmin.get("/dashboard-charts");
   console.log("Chart data:", res);
   return res;
+};
+
+export const SendOTPAPI = async (email) => {
+    const response = await axiosAuth.post("/send-otp", { Email: email });
+    return response;
+}
+
+export const VerifyOTPAPI = async (email, otp) => {
+  const response = await axiosAuth.post("/verify-otp", { Email: email, otp });
+  return response;
+};
+
+export const ResetPasswordAPI = async (email, resetToken, newPassword) => {
+  const response = await axiosAuth.post("/reset-password", {
+    Email: email,
+    reset_token: resetToken,
+    new_password: newPassword,
+  });
+  return response;
 };

@@ -38,7 +38,17 @@ import WaterTicket from "./pages/user/AdminRoom/Bill/WaterTicket";
 import Electricity from "./pages/user/AdminRoom/TransactionHistory/Electricity";
 import Water from "./pages/user/AdminRoom/TransactionHistory/Water";
 import Rent from "./pages/user/AdminRoom/TransactionHistory/Rent";
+import ForgotPassword from "./layout/ForgotPass";
 import Unpail from "./pages/user/AdminRoom/Payment/Unpail";
+import AddRoom from "./pages/admin/Home/AddRoom";
+import Room from "./pages/admin/Home/Rom";
+import Contracts from "./pages/admin/Home/Contract";
+import ContractAdd from "./pages/admin/Home/ContractAdd";
+import Price from "./pages/admin/Home/Price";
+import ElectricBill from "./pages/admin/Home/ElectricBill";
+import AddElectric from "./pages/admin/Home/AddElectric";
+import WaterBill from "./pages/admin/Home/WaterBill";
+import AddWater from "./pages/admin/Home/AddWater";
 
 const AppRoutes = () => {
   return (
@@ -50,6 +60,7 @@ const AppRoutes = () => {
       <Route path="/category/:categoryId" element={<HousesByCategory />} />
       <Route path="/dang-nhap" element={<Login />} />
       <Route path="/dang-ky-tai-khoan" element={<Register />} />
+      <Route path="/quen-mat-khau" element={<ForgotPassword />} />
       <Route path="/user" element={<User />} />
       <Route path="/change_password" element={<ChangePassword />} />
       <Route path="/post" element={<Post />} />
@@ -74,7 +85,6 @@ const AppRoutes = () => {
       {/* <Route path="/admin/role" element={<Role />} /> */}
       <Route path="/admin/" element={<Dashboard />} />
       <Route path="/admin/post" element={<PostModeration />} />
-      {/* <Route path="/test" element={<GoongMap />} /> */}
       <Route path="/RentHouse/RentalRoomDetail" element={<RentalRoomDetail/>} />
       <Route path="/HouseList" element={<HouseList/>} />
       <Route path="/Contract" element={<Contract/>} />
@@ -85,6 +95,16 @@ const AppRoutes = () => {
       <Route path="/Water" element={<Water/>} />
       <Route path="/Rent" element={<Rent/>} />
       <Route path="/Unpail" element={<Unpail/>} />
+      <Route path="/admin/AddRoom" element={<AddRoom/>} />
+      <Route path="/admin/Room" element={<Room/>} />
+      <Route path="/admin/Contracts" element={<Contracts/>} />    
+      <Route path="/admin/ContractAdd" element={<ContractAdd/>} />
+      <Route path="/admin/Price" element={<Price/>} />
+      <Route path="/admin/ElectricBill" element={<ElectricBill/>} />
+      <Route path="/admin/AddElectric" element={<AddElectric/>} />
+      <Route path="/admin/WaterBill" element={<WaterBill/>} />
+      <Route path="/admin/AddWater" element={<AddWater/>} />
+
     </Routes>
   );
 };
