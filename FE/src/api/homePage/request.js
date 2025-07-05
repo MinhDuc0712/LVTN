@@ -215,16 +215,18 @@ export const postHouseAPI = async (data) => {
 };
 
 export const getHouses = async () => {
-  try {
-    const response = await axiosUser.get("/houses");
-    return response.data || response;
-  } catch (error) {
-    console.error(
-      "Error fetching public houses:",
-      error.response?.data || error.message,
-    );
-    throw error;
-  }
+  const response = await axiosUser.get("/houses");
+  return response;
+  // try {
+  //   const response = await axiosUser.get("/houses");
+  //   return response.data || response;
+  // } catch (error) {
+  //   console.error(
+  //     "Error fetching public houses:",
+  //     error.response?.data || error.message,
+  //   );
+  //   throw error;
+  // }
 };
 
 export const getFeaturedHouses = async () => {

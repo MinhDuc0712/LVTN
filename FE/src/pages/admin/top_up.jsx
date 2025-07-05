@@ -28,7 +28,7 @@ const TRANSACTION_STATUS = {
 };
 
 const PAYMENT_METHODS = ["Banking", "MoMo", "ZaloPay", "ViettelPay"];
-const DEFAULT_ITEMS_PER_PAGE = 50;
+const DEFAULT_ITEMS_PER_PAGE = 10;
 const ITEMS_PER_PAGE_OPTIONS = [5, 10, 20, 50];
 
 // -------------------- COMPONENT -------------------- //

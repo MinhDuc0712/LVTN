@@ -13,6 +13,7 @@ import {
   FaUser,
 } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
 
 const menuItems = [
   { icon: <FaPlus />, label: "Đăng tin mới", path: "/post" },
@@ -26,7 +27,6 @@ const menuItems = [
   },
   { icon: <FaTags />, label: "Bảng giá dịch vụ", path: "/ServicePrice" },
   { icon: <FaUser />, label: "Quản lý tài khoản", path: "/user" },
-  { icon: <FaSignOutAlt />, label: "Đăng xuất", path: "/logout" },
 ];
 
 const Sidebar = () => {
@@ -83,42 +83,54 @@ const Sidebar = () => {
   );
 };
 
-const SidebarContent = ({ avatar, user }) => (
-  <>
-    <div className="mb-4 flex items-center">
-      <div className="h-16 w-16 overflow-hidden rounded-full bg-gray-300">
-        <img
-          src={user?.HinhDaiDien || avatar}
-          alt="Avatar"
-          className="h-full w-full object-cover"
-        />
+const SidebarContent = ({ avatar, user }) => {
+  const { logout } = useAuth();
+  return (
+    <>
+      <div className="mb-4 flex items-center">
+        <div className="h-16 w-16 overflow-hidden rounded-full bg-gray-300">
+          <img
+            src={user?.HinhDaiDien || avatar}
+            alt="Avatar"
+            className="h-full w-full object-cover"
+          />
+        </div>
+        <div className="ml-2">
+          <p className="font-bold">{user?.HoTen || "Chưa đăng nhập"}</p>
+          <p>{user?.SDT || "..."}</p>
+          <p className="text-sm text-gray-600">
+            Mã tài khoản: {user?.MaNguoiDung || "..."}
+          </p>
+        </div>
       </div>
-      <div className="ml-2">
-        <p className="font-bold">{user?.HoTen || "Chưa đăng nhập"}</p>
-        <p>{user?.SDT || "..."}</p>
-        <p className="text-sm text-gray-600">
-          Mã tài khoản: {user?.MaNguoiDung || "..."}
-        </p>
-      </div>
-    </div>
-    <Link to="/top-up">
-      <button className="mb-4 w-full cursor-pointer rounded bg-yellow-400 px-4 py-2 text-white">
-        Nạp tiền
-      </button>
-    </Link>
-    <p className="mb-4 text-sm">
-      Số dư tài khoản: {user?.so_du?.toLocaleString("vi-VN") || 0}₫
-    </p>
-    <ul>
-      {menuItems.map((item, idx) => (
-        <Link key={idx} to={item.path}>
-          <li className="mb-2 flex items-center rounded p-2 hover:bg-amber-50">
-            <span className="mr-2">{item.icon}</span> {item.label}
-          </li>
-        </Link>
-      ))}
-    </ul>
-  </>
-);
+      <Link to="/top-up">
+        <button className="mb-4 w-full cursor-pointer rounded bg-yellow-400 px-4 py-2 text-white">
+          Nạp tiền
+        </button>
+      </Link>
+      <p className="mb-4 text-sm">
+        Số dư tài khoản: {user?.so_du?.toLocaleString("vi-VN") || 0}₫
+      </p>
+      <ul>
+        {menuItems.map((item, idx) => (
+          <Link key={idx} to={item.path}>
+            <li className="mb-2 flex items-center rounded p-2 hover:bg-amber-50">
+              <span className="mr-2">{item.icon}</span> {item.label}
+            </li>
+          </Link>
+        ))}
+        <li
+          className="mt-4 flex cursor-pointer items-center rounded p-2 text-red-600 hover:bg-red-100"
+          onClick={logout}
+        >
+          <span className="mr-2">
+            <FaSignOutAlt />
+          </span>
+          Đăng xuất
+        </li>
+      </ul>
+    </>
+  );
+};
 
 export default Sidebar;
