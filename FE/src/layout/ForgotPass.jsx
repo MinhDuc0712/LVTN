@@ -70,6 +70,15 @@ const ForgotPassword = () => {
 
     setIsLoading(true);
     try {
+      //   const res = await axios.post(
+      //     "http://localhost:8000/api/auth/reset-password",
+      //     {
+      //       Email: formData.Email,
+      //       reset_token: resetToken,
+      //       new_password: newPassword,
+      //     },
+      //     { withCredentials: true },
+      //   );
       const res = await ResetPasswordAPI(
         formData.Email,
         resetToken,

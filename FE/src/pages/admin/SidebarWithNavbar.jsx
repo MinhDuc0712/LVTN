@@ -14,6 +14,12 @@ import {
   Star,
   Users,
   Wallet,
+  Key,
+  Building,
+  FileText,
+  Droplet,
+  Zap,
+  CircleDollarSign
 } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
@@ -21,6 +27,7 @@ import { useAuth } from "@/context/AuthContext";
 
 export default function SidebarWithNavbar({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [roomManagementOpen, setRoomManagementOpen] = useState(false);
   const { user, logout } = useAuth();
   // console.log("User data:", user);
   // console.log("Avatar URL:", user?.HinhDaiDien);
@@ -113,12 +120,58 @@ export default function SidebarWithNavbar({ children }) {
             <Link to="/admin/post">
               <SidebarItem icon={<Home />} label="Quản lý bài đăng" />
             </Link>
+            
+            {/* Quản lý phòng thuê - Dropdown */}
+            <div>
+              <button 
+                onClick={() => setRoomManagementOpen(!roomManagementOpen)}
+                className="flex items-center w-full p-3 rounded-xl hover:bg-blue-200 transition duration-200 text-blue-900 font-medium"
+              >
+                <span className="w-5 h-5 mr-3 text-blue-700"><Building /></span>
+                Quản lý phòng thuê
+                <span className={`ml-auto transition-transform duration-200 ${roomManagementOpen ? 'rotate-180' : ''}`}>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </span>
+              </button>
+              
+              {roomManagementOpen && (
+                <div className="ml-8 mt-1 space-y-1">
+                  <Link to="/admin/Room">
+                    <SidebarItem icon={<Home />} label="Danh sách phòng" />
+                  </Link>
+                  <Link to="/admin/AddRoom">
+                    <SidebarItem icon={<Home />} label="Thêm phòng" />
+                  </Link>
+                  <Link to="/admin/Contracts">
+                    <SidebarItem icon={<FileText />} label="Hợp đồng" />
+                  </Link>
+                  <Link to="/admin/Price">
+                    <SidebarItem icon={<CircleDollarSign />} label="Giá dịch vụ" />
+                  </Link>
+                  <Link to="/admin/ElectricBill">
+                    <SidebarItem icon={<Zap />} label="Hóa đơn điện" />
+                  </Link>
+                  <Link to="/admin/WaterBill">
+                    <SidebarItem icon={<Droplet />} label="Hóa đơn nước" />
+                  </Link>
+                  <Link to="/admin/rent-bills">
+                    <SidebarItem icon={<CreditCard />} label="Hóa đơn tiền nhà" />
+                  </Link>
+                </div>
+              )}
+            </div>
+
             <Link to="/admin/top_up">
               <SidebarItem icon={<Wallet />} label="Quản lý nạp tiền" />
             </Link>
-            <Link to="/admin/payments">
-              <SidebarItem icon={<CreditCard />} label="Quản lý thanh toán" />
+            
+            {/* Quản lý quyền */}
+            <Link to="/admin/permissions">
+              <SidebarItem icon={<Key />} label="Quản lý quyền" />
             </Link>
+            
             <Link to="/admin/reviews">
               <SidebarItem icon={<Star />} label="Quản lý đánh giá" />
             </Link>
@@ -126,6 +179,7 @@ export default function SidebarWithNavbar({ children }) {
               <SidebarItem icon={<Users />} label="Quản lý người dùng" />
             </Link>
           </nav>
+          
           {/* Logout */}
           <div className="border-t border-blue-300 pt-4">
             <button
@@ -149,8 +203,8 @@ export default function SidebarWithNavbar({ children }) {
 
 function SidebarItem({ icon, label }) {
   return (
-    <div className="flex items-center rounded-xl p-3 font-medium text-blue-900 transition duration-200 hover:bg-blue-200">
-      <span className="mr-3 h-5 w-5 text-blue-700">{icon}</span>
+    <div className="flex items-center p-3 rounded-xl hover:bg-blue-200 transition duration-200 text-blue-900 font-medium">
+      <span className="w-5 h-5 mr-3 text-blue-700">{icon}</span>
       {label}
     </div>
   );

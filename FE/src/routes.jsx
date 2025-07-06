@@ -40,6 +40,15 @@ import Water from "./pages/user/AdminRoom/TransactionHistory/Water";
 import Rent from "./pages/user/AdminRoom/TransactionHistory/Rent";
 import ForgotPassword from "./layout/ForgotPass";
 import Unpail from "./pages/user/AdminRoom/Payment/Unpail";
+import AddRoom from "./pages/admin/Home/AddRoom";
+import Room from "./pages/admin/Home/Rom";
+import Contracts from "./pages/admin/Home/Contract";
+import ContractAdd from "./pages/admin/Home/ContractAdd";
+import Price from "./pages/admin/Home/Price";
+import ElectricBill from "./pages/admin/Home/ElectricBill";
+import AddElectric from "./pages/admin/Home/AddElectric";
+import WaterBill from "./pages/admin/Home/WaterBill";
+import AddWater from "./pages/admin/Home/AddWater";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 const AppRoutes = () => {
@@ -75,6 +84,16 @@ const AppRoutes = () => {
       {/* <Route path="/admin/top_up" element={<Top_up />} /> */}
       {/* <Route path="/admin/users" element={<Users />} /> */}
       {/* <Route path="/admin/role" element={<Role />} /> */}
+      <Route path="/admin/AddRoom" element={<AddRoom/>} />
+      <Route path="/admin/Room" element={<Room/>} />
+      <Route path="/admin/Contracts" element={<Contracts/>} />    
+      <Route path="/admin/ContractAdd" element={<ContractAdd/>} />
+      <Route path="/admin/Price" element={<Price/>} />
+      <Route path="/admin/ElectricBill" element={<ElectricBill/>} />
+      <Route path="/admin/AddElectric" element={<AddElectric/>} />
+      <Route path="/admin/WaterBill" element={<WaterBill/>} />
+      <Route path="/admin/AddWater" element={<AddWater/>} />
+
       {/* <Route path="/admin/" element={<Dashboard />} /> */}
       {/* <Route path="/admin/post" element={<PostModeration />} /> */}
       <Route
