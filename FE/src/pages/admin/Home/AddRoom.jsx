@@ -2,97 +2,123 @@ import { useState } from "react";
 import { toast } from "react-toastify";
 import { Upload } from "lucide-react";
 import SidebarWithNavbar from "../SidebarWithNavbar";
+import {
+  addRoomAPI,
+  uploadRoomImagesAPI,         
+} from "../../../api/homePage/request";
 
 export default function AddRoomPage() {
   const [previewImages, setPreviewImages] = useState([]);
-  
-  // Form state
   const [formData, setFormData] = useState({
-    ten_phong: '',
-    dien_tich: '',
-    mo_ta: '',
-    tang: '',
-    gia: '',
-    trang_thai: 'available',
-    hinh_anh: []
+    ten_phong: "",
+    dien_tich: "",
+    mo_ta: "",
+    tang: "",
+    gia: "",
+    trang_thai: "available",
+    hinh_anh: [],
   });
 
+  /* ---------- helpers ---------- */
+  const statusMap = {
+    available: "trong",
+    rented: "da_thue",
+    maintenance: "bao_tri",
+  };
   const statusOptions = [
     { value: "available", label: "Có sẵn" },
     { value: "rented", label: "Đã thuê" },
     { value: "maintenance", label: "Đang bảo trì" },
   ];
+  const floorOptions = [1, 2, 3, 4, 5];
 
-  const floorOptions = [1, 2, 3, 4, 5]; // Chỉ có 5 tầng
+  /* ---------- handlers ---------- */
+  const handleInputChange = (e) =>
+    setFormData((p) => ({ ...p, [e.target.name]: e.target.value }));
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
+  const handleSelectChange = (e) =>
+    setFormData((p) => ({ ...p, [e.target.name]: e.target.value }));
+
+const handleImageChange = (e) => {
+  const files = Array.from(e.target.files).slice(0, 5);
+  if (!files.length) return;
+
+  /* ===== DEBUG: xem file chọn ===== */
+  console.log("Selected files:");
+  files.forEach((f, i) =>
+    console.log(`[${i}]`, f.name, f.type, f.size, "isFile:", f instanceof File)
+  );
+  /* ================================= */
+
+  setPreviewImages(files.map((f) => URL.createObjectURL(f)));
+  setFormData((p) => ({ ...p, hinh_anh: files }));
+};
+  const removeImage = (idx) => {
+    setPreviewImages((prev) => prev.filter((_, i) => i !== idx));
+    setFormData((p) => ({
+      ...p,
+      hinh_anh: p.hinh_anh.filter((_, i) => i !== idx),
     }));
   };
 
-  const handleSelectChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
+  /* ---------- submit ---------- */
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-  const handleImageChange = (e) => {
-    const files = Array.from(e.target.files);
-    if (files.length > 5) {
-      toast.warning("Bạn chỉ có thể tải lên tối đa 5 ảnh");
-      return;
+  const { ten_phong, dien_tich, tang, gia, mo_ta, trang_thai, hinh_anh } = formData;
+
+  if (!ten_phong || !dien_tich || !tang || !gia) {
+    toast.error("Vui lòng điền đầy đủ thông tin bắt buộc");
+    return;
+  }
+
+  try {
+    // B1: Gửi thông tin phòng
+    const roomFd = new FormData();
+    roomFd.append("ten_phong", ten_phong);
+    roomFd.append("dien_tich", dien_tich);
+    roomFd.append("mo_ta", mo_ta || "");
+    roomFd.append("tang", tang);
+    roomFd.append("gia", gia);
+    roomFd.append("trang_thai", statusMap[trang_thai]);
+
+    const res = await addRoomAPI(roomFd);
+    const roomId = res.data?.data?.id || res.data?.id;
+
+    if (roomId && hinh_anh.length > 0) {
+      const imgFd = new FormData();
+      hinh_anh.forEach((file) => {
+        if (file instanceof File) {
+          imgFd.append("hinh_anh[]", file); 
+        }
+      });
+
+      await uploadRoomImagesAPI(roomId, imgFd);
     }
 
-    const previews = files.map((file) => URL.createObjectURL(file));
-    setPreviewImages(previews);
-    setFormData(prev => ({
-      ...prev,
-      hinh_anh: files
-    }));
-  };
-
-  const removeImage = (index) => {
-    const newPreviews = [...previewImages];
-    newPreviews.splice(index, 1);
-    setPreviewImages(newPreviews);
-
-    const newFiles = [...formData.hinh_anh];
-    newFiles.splice(index, 1);
-    setFormData(prev => ({
-      ...prev,
-      hinh_anh: newFiles
-    }));
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    
-    if (!formData.ten_phong || !formData.dien_tich || !formData.tang || !formData.gia) {
-      toast.error("Vui lòng điền đầy đủ thông tin bắt buộc");
-      return;
-    }
-
-    // Xử lý thêm phòng ở đây (gọi API, etc.)
-    console.log("Thêm phòng:", formData);
     toast.success("Thêm phòng mới thành công!");
+    resetForm();
+  } catch (err) {
+    console.error("Upload error:", err);
+    toast.error(
+      err.response?.data?.message || "Thêm phòng thất bại, thử lại sau!"
+    );
+  }
+};
 
-    // Reset form
+  const resetForm = () => {
     setFormData({
-      ten_phong: '',
-      dien_tich: '',
-      mo_ta: '',
-      tang: '',
-      gia: '',
-      trang_thai: 'available',
-      hinh_anh: []
+      ten_phong: "",
+      dien_tich: "",
+      mo_ta: "",
+      tang: "",
+      gia: "",
+      trang_thai: "available",
+      hinh_anh: [],
     });
     setPreviewImages([]);
   };
+
 
   return (
     <SidebarWithNavbar showHeader={false}>
