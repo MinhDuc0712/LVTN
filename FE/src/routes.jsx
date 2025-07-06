@@ -97,7 +97,7 @@ const AppRoutes = () => {
       {/* <Route path="/admin/" element={<Dashboard />} /> */}
       {/* <Route path="/admin/post" element={<PostModeration />} /> */}
       <Route
-        path="/RentHouse/RentalRoomDetail"
+        path="/RentHouse/RentalRoomDetail/:id"
         element={<RentalRoomDetail />}
       />
       <Route path="/HouseList" element={<HouseList />} />
