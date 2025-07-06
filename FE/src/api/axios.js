@@ -23,16 +23,19 @@ axios.defaults.withCredentials = true;
 
 [axiosUser, axiosAdmin, axiosAuth].forEach((instance) => {
   instance.interceptors.request.use(
-    (config) => {
-      const token = sessionStorage.getItem("token");
-      if (token) {
-        config.headers["Authorization"] = `Bearer ${token}`;
-      }
+  (config) => {
+    const token = sessionStorage.getItem("token");
+    if (token) {
+      config.headers["Authorization"] = `Bearer ${token}`;
+    }
+    if (!(config.data instanceof FormData)) {
       config.headers["Content-Type"] = "application/json";
-      return config;
-    },
-    (error) => Promise.reject(error),
-  );
+    }
+
+    return config;
+  },
+  (error) => Promise.reject(error),
+);
 
   instance.interceptors.response.use(
     (response) => response.data || response,

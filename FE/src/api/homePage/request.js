@@ -369,7 +369,7 @@ export const hideHouse = (id) => {
 // Đăng lại
 export const relistHouse = async (id) => {
   const res = await axiosUser.put(`/houses/${id}/relist`);
-  return res; // Trả về toàn bộ response thay vì chỉ res.data
+  return res; 
 };
 
 export const createZaloPayPayment = async (payload) => {
@@ -411,3 +411,11 @@ export const ResetPasswordAPI = async (email, resetToken, newPassword) => {
   });
   return response;
 };
+// PHONG ADMIN 
+export const addRoomAPI = async (formData) => {
+  const response = await axiosAdmin.post("/rooms", formData);
+  return response;
+};
+
+export const uploadRoomImagesAPI = (roomId, fd) =>
+   axiosAdmin.post(`/rooms/${roomId}/images`, fd);
