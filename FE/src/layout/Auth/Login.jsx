@@ -35,7 +35,7 @@ const Login = () => {
         Password: formData.Password,
       });
 
-      console.log("response from API:", response);
+      // console.log("response from API:", response);
       if (response.user && response.token) {
         toast.success("Đăng nhập thành công!", {
           position: "top-right",

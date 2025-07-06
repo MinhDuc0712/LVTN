@@ -52,7 +52,7 @@ export default function SidebarWithNavbar({ children }) {
 
         {/* Right: Icons */}
         <div className="flex items-center gap-4 text-sm text-blue-900">
-          <Search className="h-6 w-6 cursor-pointer" />
+          {/* <Search className="h-6 w-6 cursor-pointer" />
           <div className="relative cursor-pointer">
             <Bell className="h-6 w-6" />
             <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-xs text-white">
@@ -64,7 +64,7 @@ export default function SidebarWithNavbar({ children }) {
             <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-xs text-white">
               3
             </span>
-          </div>
+          </div> */}
           <div className="hidden items-center gap-2 sm:flex">
             <img
               src={user?.HinhDaiDien}
@@ -95,7 +95,7 @@ export default function SidebarWithNavbar({ children }) {
               <h2 className="text-md font-semibold text-blue-900">
                 {user?.HoTen}
               </h2>
-              <p className="text-sm text-blue-700">{user?.roles}</p>
+              <p className="text-sm text-blue-700">{user?.roles?.MoTaQuyen}</p>
             </div>
           </div>
 
