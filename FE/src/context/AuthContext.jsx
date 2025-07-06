@@ -8,23 +8,25 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const storedUser = sessionStorage.getItem("user");
     const storedToken = sessionStorage.getItem("token");
     if (storedUser && storedToken) {
-      // console.log("Đã tìm thấy user trong sessionStorage:", storedToken);
       setUser(JSON.parse(storedUser));
       setIsAuthenticated(true);
     }
+    setLoading(false);
   }, []);
 
   // Hàm xử lý đăng nhập
-  const login = (userData, token) => {
-    setUser(userData);
+  const login = (userData, token, roles) => {
+    const fullUserData = { ...userData, roles };
+    setUser(fullUserData);
     setIsAuthenticated(true);
-    sessionStorage.setItem("user", JSON.stringify(userData));
-    sessionStorage.setItem("token", token); // Lưu token vào sessionStorage
+    sessionStorage.setItem("user", JSON.stringify(fullUserData));
+    sessionStorage.setItem("token", token);
   };
 
   // Hàm xử lý đăng xuất
@@ -58,7 +60,14 @@ export const AuthProvider = ({ children }) => {
     });
   };
 
-  // Cung cấp giá trị cho các component con
+  const isAdmin = () => {
+    return (user.roles && user.roles.includes("admin")) || false;
+  };
+
+  const isOwner = () => {
+    return (user.roles && user.roles.includes("owner")) || false;
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -67,6 +76,9 @@ export const AuthProvider = ({ children }) => {
         isAuthenticated,
         login,
         logout,
+        isAdmin,
+        isOwner,
+        loading,
       }}
     >
       {children}

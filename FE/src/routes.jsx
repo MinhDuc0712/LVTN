@@ -49,6 +49,7 @@ import ElectricBill from "./pages/admin/Home/ElectricBill";
 import AddElectric from "./pages/admin/Home/AddElectric";
 import WaterBill from "./pages/admin/Home/WaterBill";
 import AddWater from "./pages/admin/Home/AddWater";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const AppRoutes = () => {
   return (
@@ -61,40 +62,28 @@ const AppRoutes = () => {
       <Route path="/dang-nhap" element={<Login />} />
       <Route path="/dang-ky-tai-khoan" element={<Register />} />
       <Route path="/quen-mat-khau" element={<ForgotPassword />} />
-      <Route path="/user" element={<User />} />
-      <Route path="/change_password" element={<ChangePassword />} />
-      <Route path="/post" element={<Post />} />
-      <Route path="/post/:id" element={<Post />} />
-      <Route path="/posts" element={<Posts />} />
+      {/* <Route path="/user" element={<User />} /> */}
+      {/* <Route path="/change_password" element={<ChangePassword />} /> */}
+      {/* <Route path="/post" element={<Post />} /> */}
+      {/* <Route path="/post/:id" element={<Post />} /> */}
+      {/* <Route path="/posts" element={<Posts />} /> */}
       <Route path="/ServicePrice" element={<ServicePrice />} />
-      <Route path="/post/paymentpost" element={<PaymentPost />} />
+      {/* <Route path="/post/paymentpost" element={<PaymentPost />} /> */}
       <Route path="/room/:id" element={<RoomDetail />} />
-      <Route path="/top-up" element={<TopUp />} />
-      <Route path="/top-up/ZaloPay" element={<ZaloPay />} />
-      <Route path="/top-up/QR" element={<QR />} />
-      <Route path="/banking-confirm" element={<BankingConfirm />} />
-      <Route path="/Top-up-qr-post" element={<QR_Post />} />
+      {/* <Route path="/top-up" element={<TopUp />} /> */}
+      {/* <Route path="/top-up/ZaloPay" element={<ZaloPay />} /> */}
+      {/* <Route path="/top-up/QR" element={<QR />} /> */}
+      {/* <Route path="/banking-confirm" element={<BankingConfirm />} /> */}
+      {/* <Route path="/Top-up-qr-post" element={<QR_Post />} /> */}
       <Route path="/savedList" element={<SavedListings />} />
-      <Route path="/history/top-up" element={<HistoryTopUp />} />
-      <Route path="/history/payment" element={<HistoryPayment />} />
-      <Route path="/admin" element={<Admin />} />
-      <Route path="/admin/category" element={<Category />} />
-      <Route path="/admin/Utilities" element={<Utilities />} />
-      <Route path="/admin/top_up" element={<Top_up />} />
-      <Route path="/admin/users" element={<Users />} />
+      {/* <Route path="/history/top-up" element={<HistoryTopUp />} /> */}
+      {/* <Route path="/history/payment" element={<HistoryPayment />} /> */}
+      {/* <Route path="/admin" element={<Admin />} /> */}
+      {/* <Route path="/admin/category" element={<Category />} /> */}
+      {/* <Route path="/admin/Utilities" element={<Utilities />} /> */}
+      {/* <Route path="/admin/top_up" element={<Top_up />} /> */}
+      {/* <Route path="/admin/users" element={<Users />} /> */}
       {/* <Route path="/admin/role" element={<Role />} /> */}
-      <Route path="/admin/" element={<Dashboard />} />
-      <Route path="/admin/post" element={<PostModeration />} />
-      <Route path="/RentHouse/RentalRoomDetail" element={<RentalRoomDetail/>} />
-      <Route path="/HouseList" element={<HouseList/>} />
-      <Route path="/Contract" element={<Contract/>} />
-      <Route path="/ElectricityBill" element={<ElectricityBill/>} />
-      <Route path="/WaterTicket" element={<WaterTicket/>} />
-      <Route path="/RentBill" element={<RentBill/>} />
-      <Route path="/Electricity" element={<Electricity/>} />
-      <Route path="/Water" element={<Water/>} />
-      <Route path="/Rent" element={<Rent/>} />
-      <Route path="/Unpail" element={<Unpail/>} />
       <Route path="/admin/AddRoom" element={<AddRoom/>} />
       <Route path="/admin/Room" element={<Room/>} />
       <Route path="/admin/Contracts" element={<Contracts/>} />    
@@ -105,6 +94,195 @@ const AppRoutes = () => {
       <Route path="/admin/WaterBill" element={<WaterBill/>} />
       <Route path="/admin/AddWater" element={<AddWater/>} />
 
+      {/* <Route path="/admin/" element={<Dashboard />} /> */}
+      {/* <Route path="/admin/post" element={<PostModeration />} /> */}
+      <Route
+        path="/RentHouse/RentalRoomDetail"
+        element={<RentalRoomDetail />}
+      />
+      <Route path="/HouseList" element={<HouseList />} />
+      <Route path="/Contract" element={<Contract />} />
+      <Route path="/ElectricityBill" element={<ElectricityBill />} />
+      <Route path="/WaterTicket" element={<WaterTicket />} />
+      <Route path="/RentBill" element={<RentBill />} />
+      <Route path="/Electricity" element={<Electricity />} />
+      <Route path="/Water" element={<Water />} />
+      <Route path="/Rent" element={<Rent />} />
+      <Route path="/Unpail" element={<Unpail />} />
+
+      {/* Protected user routes (yêu cầu đăng nhập) */}
+      <Route
+        path="/user"
+        element={
+          <ProtectedRoute requireAuth={true}>
+            <User />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/change_password"
+        element={
+          <ProtectedRoute requireAuth={true}>
+            <ChangePassword />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Protected host routes (yêu cầu đăng nhập và quyền chủ tin đăng) */}
+      <Route
+        path="/post"
+        element={
+          <ProtectedRoute requireAuth={true} requireHost={true}>
+            <Post />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/post/:id"
+        element={
+          <ProtectedRoute requireAuth={true} requireHost={true}>
+            <Post />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/posts"
+        element={
+          <ProtectedRoute requireAuth={true} requireHost={true}>
+            <Posts />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/ServicePrice"
+        element={
+          <ProtectedRoute requireAuth={true} requireHost={true}>
+            <ServicePrice />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/post/paymentpost"
+        element={
+          <ProtectedRoute requireAuth={true} requireHost={true}>
+            <PaymentPost />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/top-up"
+        element={
+          <ProtectedRoute requireAuth={true} requireHost={true}>
+            <TopUp />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/top-up/ZaloPay"
+        element={
+          <ProtectedRoute requireAuth={true} requireHost={true}>
+            <ZaloPay />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/top-up/QR"
+        element={
+          <ProtectedRoute requireAuth={true} requireHost={true}>
+            <QR />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/banking-confirm"
+        element={
+          <ProtectedRoute requireAuth={true} requireHost={true}>
+            <BankingConfirm />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/Top-up-qr-post"
+        element={
+          <ProtectedRoute requireAuth={true} requireHost={true}>
+            <QR_Post />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/history/top-up"
+        element={
+          <ProtectedRoute requireAuth={true} requireHost={true}>
+            <HistoryTopUp />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/history/payment"
+        element={
+          <ProtectedRoute requireAuth={true} requireHost={true}>
+            <HistoryPayment />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Protected admin routes (yêu cầu đăng nhập và quyền admin) */}
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute requireAuth={true} requireAdmin={true}>
+            <Admin />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/category"
+        element={
+          <ProtectedRoute requireAuth={true} requireAdmin={true}>
+            <Category />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/Utilities"
+        element={
+          <ProtectedRoute requireAuth={true} requireAdmin={true}>
+            <Utilities />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/top_up"
+        element={
+          <ProtectedRoute requireAuth={true} requireAdmin={true}>
+            <Top_up />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/users"
+        element={
+          <ProtectedRoute requireAuth={true} requireAdmin={true}>
+            <Users />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/"
+        element={
+          <ProtectedRoute requireAuth={true} requireAdmin={true}>
+            <Dashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/post"
+        element={
+          <ProtectedRoute requireAuth={true} requireAdmin={true}>
+            <PostModeration />
+          </ProtectedRoute>
+        }
+      />
     </Routes>
   );
 };

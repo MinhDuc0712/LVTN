@@ -27,6 +27,7 @@ const AccountManagement = () => {
       try {
         setLoading(true);
         const result = await getUserProfileAPI();
+        console.log("Profile data:", result);
         if (result.success) {
           setUser({
             ...result.user,
