@@ -425,3 +425,31 @@ export const addRoomAPI = async (formData) => {
 
 export const uploadRoomImagesAPI = (roomId, fd) =>
    axiosAdmin.post(`/rooms/${roomId}/images`, fd);
+
+export const getRoomsAPI = async (params = {}) => {
+  const response = await axiosAdmin.get("/rooms", { params });
+  return response;
+}
+
+export const getRoomByIdAPI = async (id) => {
+  const response = await axiosAdmin.get(`/rooms/${id}`);
+  return response;
+};
+export const getRoomUserAPI = async (data) => {
+  const response = await axiosUser.get(`/rooms`, data);
+  return response;
+}
+export const getRoomUserByIdAPI = async (id) => {
+  const response = await axiosUser.get(`/rooms/${id}`);
+  return response;
+}
+
+export const createKhach = async (data) => {
+  const response = await axiosUser.post("/khach", data);
+  return response;
+}
+
+export const createHopDong = async (data) => {
+  const response = await axiosUser.post("/hopdong", data);
+  return response;
+}

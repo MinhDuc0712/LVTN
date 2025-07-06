@@ -1,49 +1,77 @@
+import { useEffect, useState } from "react";
+// import axios from "axios";
 import { Link } from "react-router-dom";
 import { FaEdit, FaTrash, FaSearch } from "react-icons/fa";
 import SidebarWithNavbar from "../SidebarWithNavbar";
+import {getRoomsAPI, getRoomByIdAPI} from "@/api/homePage";
 
 export default function RoomListPage() {
-  // Mock data - Thay bằng API call thực tế
-  const rooms = [
-    {
-      id: 1,
-      name: "Phòng 101",
-      area: 30,
-      floor: 1,
-      price: 5000000,
-      status: "available",
-      description: "Phòng đẹp view thành phố"
-    },
-    {
-      id: 2,
-      name: "Phòng 201",
-      area: 45,
-      floor: 2,
-      price: 8000000,
-      status: "rented",
-      description: "Phòng cao cấp full nội thất"
-    },
-    {
-      id: 3,
-      name: "Phòng 301",
-      area: 25,
-      floor: 3,
-      price: 4000000,
-      status: "maintenance",
-      description: "Phòng đang bảo trì"
-    }
-  ];
-
-  const statusColors = {
-    available: "bg-green-100 text-green-800",
-    rented: "bg-blue-100 text-blue-800",
-    maintenance: "bg-yellow-100 text-yellow-800"
-  };
+  const [rooms, setRooms] = useState([]);
+  const [filteredRooms, setFilteredRooms] = useState([]);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [floorFilter, setFloorFilter] = useState("");
 
   const statusLabels = {
-    available: "Có sẵn",
-    rented: "Đã thuê",
-    maintenance: "Bảo trì"
+    trong: "Có sẵn",
+    da_thue: "Đã thuê",
+    bao_tri: "Bảo trì"
+  };
+
+  const statusColors = {
+    trong: "bg-green-100 text-green-800",
+    da_thue: "bg-blue-100 text-blue-800",
+    bao_tri: "bg-yellow-100 text-yellow-800"
+  };
+
+  const fetchRooms = async () => {
+    try {
+      const response = await getRoomsAPI();
+        setRooms(response);
+        setFilteredRooms(response);
+    } catch (error) {
+      console.error("Lỗi khi tải danh sách phòng:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchRooms();
+  }, []);
+
+  useEffect(() => {
+    let filtered = [...rooms];
+
+    if (search.trim() !== "") {
+      filtered = filtered.filter((r) =>
+        r.ten_phong.toLowerCase().includes(search.toLowerCase())
+      );
+    }
+
+    if (statusFilter) {
+      filtered = filtered.filter((r) => r.trang_thai === statusFilter);
+    }
+
+    if (floorFilter) {
+      filtered = filtered.filter((r) => r.tang.toString() === floorFilter);
+    }
+
+    setFilteredRooms(filtered);
+  }, [rooms, search, statusFilter, floorFilter]);
+
+  const handleDelete = async (id, name) => {
+    const confirm = window.confirm(`Bạn chắc chắn muốn xoá ${name}?`);
+    if (!confirm) return;
+
+    try {
+      const response = await getRoomByIdAPI(id);
+      if (response.status !== 200) {
+        console.error("Không thể xoá phòng:", response.statusText);
+        return;
+      }
+      setRooms((prev) => prev.filter((r) => r.id !== id));
+    } catch (error) {
+      console.error("Lỗi khi xoá phòng:", error);
+    }
   };
 
   return (
@@ -59,7 +87,7 @@ export default function RoomListPage() {
           </Link>
         </div>
 
-        {/* Search and filter */}
+        {/* Tìm kiếm và lọc */}
         <div className="bg-white p-4 rounded-lg shadow-md mb-6">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="relative flex-1">
@@ -68,26 +96,36 @@ export default function RoomListPage() {
                 type="text"
                 placeholder="Tìm kiếm theo tên phòng..."
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
               />
             </div>
-            <select className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <select
+              className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
               <option value="">Tất cả trạng thái</option>
-              <option value="available">Có sẵn</option>
-              <option value="rented">Đã thuê</option>
-              <option value="maintenance">Bảo trì</option>
+              <option value="trong">Có sẵn</option>
+              <option value="da_thue">Đã thuê</option>
+              <option value="bao_tri">Bảo trì</option>
             </select>
-            <select className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <select
+              className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={floorFilter}
+              onChange={(e) => setFloorFilter(e.target.value)}
+            >
               <option value="">Tất cả tầng</option>
-              <option value="1">Tầng 1</option>
-              <option value="2">Tầng 2</option>
-              <option value="3">Tầng 3</option>
-              <option value="3">Tầng 4</option>
-              <option value="3">Tầng 5</option>
+              {[1, 2, 3, 4, 5].map((f) => (
+                <option key={f} value={f}>
+                  Tầng {f}
+                </option>
+              ))}
             </select>
           </div>
         </div>
 
-        {/* Room list */}
+        {/* Danh sách phòng */}
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
@@ -102,24 +140,22 @@ export default function RoomListPage() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {rooms.map((room) => (
+                {filteredRooms.map((room) => (
                   <tr key={room.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="font-medium text-gray-900">{room.name}</div>
-                      <div className="text-sm text-gray-500 line-clamp-1">{room.description}</div>
+                      <div className="font-medium text-gray-900">{room.ten_phong}</div>
+                      <div className="text-sm text-gray-500 line-clamp-1">{room.mo_ta}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">{room.dien_tich} m²</td>
+                    <td className="px-6 py-4 whitespace-nowrap">Tầng {room.tang}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {Number(room.gia).toLocaleString()} VND
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      {room.area} m²
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      Tầng {room.floor}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {room.price.toLocaleString()} VND
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColors[room.status]}`}>
-                        {statusLabels[room.status]}
+                      <span
+                        className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColors[room.trang_thai]}`}
+                      >
+                        {statusLabels[room.trang_thai]}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -132,58 +168,23 @@ export default function RoomListPage() {
                         </Link>
                         <button
                           className="text-red-600 hover:text-red-900 flex items-center"
-                          onClick={() => {
-                            // Xử lý xóa phòng
-                            if (window.confirm(`Bạn chắc chắn muốn xóa ${room.name}?`)) {
-                              console.log("Xóa phòng", room.id);
-                            }
-                          }}
+                          onClick={() => handleDelete(room.id, room.ten_phong)}
                         >
-                          <FaTrash className="mr-1" /> Xóa
+                          <FaTrash className="mr-1" /> Xoá
                         </button>
                       </div>
                     </td>
                   </tr>
                 ))}
+                {filteredRooms.length === 0 && (
+                  <tr>
+                    <td colSpan="6" className="text-center text-gray-500 py-4">
+                      Không tìm thấy phòng nào.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
-          </div>
-
-          {/* Pagination */}
-          <div className="bg-gray-50 px-6 py-3 flex items-center justify-between border-t border-gray-200">
-            <div className="flex-1 flex justify-between sm:hidden">
-              <button className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-                Trước
-              </button>
-              <button className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-                Sau
-              </button>
-            </div>
-            <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-              <div>
-                <p className="text-sm text-gray-700">
-                  Hiển thị <span className="font-medium">1</span> đến <span className="font-medium">3</span> của <span className="font-medium">3</span> kết quả
-                </p>
-              </div>
-              <div>
-                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                  <button className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                    <span className="sr-only">Trước</span>
-                    &larr;
-                  </button>
-                  <button aria-current="page" className="z-10 bg-blue-50 border-blue-500 text-blue-600 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
-                    1
-                  </button>
-                  <button className="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
-                    2
-                  </button>
-                  <button className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                    <span className="sr-only">Sau</span>
-                    &rarr;
-                  </button>
-                </nav>
-              </div>
-            </div>
           </div>
         </div>
       </div>

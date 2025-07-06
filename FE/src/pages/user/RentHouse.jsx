@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { MapPin, Home, Building2, Layers, DollarSign, Maximize, Star, Heart, Search, Filter } from 'lucide-react';
-
 import { Link } from 'react-router-dom';
+import { getRoomUserAPI } from '../../api/homePage';
 
 const RoomListing = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [favorites, setFavorites] = useState(new Set());
+  const [rooms, setRooms] = useState([]);
 
   const building = {
     name: "Chung cư mini HOME CONVENIENT",
@@ -15,24 +16,33 @@ const RoomListing = () => {
     image: "http://4.bp.blogspot.com/-l6K2NpDjDnA/VPpm87afMRI/AAAAAAAAAGc/eRP_2hZAkas/s1600/chung-cu-mini-ha-noi.jpg",
   };
 
-  const rooms = [
-    { id: 1, name: "Phòng 101", floor: 1, price: 3500000, area: 20, address: building.address, description: "Phòng tầng trệt, thuận tiện, sạch sẽ.", image: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400", rating: 4.5, amenities: ["Wifi", "Điều hòa"], available: true, type: "sinh-vien" },
-    { id: 2, name: "Phòng 102", floor: 1, price: 3700000, area: 22, address: building.address, description: "Phòng rộng rãi, có cửa sổ lớn.", image: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400", rating: 4.4, amenities: ["Wifi", "Bảo vệ"], available: false, type: "sinh-vien" },
-    { id: 3, name: "Phòng 103", floor: 1, price: 3200000, area: 18, address: building.address, description: "Phòng nhỏ tiết kiệm, đầy đủ tiện nghi cơ bản.", image: "https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=400", rating: 4.2, amenities: ["Wifi"], available: true, type: "sinh-vien" },
-    { id: 4, name: "Phòng 104", floor: 1, price: 3800000, area: 21, address: building.address, description: "Phòng có gác lửng, phù hợp cho cặp đôi.", image: "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=400", rating: 4.3, amenities: ["Wifi", "Điều hòa"], available: true, type: "sinh-vien" },
-    { id: 5, name: "Phòng 201", floor: 2, price: 4200000, area: 25, address: building.address, description: "Phòng thoáng mát, view đẹp.", image: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=400", rating: 4.6, amenities: ["Điều hòa", "Sân phơi"], available: true, type: "cao-cap" },
-    { id: 6, name: "Phòng 202", floor: 2, price: 4000000, area: 24, address: building.address, description: "Phòng có ban công riêng.", image: "https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=400", rating: 4.3, amenities: ["Giặt ủi", "Wifi"], available: true, type: "cao-cap" },
-    { id: 7, name: "Phòng 203", floor: 2, price: 4500000, area: 26, address: building.address, description: "Phòng thiết kế hiện đại, nội thất mới.", image: "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=400", rating: 4.7, amenities: ["Điều hòa", "Tủ lạnh"], available: true, type: "cao-cap" },
-    { id: 8, name: "Phòng 204", floor: 2, price: 3900000, area: 23, address: building.address, description: "Phòng yên tĩnh, cách âm tốt.", image: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400", rating: 4.4, amenities: ["Wifi", "Bảo vệ"], available: false, type: "cao-cap" },
-    { id: 9, name: "Phòng 301", floor: 3, price: 4600000, area: 28, address: building.address, description: "Phòng trang bị nội thất cao cấp.", image: "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=400", rating: 4.8, amenities: ["Nội thất đầy đủ", "Bảo vệ"], available: true, type: "cao-cap" },
-    { id: 10, name: "Phòng 302", floor: 3, price: 4800000, area: 30, address: building.address, description: "Phòng studio, view thành phố.", image: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=400", rating: 4.9, amenities: ["Máy giặt", "Bếp"], available: true, type: "cao-cap" },
-    { id: 11, name: "Phòng 303", floor: 3, price: 4300000, area: 26, address: building.address, description: "Phòng góc, 2 cửa sổ lớn.", image: "https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=400", rating: 4.5, amenities: ["Điều hòa", "Wifi"], available: false, type: "cao-cap" },
-    { id: 12, name: "Phòng 304", floor: 3, price: 4400000, area: 27, address: building.address, description: "Phòng thiết kế tối giản, sang trọng.", image: "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=400", rating: 4.6, amenities: ["Smart TV", "Điều hòa"], available: true, type: "cao-cap" },
-    { id: 13, name: "Phòng 401", floor: 4, price: 5000000, area: 32, address: building.address, description: "Phòng penthouse nhỏ, view đẹp.", image: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=400", rating: 4.9, amenities: ["Ban công", "Bếp"], available: true, type: "cao-cap" },
-    { id: 14, name: "Phòng 402", floor: 4, price: 5200000, area: 35, address: building.address, description: "Phòng đôi rộng rãi, đầy đủ tiện nghi.", image: "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=400", rating: 4.8, amenities: ["Máy giặt", "Bếp"], available: true, type: "cao-cap" },
-    { id: 15, name: "Phòng 403", floor: 4, price: 4700000, area: 30, address: building.address, description: "Phòng góc 2 mặt thoáng, ánh sáng tự nhiên.", image: "https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=400", rating: 4.7, amenities: ["Điều hòa", "Wifi"], available: true, type: "cao-cap" },
-    { id: 16, name: "Phòng 501", floor: 5, price: 5500000, area: 40, address: building.address, description: "Penthouse cao cấp với đầy đủ tiện nghi.", image: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=400", rating: 5.0, amenities: ["Bếp", "Máy giặt", "Smart TV"], available: false, type: "cao-cap" },
-  ];
+  useEffect(() => {
+    const fetchRooms = async () => {
+      try {
+        const data = await getRoomUserAPI();
+        console.log('Dữ liệu phòng:', data);
+        const formatted = data.map((r) => ({
+          id: r.id,
+          name: r.ten_phong,
+          area: r.dien_tich,
+          description: r.mo_ta,
+          floor: r.tang,
+          price: Number(r.gia),
+          available: r.trang_thai === 'trong',
+          image: r.images[0],
+            // ? `${r.images[0].image_path}`
+            // : '/placeholder.jpg',
+          rating: 4.5,
+          amenities: [],
+        }));
+        setRooms(formatted);
+        console.log('Phòng đã định dạng:', formatted);
+      } catch (err) {
+        console.error('Lỗi tải phòng:', err);
+      }
+    };
+    fetchRooms();
+  }, []);
 
   const toggleFavorite = (roomId) => {
     const newFavorites = new Set(favorites);
@@ -43,8 +53,8 @@ const RoomListing = () => {
   const formatPrice = (price) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
 
   const filteredRooms = rooms.filter(room =>
-    (room.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-     room.description.toLowerCase().includes(searchTerm.toLowerCase())) &&
+    (room.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+     room.description?.toLowerCase().includes(searchTerm.toLowerCase())) &&
     (selectedFilter === 'all' || room.type === selectedFilter)
   );
 
@@ -56,14 +66,12 @@ const RoomListing = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Tòa nhà */}
       <div className="relative">
         <img src={building.image} alt="Chung cư" className="w-full h-72 object-cover" />
-        <div className="absolute inset-0  bg-opacity-40 flex items-center justify-center">
+        <div className="absolute inset-0 bg-opacity-40 flex items-center justify-center">
           <div className="text-emerald-500 text-center">
             <h1 className="text-4xl font-bold mb-2 flex items-center justify-center gap-2">
-              <Building2 className="w-8 h-8" />
-              {building.name}
+              <Building2 className="w-8 h-8" /> {building.name}
             </h1>
             <p className="text-s text-black flex items-center justify-center gap-2">
               <MapPin className="w-4 h-4" /> {building.address}
@@ -77,7 +85,6 @@ const RoomListing = () => {
           <p className="text-lg">{building.description}</p>
         </div>
 
-        {/* Tìm kiếm + Lọc */}
         <div className="flex flex-col md:flex-row gap-4 mb-6">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -103,7 +110,6 @@ const RoomListing = () => {
           </div>
         </div>
 
-        {/* Thống kê phòng */}
         <div className="bg-white rounded-lg shadow p-4 mb-6">
           <div className="flex flex-wrap justify-between items-center">
             <div className="flex items-center gap-2 mb-2 sm:mb-0">
@@ -121,7 +127,6 @@ const RoomListing = () => {
           </div>
         </div>
 
-        {/* Danh sách theo tầng */}
         {Object.entries(groupedByFloor).sort().map(([floor, rooms]) => (
           <div key={floor} className="mb-10">
             <div className="flex justify-between items-center mb-4">
@@ -168,14 +173,13 @@ const RoomListing = () => {
                       )}
                     </div>
                     <div className="flex gap-2">
-                      <Link to="/RentHouse/RentalRoomDetail" className={`flex-1 py-2 px-4 rounded-lg text-white text-center font-semibold ${room.available ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-300 cursor-not-allowed'}`}>
+                      <Link to={`/RentHouse/RentalRoomDetail/${room.id}`} className={`flex-1 py-2 px-4 rounded-lg text-white text-center font-semibold ${room.available ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-300 cursor-not-allowed'}`}>
                         {room.available ? 'Xem chi tiết' : 'Hết phòng'}
                       </Link>
                       <button className={`px-4 py-2 border rounded-lg font-semibold ${room.available ? 'border-blue-600 text-blue-600 hover:bg-blue-50' : 'border-gray-300 text-gray-400 cursor-not-allowed'}`} disabled={!room.available}>
                         Liên hệ
                       </button>
                     </div>
-
                   </div>
                 </div>
               ))}
