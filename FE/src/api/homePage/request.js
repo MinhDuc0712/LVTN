@@ -382,6 +382,12 @@ export const createZaloPayPayment = async (payload) => {
   }
 };
 
+export const checkStatus = async (maGiaoDich) => {
+  const res = await axiosUser.get(`/zalopay/check-transaction/${maGiaoDich}`);
+  // console.log("Check status response:", res);
+  return res;
+}
+
 export const fetchDashboardStats = async () => {
   const res = await axiosAdmin.get("/dashboard-stats");
   return res;
@@ -389,7 +395,7 @@ export const fetchDashboardStats = async () => {
 
 export const fetchChartData = async () => {
   const res = await axiosAdmin.get("/dashboard-charts");
-  console.log("Chart data:", res);
+  // console.log("Chart data:", res);
   return res;
 };
 

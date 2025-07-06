@@ -68,7 +68,6 @@ export default function Dashboard() {
   const [stats, setStats] = useState(null);
   const [chartData, setChartData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
 
   useEffect(() => {
     const loadData = async () => {
@@ -224,7 +223,7 @@ export default function Dashboard() {
                     <Tooltip />
                     <Line
                       type="monotone"
-                      dataKey="posts"
+                      dataKey="Bài đăng"
                       stroke="#10B981"
                       strokeWidth={3}
                       dot={{ fill: '#10B981', strokeWidth: 2, r: 6 }}
@@ -243,7 +242,7 @@ export default function Dashboard() {
                     <Tooltip />
                     <Line
                       type="monotone"
-                      dataKey="transactions"
+                      dataKey="Số giao dịch"
                       stroke="#F59E0B"
                       strokeWidth={3}
                       dot={{ fill: '#F59E0B', strokeWidth: 2, r: 6 }}

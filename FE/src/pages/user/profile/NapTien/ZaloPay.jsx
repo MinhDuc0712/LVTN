@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import Sidebar from "../Sidebar";
 import { toast } from "react-toastify";
 import { createZaloPayPayment } from "@/api/homePage";
@@ -8,6 +8,8 @@ import { useAuth } from "@/context/AuthContext";
 function ZaloPay() {
   const [amount, setAmount] = useState(50000);
   const { user, isAuthenticated } = useAuth();
+  const [searchParams] = useSearchParams();
+  // const maGiaoDich = searchParams.get("app_trans_id");
 
   let bonus = 0;
   if (amount >= 2000000) bonus = amount * 0.25;
@@ -34,8 +36,8 @@ function ZaloPay() {
         khuyen_mai: khuyenMai,
       };
 
-      const data  = await createZaloPayPayment(payload);
-      console.log("ZaloPay response:", data);
+      const data = await createZaloPayPayment(payload);
+      // console.log("ZaloPay response:", data);
 
       if (data?.order_url) {
         window.location.href = data.order_url;
@@ -48,9 +50,29 @@ function ZaloPay() {
     }
   };
 
+  // useEffect(() => {
+  //   if (!maGiaoDich) return;
+  //   const verify = async () => {
+  //     const res = await checkStatus(maGiaoDich); 
+  //     // console.log("Verify transaction response:", res);
+  //     if (res?.data?.status  === "success") {
+  //       toast.success("Giao dịch thành công!");
+  //     } else if (res?.data?.status  === "failed") {
+  //       toast.error("Giao dịch thất bại.");
+  //     } else {
+  //       toast.info("Giao dịch đang xử lý...");
+  //     }
+  //   };
+  //   verify();
+  // }, [maGiaoDich]);
+
   if (!isAuthenticated) {
     toast.error("Bạn cần đăng nhập để nạp tiền.");
-    return <div className="flex items-center justify-center min-h-screen">Vui lòng đăng nhập để tiếp tục.</div>;
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        Vui lòng đăng nhập để tiếp tục.
+      </div>
+    );
   }
 
   return (
