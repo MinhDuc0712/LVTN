@@ -1,50 +1,134 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { FaEdit, FaTrash, FaSearch } from "react-icons/fa";
 import SidebarWithNavbar from "../SidebarWithNavbar";
-
+import { getRoomsAPI, deleteRoomAPI  } from "../../../api/homePage/request";
+import { toast } from "react-toastify";   
+import "react-toastify/dist/ReactToastify.css";  
 export default function RoomListPage() {
-  // Mock data - Thay bằng API call thực tế
-  const rooms = [
-    {
-      id: 1,
-      name: "Phòng 101",
-      area: 30,
-      floor: 1,
-      price: 5000000,
-      status: "available",
-      description: "Phòng đẹp view thành phố"
-    },
-    {
-      id: 2,
-      name: "Phòng 201",
-      area: 45,
-      floor: 2,
-      price: 8000000,
-      status: "rented",
-      description: "Phòng cao cấp full nội thất"
-    },
-    {
-      id: 3,
-      name: "Phòng 301",
-      area: 25,
-      floor: 3,
-      price: 4000000,
-      status: "maintenance",
-      description: "Phòng đang bảo trì"
-    }
-  ];
+  const [rooms, setRooms] = useState([]);
+  const [filteredRooms, setFilteredRooms] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [floorFilter, setFloorFilter] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [roomsPerPage] = useState(5); 
+
 
   const statusColors = {
-    available: "bg-green-100 text-green-800",
-    rented: "bg-blue-100 text-blue-800",
-    maintenance: "bg-yellow-100 text-yellow-800"
+    trong: "bg-green-100 text-green-800",
+    da_thue: "bg-blue-100 text-blue-800",
+    bao_tri: "bg-yellow-100 text-yellow-800",
+  };
+  const statusLabels = {
+    trong: "Có sẵn",
+    da_thue: "Đã thuê",
+    bao_tri: "Bảo trì",
   };
 
-  const statusLabels = {
-    available: "Có sẵn",
-    rented: "Đã thuê",
-    maintenance: "Bảo trì"
+  /* ---------- fetch API ---------- */
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await getRoomsAPI();
+        const roomsList = Array.isArray(response.data) ? response.data : [];
+
+        const mappedRooms = roomsList.map(room => ({
+          id: room.id,
+          name: room.ten_phong,
+          description: room.mo_ta,
+          area: room.dien_tich,
+          floor: room.tang,
+          price: room.gia,
+          status: room.trang_thai,
+        }));
+
+        setRooms(mappedRooms);
+        setFilteredRooms(mappedRooms);
+      } catch (error) {
+        if (error.response) {
+        }
+        setError("Không tải được danh sách phòng");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+const handleDelete = async (room) => {
+  if (!window.confirm(`Bạn chắc chắn muốn xoá phòng “${room.name}” ?`)) return;
+
+  // Optimistic remove
+  setRooms(prev => prev.filter(r => r.id !== room.id));
+
+  try {
+    const res = await deleteRoomAPI(room.id);   // ⬅️ phải trả 200/204 mới đúng
+    if (res.status !== 200 && res.status !== 204) {
+      throw new Error("Delete failed");         // buộc vào catch
+    }
+    toast.success("Đã xoá phòng thành công");
+  } catch (err) {
+    // Rollback UI
+    setRooms(prev => [...prev, room]);
+    toast.error(
+      err.response?.data?.message
+        || err.message
+        || "Xoá phòng thất bại"
+    );
+  }
+};
+
+
+  useEffect(() => {
+    let result = rooms;
+    
+    if (searchTerm) {
+      result = result.filter(room => 
+        room.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+    
+    if (statusFilter) {
+      result = result.filter(room => {
+        if (statusFilter === "available") return room.status === "trong";
+        if (statusFilter === "rented") return room.status === "da_thue";
+        if (statusFilter === "maintenance") return room.status === "bao_tri";
+        return true;
+      });
+    }
+    
+    if (floorFilter) {
+      result = result.filter(room => room.floor.toString() === floorFilter);
+    }
+    
+    setFilteredRooms(result);
+    setCurrentPage(1); 
+  }, [searchTerm, statusFilter, floorFilter, rooms]);
+
+  const indexOfLastRoom = currentPage * roomsPerPage;
+  const indexOfFirstRoom = indexOfLastRoom - roomsPerPage;
+  const currentRooms = filteredRooms.slice(indexOfFirstRoom, indexOfLastRoom);
+  const totalPages = Math.ceil(filteredRooms.length / roomsPerPage);
+
+
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+  const nextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
   };
+  const prevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  if (loading) return <SidebarWithNavbar><p className="p-8">Đang tải...</p></SidebarWithNavbar>;
+  if (error) return <SidebarWithNavbar><p className="p-8 text-red-600">{error}</p></SidebarWithNavbar>;
 
   return (
     <SidebarWithNavbar>
@@ -52,7 +136,7 @@ export default function RoomListPage() {
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-blue-800">Danh sách phòng</h1>
           <Link
-            to="/admin/AddRoom"
+            to="/admin/Room/add"
             className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center"
           >
             + Thêm phòng mới
@@ -68,21 +152,31 @@ export default function RoomListPage() {
                 type="text"
                 placeholder="Tìm kiếm theo tên phòng..."
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <select className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <select 
+              className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
               <option value="">Tất cả trạng thái</option>
               <option value="available">Có sẵn</option>
               <option value="rented">Đã thuê</option>
               <option value="maintenance">Bảo trì</option>
             </select>
-            <select className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <select 
+              className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={floorFilter}
+              onChange={(e) => setFloorFilter(e.target.value)}
+            >
               <option value="">Tất cả tầng</option>
               <option value="1">Tầng 1</option>
               <option value="2">Tầng 2</option>
               <option value="3">Tầng 3</option>
-              <option value="3">Tầng 4</option>
-              <option value="3">Tầng 5</option>
+              <option value="4">Tầng 4</option>
+              <option value="5">Tầng 5</option>
             </select>
           </div>
         </div>
@@ -102,89 +196,123 @@ export default function RoomListPage() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {rooms.map((room) => (
-                  <tr key={room.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="font-medium text-gray-900">{room.name}</div>
-                      <div className="text-sm text-gray-500 line-clamp-1">{room.description}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {room.area} m²
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      Tầng {room.floor}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {room.price.toLocaleString()} VND
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColors[room.status]}`}>
-                        {statusLabels[room.status]}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex space-x-2">
-                        <Link
-                          to={`/admin/rooms/edit/${room.id}`}
-                          className="text-blue-600 hover:text-blue-900 flex items-center"
-                        >
-                          <FaEdit className="mr-1" /> Sửa
-                        </Link>
-                        <button
-                          className="text-red-600 hover:text-red-900 flex items-center"
-                          onClick={() => {
-                            // Xử lý xóa phòng
-                            if (window.confirm(`Bạn chắc chắn muốn xóa ${room.name}?`)) {
-                              console.log("Xóa phòng", room.id);
-                            }
-                          }}
-                        >
-                          <FaTrash className="mr-1" /> Xóa
-                        </button>
-                      </div>
+                {currentRooms.length > 0 ? (
+                  currentRooms.map((room) => (
+                    <tr key={room.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="font-medium text-gray-900">{room.name}</div>
+                        <div className="text-sm text-gray-500 line-clamp-1">{room.description}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {room.area} m²
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        Tầng {room.floor}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(room.price)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColors[room.status]}`}>
+                          {statusLabels[room.status]}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div className="flex space-x-2">
+                          <Link
+                            to={`/admin/Room/edit/${room.id}`}
+                            className="text-blue-600 hover:text-blue-900 flex items-center"
+                          >
+                            <FaEdit className="mr-1" /> Sửa
+                          </Link>
+                          <button
+                            className="text-red-600 hover:text-red-900 flex items-center"
+                            onClick={() => handleDelete(room)}
+                          >
+                            <FaTrash className="mr-1" /> Xóa
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="6" className="px-6 py-4 text-center text-gray-500">
+                      Không tìm thấy phòng nào phù hợp
                     </td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>
 
           {/* Pagination */}
-          <div className="bg-gray-50 px-6 py-3 flex items-center justify-between border-t border-gray-200">
-            <div className="flex-1 flex justify-between sm:hidden">
-              <button className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-                Trước
-              </button>
-              <button className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-                Sau
-              </button>
-            </div>
-            <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-              <div>
-                <p className="text-sm text-gray-700">
-                  Hiển thị <span className="font-medium">1</span> đến <span className="font-medium">3</span> của <span className="font-medium">3</span> kết quả
-                </p>
+          {filteredRooms.length > 0 && (
+            <div className="bg-gray-50 px-6 py-3 flex items-center justify-between border-t border-gray-200">
+              <div className="flex-1 flex justify-between sm:hidden">
+                <button 
+                  onClick={prevPage}
+                  disabled={currentPage === 1}
+                  className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${currentPage === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
+                >
+                  Trước
+                </button>
+                <button 
+                  onClick={nextPage}
+                  disabled={currentPage === totalPages}
+                  className={`ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${currentPage === totalPages ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
+                >
+                  Sau
+                </button>
               </div>
-              <div>
-                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                  <button className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                    <span className="sr-only">Trước</span>
-                    &larr;
-                  </button>
-                  <button aria-current="page" className="z-10 bg-blue-50 border-blue-500 text-blue-600 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
-                    1
-                  </button>
-                  <button className="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
-                    2
-                  </button>
-                  <button className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                    <span className="sr-only">Sau</span>
-                    &rarr;
-                  </button>
-                </nav>
+              <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-sm text-gray-700">
+                    Hiển thị <span className="font-medium">{indexOfFirstRoom + 1}</span> đến{' '}
+                    <span className="font-medium">
+                      {Math.min(indexOfLastRoom, filteredRooms.length)}
+                    </span>{' '}
+                    của <span className="font-medium">{filteredRooms.length}</span> kết quả
+                  </p>
+                </div>
+                <div>
+                  <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                    <button 
+                      onClick={prevPage}
+                      disabled={currentPage === 1}
+                      className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 text-sm font-medium ${currentPage === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-500 hover:bg-gray-50'}`}
+                    >
+                      <span className="sr-only">Trước</span>
+                      &larr;
+                    </button>
+                    
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(number => (
+                      <button
+                        key={number}
+                        onClick={() => paginate(number)}
+                        className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                          currentPage === number
+                            ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
+                            : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                        }`}
+                      >
+                        {number}
+                      </button>
+                    ))}
+                    
+                    <button 
+                      onClick={nextPage}
+                      disabled={currentPage === totalPages}
+                      className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 text-sm font-medium ${currentPage === totalPages ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-500 hover:bg-gray-50'}`}
+                    >
+                      <span className="sr-only">Sau</span>
+                      &rarr;
+                    </button>
+                  </nav>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </SidebarWithNavbar>
