@@ -13,8 +13,16 @@ import {
 } from "../../../api/homePage/request";
 
 /* ---------- hằng số ---------- */
-const STATUS_MAP = { available: "trong", rented: "da_thue", maintenance: "bao_tri" };
-const REVERSE_STATUS_MAP = { trong: "available", da_thue: "rented", bao_tri: "maintenance" };
+const STATUS_MAP = {
+  available: "trong",
+  rented: "da_thue",
+  maintenance: "bao_tri",
+};
+const REVERSE_STATUS_MAP = {
+  trong: "available",
+  da_thue: "rented",
+  bao_tri: "maintenance",
+};
 const STATUS_OPTIONS = [
   { value: "available", label: "Có sẵn" },
   { value: "rented", label: "Đã thuê" },
@@ -24,18 +32,22 @@ const FLOOR_OPTIONS = [1, 2, 3, 4, 5];
 
 /* ---------- utils ---------- */
 const formatVND = (v) =>
-  new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND", maximumFractionDigits: 0 }).format(v);
+  new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
+    maximumFractionDigits: 0,
+  }).format(v);
 
 export default function RoomFormPage({ mode = "add" }) {
   /* ---------- hooks ---------- */
-  const { id } = useParams();               
+  const { id } = useParams();
   const isEdit = mode === "edit";
   const navigate = useNavigate();
 
   /* ---------- state ---------- */
-  const [loading, setLoading] = useState(isEdit);    
-  const [previewImages, setPreviewImages] = useState([]);        // URL.createObjectURL
-  const [existingImages, setExistingImages] = useState([]);    
+  const [loading, setLoading] = useState(isEdit);
+  const [previewImages, setPreviewImages] = useState([]); // URL.createObjectURL
+  const [existingImages, setExistingImages] = useState([]);
   const [formData, setFormData] = useState({
     ten_phong: "",
     dien_tich: "",
@@ -43,13 +55,13 @@ export default function RoomFormPage({ mode = "add" }) {
     tang: "",
     gia: "",
     trang_thai: "available",
-    hinh_anh: [],                             
+    hinh_anh: [],
   });
 
   /* ---------- cleanup preview URL ---------- */
   useEffect(
     () => () => previewImages.forEach((u) => URL.revokeObjectURL(u)),
-    [previewImages]
+    [previewImages],
   );
 
   /* ---------- fetch data khi sửa ---------- */
@@ -59,16 +71,17 @@ export default function RoomFormPage({ mode = "add" }) {
     (async () => {
       try {
         const room = await getRoomByIdAPI(id);
-        console.log("[DEBUG room]", room); 
-        console.log("[DEBUG images]", room.images);
+        // console.log("[DEBUG room]", room);
+        // console.log("[DEBUG images]", room.images);
         setFormData({
           ten_phong: room.ten_phong,
           dien_tich: room.dien_tich,
           mo_ta: room.mo_ta || "",
           tang: room.tang,
           gia: room.gia,
-          trang_thai: REVERSE_STATUS_MAP[room.trang_thai?.trim()] || "available",
-          hinh_anh: [],         
+          trang_thai:
+            REVERSE_STATUS_MAP[room.trang_thai?.trim()] || "available",
+          hinh_anh: [],
         });
         setExistingImages(room.images || []);
       } catch (err) {
@@ -79,6 +92,44 @@ export default function RoomFormPage({ mode = "add" }) {
       }
     })();
   }, [isEdit, id, navigate]);
+
+  const uploadToCloudinary = async (files) => {
+    const uploadedUrls = [];
+    const filesToUpload = files.filter((item) => typeof item !== "string");
+
+    for (let i = 0; i < filesToUpload.length; i++) {
+      const file = filesToUpload[i];
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("upload_preset", "upload-house");
+
+      try {
+        const response = await fetch(
+          `https://api.cloudinary.com/v1_1/df0xgmzfz/image/upload`,
+          {
+            method: "POST",
+            body: formData,
+          },
+        );
+
+        if (!response.ok) {
+          throw new Error("Upload failed");
+        }
+
+        const data = await response.json();
+        uploadedUrls.push(data.secure_url);
+        // setUploadProgress(Math.round(((i + 1) / filesToUpload.length) * 100));
+      } catch (error) {
+        console.error("Error uploading image:", error);
+        throw error;
+      }
+    }
+
+    return [
+      ...files.filter((item) => typeof item === "string"),
+      ...uploadedUrls,
+    ];
+  };
 
   /* ---------- handlers ---------- */
   const handleChange = (e) =>
@@ -160,16 +211,19 @@ export default function RoomFormPage({ mode = "add" }) {
       }
 
       if (roomId && formData.hinh_anh.length) {
-        const imgFd = new FormData();
-        formData.hinh_anh.forEach((f) => imgFd.append("hinh_anh[]", f));
-        await uploadRoomImagesAPI(roomId, imgFd);
+        const urls = await uploadToCloudinary(formData.hinh_anh);
+        await uploadRoomImagesAPI(roomId, { urls });
       }
 
-      toast.success(isEdit ? "Cập nhật phòng thành công" : "Thêm phòng thành công");
+      toast.success(
+        isEdit ? "Cập nhật phòng thành công" : "Thêm phòng thành công",
+      );
       navigate("/admin/Room");
     } catch (err) {
       console.error(err);
-      toast.error(err.response?.data?.message ?? "Thao tác thất bại, thử lại sau");
+      toast.error(
+        err.response?.data?.message ?? "Thao tác thất bại, thử lại sau",
+      );
     }
   };
 
@@ -183,15 +237,21 @@ export default function RoomFormPage({ mode = "add" }) {
 
   return (
     <SidebarWithNavbar showHeader={false}>
-      <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md">
-        <h1 className="text-2xl font-bold text-blue-800 mb-6">
+      <div className="mx-auto max-w-4xl rounded-lg bg-white p-6 shadow-md">
+        <h1 className="mb-6 text-2xl font-bold text-blue-800">
           {isEdit ? "Sửa phòng" : "Thêm phòng mới"}
         </h1>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* ------ thông tin cơ bản ------ */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Input id="ten_phong" label="Tên phòng *" value={formData.ten_phong} onChange={handleChange} required />
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <Input
+              id="ten_phong"
+              label="Tên phòng *"
+              value={formData.ten_phong}
+              onChange={handleChange}
+              required
+            />
             <Input
               id="dien_tich"
               label="Diện tích (m²) *"
@@ -204,12 +264,23 @@ export default function RoomFormPage({ mode = "add" }) {
             <Select
               id="tang"
               label="Tầng *"
-              options={FLOOR_OPTIONS.map((f) => ({ value: f, label: `Tầng ${f}` }))}
+              options={FLOOR_OPTIONS.map((f) => ({
+                value: f,
+                label: `Tầng ${f}`,
+              }))}
               value={formData.tang}
               onChange={handleChange}
               required
             />
-            <Input id="gia" label="Giá thuê (VND) *" type="number" min={1} value={formData.gia} onChange={handleChange} required />
+            <Input
+              id="gia"
+              label="Giá thuê (VND) *"
+              type="number"
+              min={1}
+              value={formData.gia}
+              onChange={handleChange}
+              required
+            />
             <Select
               id="trang_thai"
               label="Trạng thái *"
@@ -221,7 +292,13 @@ export default function RoomFormPage({ mode = "add" }) {
           </div>
 
           {/* ------ mô tả ------ */}
-          <Textarea id="mo_ta" label="Mô tả" rows={4} value={formData.mo_ta} onChange={handleChange} />
+          <Textarea
+            id="mo_ta"
+            label="Mô tả"
+            rows={4}
+            value={formData.mo_ta}
+            onChange={handleChange}
+          />
 
           {/* ------ hình ảnh ------ */}
           <ImageUpload
@@ -237,12 +314,15 @@ export default function RoomFormPage({ mode = "add" }) {
           <div className="flex justify-end gap-4 pt-6">
             <button
               type="button"
-              className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-100"
+              className="rounded-md border border-gray-300 px-4 py-2 hover:bg-gray-100"
               onClick={resetForm}
             >
               Đặt lại
             </button>
-            <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+            <button
+              type="submit"
+              className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+            >
               {isEdit ? "Lưu thay đổi" : "Thêm phòng"}
             </button>
           </div>
@@ -262,7 +342,7 @@ function Input({ id, label, ...rest }) {
       <input
         id={id}
         name={id}
-        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+        className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-blue-500 focus:outline-none"
         {...rest}
       />
     </div>
@@ -278,7 +358,7 @@ function Select({ id, label, options, ...rest }) {
       <select
         id={id}
         name={id}
-        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+        className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-blue-500 focus:outline-none"
         {...rest}
       >
         <option value="">-- chọn --</option>
@@ -301,7 +381,7 @@ function Textarea({ id, label, ...rest }) {
       <textarea
         id={id}
         name={id}
-        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+        className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-blue-500 focus:outline-none"
         {...rest}
       />
     </div>
@@ -321,36 +401,43 @@ function ImageUpload({
       <label className="block text-sm font-medium text-gray-700">
         Hình ảnh (tối đa {max} ảnh)
       </label>
-      <div className="flex items-center gap-4 flex-wrap">
+      <div className="flex flex-wrap items-center gap-4">
         {/* nút upload nếu chưa đủ ảnh */}
         {existingImages.length + previewImages.length < max && (
           <label
             htmlFor="hinh_anh"
-            className="flex flex-col items-center justify-center w-32 h-32 border-2 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100"
+            className="flex h-32 w-32 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed bg-gray-50 hover:bg-gray-100"
           >
-            <Upload className="w-8 h-8 text-gray-500" />
+            <Upload className="h-8 w-8 text-gray-500" />
             <span className="text-sm text-gray-500">Tải ảnh lên</span>
-            <input id="hinh_anh" type="file" multiple accept="image/*" className="hidden" onChange={onChange} />
+            <input
+              id="hinh_anh"
+              type="file"
+              multiple
+              accept="image/*"
+              className="hidden"
+              onChange={onChange}
+            />
           </label>
         )}
 
         {/* ảnh cũ */}
         {existingImages.map((img) => {
-          const url = `${import.meta.env.VITE_STORAGE_URL}/storage/${img.image_path}`;
-          console.log("[IMAGE URL]", `${import.meta.env.VITE_STORAGE_URL}/storage/${img.image_path}`);
-
+          const url = img.image_path.startsWith("http")
+            ? img.image_path
+            : `${import.meta.env.VITE_STORAGE_URL}/storage/${img.image_path}`;
 
           return (
             <div key={img.id} className="relative">
               <img
                 src={url}
                 alt=""
-                className="w-24 h-24 object-cover rounded"
+                className="h-24 w-24 rounded object-cover"
               />
               <button
                 type="button"
                 onClick={() => onRemoveExisting(img.id)}
-                className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6"
+                className="absolute top-0 right-0 h-6 w-6 rounded-full bg-red-500 text-white"
               >
                 ×
               </button>
@@ -361,11 +448,15 @@ function ImageUpload({
         {/* ảnh mới chọn */}
         {previewImages.map((src, idx) => (
           <div key={`preview-${idx}`} className="relative">
-            <img src={src} alt={`preview-${idx}`} className="w-32 h-32 object-cover rounded-lg" />
+            <img
+              src={src}
+              alt={`preview-${idx}`}
+              className="h-32 w-32 rounded-lg object-cover"
+            />
             <button
               type="button"
               onClick={() => onRemovePreview(idx)}
-              className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center"
+              className="absolute top-1 right-1 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-white"
             >
               ×
             </button>

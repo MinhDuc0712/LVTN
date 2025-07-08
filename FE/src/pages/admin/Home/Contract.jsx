@@ -1,63 +1,53 @@
 import { Link } from "react-router-dom";
 import { FaEdit, FaTrash, FaSearch, FaFileAlt, FaFileInvoiceDollar } from "react-icons/fa";
 import SidebarWithNavbar from "../SidebarWithNavbar";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { getHopDong } from "../../../api/homePage";
 
 export default function ContractListPage() {
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
-  const [selectedContract, setSelectedContract] = useState(null);
+  // const [selectedContract, setSelectedContract] = useState(null);
   const [invoiceData, setInvoiceData] = useState({
     electricityIndex: "",
     waterIndex: "",
     additionalFees: [],
     note: ""
   });
+  const formatCurrency = (value) => {
+  return new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
+  }).format(value);
+};
+   const [selectedContract, setSelectedContract] = useState(null);
+      const [contracts, setContracts] = useState([]);
+  const [currentTenant, setCurrentTenant] = useState(null);
+  
+  useEffect(() => {
+      const fetchData = async () => {
+          try {
+              const res = await getHopDong();
+              console.log('Contracts fetched:', res);
+              setContracts(res);
+              setCurrentTenant(res);
+          } catch (error) {
+              console.error('Error fetching contracts:', error);
+          }
+      };
+      fetchData();
+  }, []);
 
-  const contracts = [
-    {
-      id: "HD001",
-      roomName: "Phòng 101",
-      customerName: "Nguyễn Văn A",
-      startDate: "15/05/2023",
-      endDate: "15/05/2024",
-      deposit: 5000000,
-      status: "active",
-      signedDate: "10/05/2023"
-    },
-    {
-      id: "HD002",
-      roomName: "Phòng 201",
-      customerName: "Trần Thị B",
-      startDate: "01/06/2023",
-      endDate: "01/06/2024",
-      deposit: 8000000,
-      status: "expired",
-      signedDate: "25/05/2023"
-    },
-    {
-      id: "HD003",
-      roomName: "Phòng 301",
-      customerName: "Lê Văn C",
-      startDate: "20/06/2023",
-      endDate: "20/06/2024",
-      deposit: 6000000,
-      status: "pending",
-      signedDate: "15/06/2023"
-    }
-  ];
 
   const statusColors = {
-    active: "bg-green-100 text-green-800",
-    expired: "bg-red-100 text-red-800",
-    pending: "bg-yellow-100 text-yellow-800",
-    cancelled: "bg-gray-100 text-gray-800"
+    trong: "bg-green-100 text-green-800",
+    da_thue: "bg-red-100 text-red-800",
+    bao_tri: "bg-yellow-100 text-yellow-800",
   };
 
   const statusLabels = {
-    active: "Đang hoạt động",
-    expired: "Đã hết hạn",
-    pending: "Chờ xác nhận",
-    cancelled: "Đã hủy"
+    trong: "Còn trống",
+    bao_tri: "Bảo trì",
+    da_thue: "Đã thuê",
   };
 const handleCreateInvoice = (contract) => {
     setSelectedContract(contract);
@@ -173,23 +163,23 @@ const handleCreateInvoice = (contract) => {
                       {contract.id}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      {contract.roomName}
+                      {contract.phong.ten_phong}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      {contract.customerName}
+                      {contract.khach.ho_ten}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      {contract.startDate}
+                      {contract.ngay_bat_dau}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      {contract.endDate}
+                      {contract.ngay_ket_thuc}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      {contract.deposit.toLocaleString()} VND
+                      {formatCurrency(contract.tien_coc)} VND
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColors[contract.status]}`}>
-                        {statusLabels[contract.status]}
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColors[contract.phong.trang_thai]}`}>
+                        {statusLabels[contract.phong.trang_thai]}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
