@@ -196,7 +196,7 @@ export default function HouseList() {
             {/* Actions */}
             <div className="flex flex-wrap gap-2">
                 <Link 
-                    to="/RentHouse/RentalRoomDetail" 
+                    to="/RentHouse/RentalRoomDetail/" 
                     className="flex items-center px-3 py-2 bg-blue-100 text-blue-700 rounded-lg text-sm hover:bg-blue-200 transition-colors"
                 >
                     <Eye className="h-4 w-4 mr-1" />

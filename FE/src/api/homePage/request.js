@@ -382,6 +382,12 @@ export const createZaloPayPayment = async (payload) => {
   }
 };
 
+export const checkStatus = async (maGiaoDich) => {
+  const res = await axiosUser.get(`/zalopay/check-transaction/${maGiaoDich}`);
+  // console.log("Check status response:", res);
+  return res;
+}
+
 export const fetchDashboardStats = async () => {
   const res = await axiosAdmin.get("/dashboard-stats");
   return res;
@@ -389,7 +395,7 @@ export const fetchDashboardStats = async () => {
 
 export const fetchChartData = async () => {
   const res = await axiosAdmin.get("/dashboard-charts");
-  console.log("Chart data:", res);
+  // console.log("Chart data:", res);
   return res;
 };
 
@@ -433,3 +439,22 @@ export const deleteRoomImageAPI = (imageId) =>
   axiosAdmin.delete(`/room-images/${imageId}`);
 export const getRoomImagesAPI = (roomId) =>
   axiosAdmin.get(`/rooms/${roomId}/images`);
+
+export const getRoomUserAPI = async (data) => {
+  const response = await axiosUser.get(`/rooms`, data);
+  return response;
+}
+export const getRoomUserByIdAPI = async (id) => {
+  const response = await axiosUser.get(`/rooms/${id}`);
+  return response;
+}
+
+export const createKhach = async (data) => {
+  const response = await axiosUser.post("/khach", data);
+  return response;
+}
+
+export const createHopDong = async (data) => {
+  const response = await axiosUser.post("/hopdong", data);
+  return response;
+}

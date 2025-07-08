@@ -63,7 +63,7 @@ const HousesByCategory = () => {
       try {
         setLoading(true);
         const res = await getHousesByCategory(categoryId);
-        // console.log("HousesByCategory response:", res);
+        console.log("HousesByCategory response:", res);
         const houses = res?.data || [];
         if (houses.length === 0) {
           navigate("/404", { replace: true });

@@ -67,7 +67,7 @@ function PaymentPost() {
   } else if (paymentMethod === "momo") {
     // Handle MoMo payment
     navigate(
-      `/Top-up-qr-post?amount=${total}&reason=ThanhToanTinDang&id=${houseId}&type=${type}&quantity=${quantity}&unit=${durationUnit}`,
+      `/zalo-pay-post?amount=${total}&reason=ThanhToanTinDang&id=${houseId}&type=${type}&quantity=${quantity}&unit=${durationUnit}`,
     );
   } else if (paymentMethod === "bank") {
     navigate(

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { FaEdit, FaTrash, FaSearch } from "react-icons/fa";
 import SidebarWithNavbar from "../SidebarWithNavbar";
-import { getRoomsAPI, deleteRoomAPI  } from "../../../api/homePage/request";
+import { getRoomsAPI, deleteRoomAPI, getRoomByIdAPI  } from "@/api/homePage/request";
 import { toast } from "react-toastify";   
 import "react-toastify/dist/ReactToastify.css";  
 export default function RoomListPage() {
@@ -18,15 +18,67 @@ export default function RoomListPage() {
   const [roomsPerPage] = useState(5); 
 
 
-  const statusColors = {
-    trong: "bg-green-100 text-green-800",
-    da_thue: "bg-blue-100 text-blue-800",
-    bao_tri: "bg-yellow-100 text-yellow-800",
-  };
   const statusLabels = {
     trong: "Có sẵn",
     da_thue: "Đã thuê",
-    bao_tri: "Bảo trì",
+    bao_tri: "Bảo trì"
+  };
+
+
+  const statusColors = {
+    trong: "bg-green-100 text-green-800",
+    da_thue: "bg-blue-100 text-blue-800",
+    bao_tri: "bg-yellow-100 text-yellow-800"
+  };
+
+  const fetchRooms = async () => {
+    try {
+      const response = await getRoomsAPI();
+        setRooms(response);
+        setFilteredRooms(response);
+    } catch (error) {
+      console.error("Lỗi khi tải danh sách phòng:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchRooms();
+  }, []);
+
+  useEffect(() => {
+    let filtered = [...rooms];
+
+    if (search.trim() !== "") {
+      filtered = filtered.filter((r) =>
+        r.ten_phong.toLowerCase().includes(search.toLowerCase())
+      );
+    }
+
+    if (statusFilter) {
+      filtered = filtered.filter((r) => r.trang_thai === statusFilter);
+    }
+
+    if (floorFilter) {
+      filtered = filtered.filter((r) => r.tang.toString() === floorFilter);
+    }
+
+    setFilteredRooms(filtered);
+  }, [rooms, search, statusFilter, floorFilter]);
+
+  const handleDelete = async (id, name) => {
+    const confirm = window.confirm(`Bạn chắc chắn muốn xoá ${name}?`);
+    if (!confirm) return;
+
+    try {
+      const response = await getRoomByIdAPI(id);
+      if (response.status !== 200) {
+        console.error("Không thể xoá phòng:", response.statusText);
+        return;
+      }
+      setRooms((prev) => prev.filter((r) => r.id !== id));
+    } catch (error) {
+      console.error("Lỗi khi xoá phòng:", error);
+    }
   };
 
   /* ---------- fetch API ---------- */
@@ -143,7 +195,7 @@ const handleDelete = async (room) => {
           </Link>
         </div>
 
-        {/* Search and filter */}
+        {/* Tìm kiếm và lọc */}
         <div className="bg-white p-4 rounded-lg shadow-md mb-6">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="relative flex-1">
@@ -162,9 +214,9 @@ const handleDelete = async (room) => {
               onChange={(e) => setStatusFilter(e.target.value)}
             >
               <option value="">Tất cả trạng thái</option>
-              <option value="available">Có sẵn</option>
-              <option value="rented">Đã thuê</option>
-              <option value="maintenance">Bảo trì</option>
+              <option value="trong">Có sẵn</option>
+              <option value="da_thue">Đã thuê</option>
+              <option value="bao_tri">Bảo trì</option>
             </select>
             <select 
               className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -181,7 +233,7 @@ const handleDelete = async (room) => {
           </div>
         </div>
 
-        {/* Room list */}
+        {/* Danh sách phòng */}
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
@@ -245,7 +297,6 @@ const handleDelete = async (room) => {
               </tbody>
             </table>
           </div>
-
           {/* Pagination */}
           {filteredRooms.length > 0 && (
             <div className="bg-gray-50 px-6 py-3 flex items-center justify-between border-t border-gray-200">
