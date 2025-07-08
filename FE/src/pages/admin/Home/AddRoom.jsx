@@ -1,14 +1,41 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Upload } from "lucide-react";
 import SidebarWithNavbar from "../SidebarWithNavbar";
+
 import {
   addRoomAPI,
-  uploadRoomImagesAPI,         
+  updateRoomAPI,
+  getRoomByIdAPI,
+  uploadRoomImagesAPI,
+  deleteRoomImageAPI,
 } from "../../../api/homePage/request";
 
-export default function AddRoomPage() {
-  const [previewImages, setPreviewImages] = useState([]);
+/* ---------- hằng số ---------- */
+const STATUS_MAP = { available: "trong", rented: "da_thue", maintenance: "bao_tri" };
+const REVERSE_STATUS_MAP = { trong: "available", da_thue: "rented", bao_tri: "maintenance" };
+const STATUS_OPTIONS = [
+  { value: "available", label: "Có sẵn" },
+  { value: "rented", label: "Đã thuê" },
+  { value: "maintenance", label: "Bảo trì" },
+];
+const FLOOR_OPTIONS = [1, 2, 3, 4, 5];
+
+/* ---------- utils ---------- */
+const formatVND = (v) =>
+  new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND", maximumFractionDigits: 0 }).format(v);
+
+export default function RoomFormPage({ mode = "add" }) {
+  /* ---------- hooks ---------- */
+  const { id } = useParams();               
+  const isEdit = mode === "edit";
+  const navigate = useNavigate();
+
+  /* ---------- state ---------- */
+  const [loading, setLoading] = useState(isEdit);    
+  const [previewImages, setPreviewImages] = useState([]);        // URL.createObjectURL
+  const [existingImages, setExistingImages] = useState([]);    
   const [formData, setFormData] = useState({
     ten_phong: "",
     dien_tich: "",
@@ -16,44 +43,59 @@ export default function AddRoomPage() {
     tang: "",
     gia: "",
     trang_thai: "available",
-    hinh_anh: [],
+    hinh_anh: [],                             
   });
 
-  /* ---------- helpers ---------- */
-  const statusMap = {
-    available: "trong",
-    rented: "da_thue",
-    maintenance: "bao_tri",
-  };
-  const statusOptions = [
-    { value: "available", label: "Có sẵn" },
-    { value: "rented", label: "Đã thuê" },
-    { value: "maintenance", label: "Đang bảo trì" },
-  ];
-  const floorOptions = [1, 2, 3, 4, 5];
+  /* ---------- cleanup preview URL ---------- */
+  useEffect(
+    () => () => previewImages.forEach((u) => URL.revokeObjectURL(u)),
+    [previewImages]
+  );
+
+  /* ---------- fetch data khi sửa ---------- */
+  useEffect(() => {
+    if (!isEdit) return;
+
+    (async () => {
+      try {
+        const room = await getRoomByIdAPI(id);
+        console.log("[DEBUG room]", room); 
+        console.log("[DEBUG images]", room.images);
+        setFormData({
+          ten_phong: room.ten_phong,
+          dien_tich: room.dien_tich,
+          mo_ta: room.mo_ta || "",
+          tang: room.tang,
+          gia: room.gia,
+          trang_thai: REVERSE_STATUS_MAP[room.trang_thai?.trim()] || "available",
+          hinh_anh: [],         
+        });
+        setExistingImages(room.images || []);
+      } catch (err) {
+        toast.error("Không thể tải thông tin phòng");
+        navigate("/admin/Room");
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [isEdit, id, navigate]);
 
   /* ---------- handlers ---------- */
-  const handleInputChange = (e) =>
+  const handleChange = (e) =>
     setFormData((p) => ({ ...p, [e.target.name]: e.target.value }));
 
-  const handleSelectChange = (e) =>
-    setFormData((p) => ({ ...p, [e.target.name]: e.target.value }));
+  const handleImageChange = (e) => {
+    const remain = 5 - existingImages.length - previewImages.length;
+    const files = Array.from(e.target.files).slice(0, remain);
+    if (!files.length) return;
 
-const handleImageChange = (e) => {
-  const files = Array.from(e.target.files).slice(0, 5);
-  if (!files.length) return;
+    const urls = files.map((f) => URL.createObjectURL(f));
+    setPreviewImages((prev) => [...prev, ...urls]);
+    setFormData((p) => ({ ...p, hinh_anh: [...p.hinh_anh, ...files] }));
+  };
 
-  /* ===== DEBUG: xem file chọn ===== */
-  console.log("Selected files:");
-  files.forEach((f, i) =>
-    console.log(`[${i}]`, f.name, f.type, f.size, "isFile:", f instanceof File)
-  );
-  /* ================================= */
-
-  setPreviewImages(files.map((f) => URL.createObjectURL(f)));
-  setFormData((p) => ({ ...p, hinh_anh: files }));
-};
-  const removeImage = (idx) => {
+  const removePreview = (idx) => {
+    URL.revokeObjectURL(previewImages[idx]);
     setPreviewImages((prev) => prev.filter((_, i) => i !== idx));
     setFormData((p) => ({
       ...p,
@@ -61,52 +103,21 @@ const handleImageChange = (e) => {
     }));
   };
 
-  /* ---------- submit ---------- */
-const handleSubmit = async (e) => {
-  e.preventDefault();
-
-  const { ten_phong, dien_tich, tang, gia, mo_ta, trang_thai, hinh_anh } = formData;
-
-  if (!ten_phong || !dien_tich || !tang || !gia) {
-    toast.error("Vui lòng điền đầy đủ thông tin bắt buộc");
-    return;
-  }
-
-  try {
-    // B1: Gửi thông tin phòng
-    const roomFd = new FormData();
-    roomFd.append("ten_phong", ten_phong);
-    roomFd.append("dien_tich", dien_tich);
-    roomFd.append("mo_ta", mo_ta || "");
-    roomFd.append("tang", tang);
-    roomFd.append("gia", gia);
-    roomFd.append("trang_thai", statusMap[trang_thai]);
-
-    const res = await addRoomAPI(roomFd);
-    const roomId = res.data?.data?.id || res.data?.id;
-
-    if (roomId && hinh_anh.length > 0) {
-      const imgFd = new FormData();
-      hinh_anh.forEach((file) => {
-        if (file instanceof File) {
-          imgFd.append("hinh_anh[]", file); 
-        }
-      });
-
-      await uploadRoomImagesAPI(roomId, imgFd);
+  const removeExisting = async (imageId) => {
+    if (!window.confirm("Xoá ảnh này?")) return;
+    try {
+      await deleteRoomImageAPI(imageId);
+      setExistingImages((prev) => prev.filter((img) => img.id !== imageId));
+      toast.success("Đã xoá ảnh");
+    } catch (err) {
+      toast.error("Xoá ảnh thất bại");
     }
-
-    toast.success("Thêm phòng mới thành công!");
-    resetForm();
-  } catch (err) {
-    console.error("Upload error:", err);
-    toast.error(
-      err.response?.data?.message || "Thêm phòng thất bại, thử lại sau!"
-    );
-  }
-};
+  };
 
   const resetForm = () => {
+    previewImages.forEach((u) => URL.revokeObjectURL(u));
+    setPreviewImages([]);
+    setExistingImages([]);
     setFormData({
       ten_phong: "",
       dien_tich: "",
@@ -116,200 +127,251 @@ const handleSubmit = async (e) => {
       trang_thai: "available",
       hinh_anh: [],
     });
-    setPreviewImages([]);
   };
 
+  /* ---------- submit ---------- */
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const { ten_phong, dien_tich, tang, gia } = formData;
+
+    if (!ten_phong || !dien_tich || !tang || !gia) {
+      toast.error("Vui lòng điền đầy đủ thông tin bắt buộc");
+      return;
+    }
+
+    try {
+      const fd = new FormData();
+      fd.append("ten_phong", ten_phong);
+      fd.append("dien_tich", dien_tich);
+      fd.append("mo_ta", formData.mo_ta ?? "");
+      fd.append("tang", tang);
+      fd.append("gia", gia);
+      fd.append("trang_thai", STATUS_MAP[formData.trang_thai]);
+
+      let roomId;
+
+      if (isEdit) {
+        fd.append("_method", "PUT");
+        await updateRoomAPI(id, fd);
+        roomId = id;
+      } else {
+        const res = await addRoomAPI(fd);
+        roomId = res?.data?.data?.id ?? res?.data?.id;
+      }
+
+      if (roomId && formData.hinh_anh.length) {
+        const imgFd = new FormData();
+        formData.hinh_anh.forEach((f) => imgFd.append("hinh_anh[]", f));
+        await uploadRoomImagesAPI(roomId, imgFd);
+      }
+
+      toast.success(isEdit ? "Cập nhật phòng thành công" : "Thêm phòng thành công");
+      navigate("/admin/Room");
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.message ?? "Thao tác thất bại, thử lại sau");
+    }
+  };
+
+  /* ---------- render ---------- */
+  if (loading)
+    return (
+      <SidebarWithNavbar>
+        <div className="p-8">Đang tải dữ liệu...</div>
+      </SidebarWithNavbar>
+    );
 
   return (
     <SidebarWithNavbar showHeader={false}>
       <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md">
-        <h1 className="text-2xl font-bold text-blue-800 mb-6">Thêm phòng mới</h1>
+        <h1 className="text-2xl font-bold text-blue-800 mb-6">
+          {isEdit ? "Sửa phòng" : "Thêm phòng mới"}
+        </h1>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* ------ thông tin cơ bản ------ */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Tên phòng */}
-            <div className="space-y-2">
-              <label htmlFor="ten_phong" className="block text-sm font-medium text-gray-700">
-                Tên phòng *
-              </label>
-              <input
-                id="ten_phong"
-                name="ten_phong"
-                placeholder="Nhập tên phòng"
-                value={formData.ten_phong}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                required
-              />
-            </div>
-
-            {/* Diện tích */}
-            <div className="space-y-2">
-              <label htmlFor="dien_tich" className="block text-sm font-medium text-gray-700">
-                Diện tích (m²) *
-              </label>
-              <input
-                id="dien_tich"
-                name="dien_tich"
-                type="number"
-                placeholder="Nhập diện tích"
-                value={formData.dien_tich}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                min="1"
-                required
-              />
-            </div>
-
-            {/* Tầng */}
-            <div className="space-y-2">
-              <label htmlFor="tang" className="block text-sm font-medium text-gray-700">
-                Tầng *
-              </label>
-              <select
-                id="tang"
-                name="tang"
-                value={formData.tang}
-                onChange={handleSelectChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                required
-              >
-                <option value="">Chọn tầng</option>
-                {floorOptions.map((floor) => (
-                  <option key={floor} value={floor}>
-                    Tầng {floor}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Giá */}
-            <div className="space-y-2">
-              <label htmlFor="gia" className="block text-sm font-medium text-gray-700">
-                Giá thuê (VND) *
-              </label>
-              <input
-                id="gia"
-                name="gia"
-                type="number"
-                placeholder="Nhập giá thuê"
-                value={formData.gia}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                min="1"
-                required
-              />
-            </div>
-
-            {/* Trạng thái */}
-            <div className="space-y-2">
-              <label htmlFor="trang_thai" className="block text-sm font-medium text-gray-700">
-                Trạng thái *
-              </label>
-              <select
-                id="trang_thai"
-                name="trang_thai"
-                value={formData.trang_thai}
-                onChange={handleSelectChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                required
-              >
-                {statusOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {/* Mô tả */}
-          <div className="space-y-2">
-            <label htmlFor="mo_ta" className="block text-sm font-medium text-gray-700">
-              Mô tả
-            </label>
-            <textarea
-              id="mo_ta"
-              name="mo_ta"
-              placeholder="Nhập mô tả về phòng..."
-              rows={4}
-              value={formData.mo_ta}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            <Input id="ten_phong" label="Tên phòng *" value={formData.ten_phong} onChange={handleChange} required />
+            <Input
+              id="dien_tich"
+              label="Diện tích (m²) *"
+              type="number"
+              min={1}
+              value={formData.dien_tich}
+              onChange={handleChange}
+              required
+            />
+            <Select
+              id="tang"
+              label="Tầng *"
+              options={FLOOR_OPTIONS.map((f) => ({ value: f, label: `Tầng ${f}` }))}
+              value={formData.tang}
+              onChange={handleChange}
+              required
+            />
+            <Input id="gia" label="Giá thuê (VND) *" type="number" min={1} value={formData.gia} onChange={handleChange} required />
+            <Select
+              id="trang_thai"
+              label="Trạng thái *"
+              options={STATUS_OPTIONS}
+              value={formData.trang_thai}
+              onChange={handleChange}
+              required
             />
           </div>
 
-          {/* Hình ảnh */}
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              Hình ảnh (Tối đa 5 ảnh)
-            </label>
-            <div className="flex items-center gap-4">
-              <label
-                htmlFor="hinh_anh"
-                className="flex flex-col items-center justify-center w-32 h-32 border-2 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100"
-              >
-                <Upload className="w-8 h-8 text-gray-500" />
-                <span className="text-sm text-gray-500">Tải ảnh lên</span>
-                <input
-                  id="hinh_anh"
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleImageChange}
-                />
-              </label>
+          {/* ------ mô tả ------ */}
+          <Textarea id="mo_ta" label="Mô tả" rows={4} value={formData.mo_ta} onChange={handleChange} />
 
-              <div className="flex flex-wrap gap-2">
-                {previewImages.map((preview, index) => (
-                  <div key={index} className="relative">
-                    <img
-                      src={preview}
-                      alt={`Preview ${index}`}
-                      className="w-32 h-32 object-cover rounded-lg"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeImage(index)}
-                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center"
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
+          {/* ------ hình ảnh ------ */}
+          <ImageUpload
+            existingImages={existingImages}
+            previewImages={previewImages}
+            onChange={handleImageChange}
+            onRemovePreview={removePreview}
+            onRemoveExisting={removeExisting}
+            max={5}
+          />
 
+          {/* ------ nút ------ */}
           <div className="flex justify-end gap-4 pt-6">
             <button
               type="button"
               className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-100"
-              onClick={() => {
-                setFormData({
-                  ten_phong: '',
-                  dien_tich: '',
-                  mo_ta: '',
-                  tang: '',
-                  gia: '',
-                  trang_thai: 'available',
-                  hinh_anh: []
-                });
-                setPreviewImages([]);
-              }}
+              onClick={resetForm}
             >
               Đặt lại
             </button>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-            >
-              Thêm phòng
+            <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+              {isEdit ? "Lưu thay đổi" : "Thêm phòng"}
             </button>
           </div>
         </form>
       </div>
     </SidebarWithNavbar>
+  );
+}
+
+/* ---------- sub components ---------- */
+function Input({ id, label, ...rest }) {
+  return (
+    <div className="space-y-2">
+      <label htmlFor={id} className="block text-sm font-medium text-gray-700">
+        {label}
+      </label>
+      <input
+        id={id}
+        name={id}
+        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+        {...rest}
+      />
+    </div>
+  );
+}
+
+function Select({ id, label, options, ...rest }) {
+  return (
+    <div className="space-y-2">
+      <label htmlFor={id} className="block text-sm font-medium text-gray-700">
+        {label}
+      </label>
+      <select
+        id={id}
+        name={id}
+        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+        {...rest}
+      >
+        <option value="">-- chọn --</option>
+        {options.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+function Textarea({ id, label, ...rest }) {
+  return (
+    <div className="space-y-2">
+      <label htmlFor={id} className="block text-sm font-medium text-gray-700">
+        {label}
+      </label>
+      <textarea
+        id={id}
+        name={id}
+        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+        {...rest}
+      />
+    </div>
+  );
+}
+
+function ImageUpload({
+  existingImages,
+  previewImages,
+  onChange,
+  onRemovePreview,
+  onRemoveExisting,
+  max,
+}) {
+  return (
+    <div className="space-y-2">
+      <label className="block text-sm font-medium text-gray-700">
+        Hình ảnh (tối đa {max} ảnh)
+      </label>
+      <div className="flex items-center gap-4 flex-wrap">
+        {/* nút upload nếu chưa đủ ảnh */}
+        {existingImages.length + previewImages.length < max && (
+          <label
+            htmlFor="hinh_anh"
+            className="flex flex-col items-center justify-center w-32 h-32 border-2 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100"
+          >
+            <Upload className="w-8 h-8 text-gray-500" />
+            <span className="text-sm text-gray-500">Tải ảnh lên</span>
+            <input id="hinh_anh" type="file" multiple accept="image/*" className="hidden" onChange={onChange} />
+          </label>
+        )}
+
+        {/* ảnh cũ */}
+        {existingImages.map((img) => {
+          const url = `${import.meta.env.VITE_STORAGE_URL}/storage/${img.image_path}`;
+          console.log("[IMAGE URL]", `${import.meta.env.VITE_STORAGE_URL}/storage/${img.image_path}`);
+
+
+          return (
+            <div key={img.id} className="relative">
+              <img
+                src={url}
+                alt=""
+                className="w-24 h-24 object-cover rounded"
+              />
+              <button
+                type="button"
+                onClick={() => onRemoveExisting(img.id)}
+                className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6"
+              >
+                ×
+              </button>
+            </div>
+          );
+        })}
+
+        {/* ảnh mới chọn */}
+        {previewImages.map((src, idx) => (
+          <div key={`preview-${idx}`} className="relative">
+            <img src={src} alt={`preview-${idx}`} className="w-32 h-32 object-cover rounded-lg" />
+            <button
+              type="button"
+              onClick={() => onRemovePreview(idx)}
+              className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center"
+            >
+              ×
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }

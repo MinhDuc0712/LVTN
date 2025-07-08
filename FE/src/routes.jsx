@@ -84,15 +84,16 @@ const AppRoutes = () => {
       {/* <Route path="/admin/top_up" element={<Top_up />} /> */}
       {/* <Route path="/admin/users" element={<Users />} /> */}
       {/* <Route path="/admin/role" element={<Role />} /> */}
-      <Route path="/admin/AddRoom" element={<AddRoom/>} />
-      <Route path="/admin/Room" element={<Room/>} />
-      <Route path="/admin/Contracts" element={<Contracts/>} />    
-      <Route path="/admin/ContractAdd" element={<ContractAdd/>} />
-      <Route path="/admin/Price" element={<Price/>} />
-      <Route path="/admin/ElectricBill" element={<ElectricBill/>} />
-      <Route path="/admin/AddElectric" element={<AddElectric/>} />
-      <Route path="/admin/WaterBill" element={<WaterBill/>} />
-      <Route path="/admin/AddWater" element={<AddWater/>} />
+      <Route path="/admin/Room/add" element={<AddRoom mode="add"/>} />
+      <Route path="/admin/Room/edit/:id" element={<AddRoom mode="edit"/>} />
+      <Route path="/admin/Room" element={<Room />} />
+      <Route path="/admin/Contracts" element={<Contracts />} />
+      <Route path="/admin/ContractAdd" element={<ContractAdd />} />
+      <Route path="/admin/Price" element={<Price />} />
+      <Route path="/admin/ElectricBill" element={<ElectricBill />} />
+      <Route path="/admin/AddElectric" element={<AddElectric />} />
+      <Route path="/admin/WaterBill" element={<WaterBill />} />
+      <Route path="/admin/AddWater" element={<AddWater />} />
 
       {/* <Route path="/admin/" element={<Dashboard />} /> */}
       {/* <Route path="/admin/post" element={<PostModeration />} /> */}
