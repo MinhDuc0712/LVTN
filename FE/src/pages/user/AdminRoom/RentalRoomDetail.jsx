@@ -292,7 +292,7 @@ const RentalRoomDetail = () => {
                   <>
                     <div className="col-span-2 row-span-2">
                       <img
-                        src={`/storage/${room.images[0]?.image_path}`}
+                        src={room.images[0].image_path}
                         alt="Main room"
                         className="h-full w-full rounded-l-2xl object-cover"
                         onError={(e) =>
@@ -304,7 +304,7 @@ const RentalRoomDetail = () => {
                     {room.images.slice(1, 5).map((image, index) => (
                       <div key={index}>
                         <img
-                          src={`/storage/${image.image_path}`}
+                          src={image.image_path}
                           alt={`Room image ${index + 1}`}
                           className="h-full w-full object-cover"
                           onError={(e) =>
@@ -317,7 +317,7 @@ const RentalRoomDetail = () => {
                     {room.images.length > 4 && (
                       <div className="relative">
                         <img
-                          src={`/storage/${room.images[4]?.image_path}`}
+                          src={room.images[4]?.image_path}
                           alt="More images"
                           className="h-full w-full rounded-br-2xl object-cover"
                           onError={(e) =>

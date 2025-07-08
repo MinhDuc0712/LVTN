@@ -84,16 +84,6 @@ const AppRoutes = () => {
       {/* <Route path="/admin/top_up" element={<Top_up />} /> */}
       {/* <Route path="/admin/users" element={<Users />} /> */}
       {/* <Route path="/admin/role" element={<Role />} /> */}
-      <Route path="/admin/Room/add" element={<AddRoom mode="add"/>} />
-      <Route path="/admin/Room/edit/:id" element={<AddRoom mode="edit"/>} />
-      <Route path="/admin/Room" element={<Room />} />
-      <Route path="/admin/Contracts" element={<Contracts />} />
-      <Route path="/admin/ContractAdd" element={<ContractAdd />} />
-      <Route path="/admin/Price" element={<Price />} />
-      <Route path="/admin/ElectricBill" element={<ElectricBill />} />
-      <Route path="/admin/AddElectric" element={<AddElectric />} />
-      <Route path="/admin/WaterBill" element={<WaterBill />} />
-      <Route path="/admin/AddWater" element={<AddWater />} />
 
       {/* <Route path="/admin/" element={<Dashboard />} /> */}
       {/* <Route path="/admin/post" element={<PostModeration />} /> */}
@@ -281,6 +271,86 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute requireAuth={true} requireAdmin={true}>
             <PostModeration />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/Room/add"
+        element={
+          <ProtectedRoute requireAuth={true} requireAdmin={true}>
+            <AddRoom mode="add" />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/Room/edit/:id"
+        element={
+          <ProtectedRoute requireAuth={true} requireAdmin={true}>
+            <AddRoom mode="edit" />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/Room"
+        element={
+          <ProtectedRoute requireAuth={true} requireAdmin={true}>
+            <Room />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/Contracts"
+        element={
+          <ProtectedRoute requireAuth={true} requireAdmin={true}>
+            <Contracts />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/ContractAdd"
+        element={
+          <ProtectedRoute requireAuth={true} requireAdmin={true}>
+            <ContractAdd />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/Price"
+        element={
+          <ProtectedRoute requireAuth={true} requireAdmin={true}>
+            <Price />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/ElectricBill"
+        element={
+          <ProtectedRoute requireAuth={true} requireAdmin={true}>
+            <ElectricBill />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/AddElectric"
+        element={
+          <ProtectedRoute requireAuth={true} requireAdmin={true}>
+            <AddElectric />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/WaterBill"
+        element={
+          <ProtectedRoute requireAuth={true} requireAdmin={true}>
+            <WaterBill />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/AddWater"
+        element={
+          <ProtectedRoute requireAuth={true} requireAdmin={true}>
+            <AddWater />
           </ProtectedRoute>
         }
       />

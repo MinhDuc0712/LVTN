@@ -7,9 +7,7 @@ import { useEffect, useState } from "react";
 import Sidebar from "./Sidebar";
 
 import { updateHouse, useAuthUser, useCreateHouse } from "@/api/homePage/";
-import {
-  Building
-} from "lucide-react";
+import { Building } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import GoongMapLibre from "../../map";
@@ -236,7 +234,7 @@ function UserPost() {
       if (isEditMode) {
         await updateHouse({ id, data: postData });
         toast.success("Cập nhật tin thành công!");
-        navigate("/posts");
+        navigate(`/post/paymentpost?id=${id}`);
       } else {
         const { houseId } = await createHouse(postData);
         toast.success("Đăng tin thành công!");
@@ -256,8 +254,7 @@ function UserPost() {
     }
   };
 
- const getFullAddress = () => formData.DiaChi?.trim() || "";
-
+  const getFullAddress = () => formData.DiaChi?.trim() || "";
 
   useEffect(() => {
     const fetchProvinces = async () => {
@@ -764,4 +761,3 @@ function UserPost() {
 }
 
 export default UserPost;
-

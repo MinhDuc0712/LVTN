@@ -1,10 +1,9 @@
+import { getRoomByIdAPI, getRoomsAPI } from "@/api/homePage/request";
 import { useEffect, useState } from "react";
+import { FaEdit, FaSearch, FaTrash } from "react-icons/fa";
 import { Link } from "react-router-dom";
-import { FaEdit, FaTrash, FaSearch } from "react-icons/fa";
+import "react-toastify/dist/ReactToastify.css";
 import SidebarWithNavbar from "../SidebarWithNavbar";
-import { getRoomsAPI, deleteRoomAPI, getRoomByIdAPI  } from "@/api/homePage/request";
-import { toast } from "react-toastify";   
-import "react-toastify/dist/ReactToastify.css";  
 export default function RoomListPage() {
   const [rooms, setRooms] = useState([]);
   const [filteredRooms, setFilteredRooms] = useState([]);
@@ -31,26 +30,26 @@ export default function RoomListPage() {
     bao_tri: "bg-yellow-100 text-yellow-800"
   };
 
-  const fetchRooms = async () => {
-    try {
-      const response = await getRoomsAPI();
-        setRooms(response);
-        setFilteredRooms(response);
-    } catch (error) {
-      console.error("Lỗi khi tải danh sách phòng:", error);
-    }
-  };
+  // const fetchRooms = async () => {
+  //   try {
+  //     const response = await getRoomsAPI();
+  //       setRooms(response);
+  //       setFilteredRooms(response);
+  //   } catch (error) {
+  //     console.error("Lỗi khi tải danh sách phòng:", error);
+  //   }
+  // };
 
-  useEffect(() => {
-    fetchRooms();
-  }, []);
+  // useEffect(() => {
+  //   fetchRooms();
+  // }, []);
 
   useEffect(() => {
     let filtered = [...rooms];
 
-    if (search.trim() !== "") {
+    if (searchTerm.trim() !== "") {
       filtered = filtered.filter((r) =>
-        r.ten_phong.toLowerCase().includes(search.toLowerCase())
+        r.ten_phong.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
@@ -63,7 +62,7 @@ export default function RoomListPage() {
     }
 
     setFilteredRooms(filtered);
-  }, [rooms, search, statusFilter, floorFilter]);
+  }, [rooms, searchTerm, statusFilter, floorFilter]);
 
   const handleDelete = async (id, name) => {
     const confirm = window.confirm(`Bạn chắc chắn muốn xoá ${name}?`);
@@ -86,9 +85,9 @@ export default function RoomListPage() {
     const fetchData = async () => {
       try {
         const response = await getRoomsAPI();
-        const roomsList = Array.isArray(response.data) ? response.data : [];
+        // console.log("Dữ liệu phòng:", response);
 
-        const mappedRooms = roomsList.map(room => ({
+        const mappedRooms = response.map(room => ({
           id: room.id,
           name: room.ten_phong,
           description: room.mo_ta,
@@ -111,28 +110,28 @@ export default function RoomListPage() {
 
     fetchData();
   }, []);
-const handleDelete = async (room) => {
-  if (!window.confirm(`Bạn chắc chắn muốn xoá phòng “${room.name}” ?`)) return;
+// const handleDelete = async (room) => {
+//   if (!window.confirm(`Bạn chắc chắn muốn xoá phòng “${room.name}” ?`)) return;
 
-  // Optimistic remove
-  setRooms(prev => prev.filter(r => r.id !== room.id));
+//   // Optimistic remove
+//   setRooms(prev => prev.filter(r => r.id !== room.id));
 
-  try {
-    const res = await deleteRoomAPI(room.id);   // ⬅️ phải trả 200/204 mới đúng
-    if (res.status !== 200 && res.status !== 204) {
-      throw new Error("Delete failed");         // buộc vào catch
-    }
-    toast.success("Đã xoá phòng thành công");
-  } catch (err) {
-    // Rollback UI
-    setRooms(prev => [...prev, room]);
-    toast.error(
-      err.response?.data?.message
-        || err.message
-        || "Xoá phòng thất bại"
-    );
-  }
-};
+//   try {
+//     const res = await deleteRoomAPI(room.id);   // ⬅️ phải trả 200/204 mới đúng
+//     if (res.status !== 200 && res.status !== 204) {
+//       throw new Error("Delete failed");         // buộc vào catch
+//     }
+//     toast.success("Đã xoá phòng thành công");
+//   } catch (err) {
+//     // Rollback UI
+//     setRooms(prev => [...prev, room]);
+//     toast.error(
+//       err.response?.data?.message
+//         || err.message
+//         || "Xoá phòng thất bại"
+//     );
+//   }
+// };
 
 
   useEffect(() => {

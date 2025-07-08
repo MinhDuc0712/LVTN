@@ -141,7 +141,7 @@ export default function SidebarWithNavbar({ children }) {
                   <Link to="/admin/Room">
                     <SidebarItem icon={<Home />} label="Danh sách phòng" />
                   </Link>
-                  <Link to="/admin/AddRoom">
+                  <Link to="/admin/Room/add">
                     <SidebarItem icon={<Home />} label="Thêm phòng" />
                   </Link>
                   <Link to="/admin/Contracts">
