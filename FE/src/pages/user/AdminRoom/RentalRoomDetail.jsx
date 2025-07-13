@@ -1,15 +1,12 @@
-import { createKhach, createHopDong, getRoomUserByIdAPI } from "@/api/homePage";
+import { createKhach, createHopDong, getRoomUserByIdAPI, getServicePrices } from "@/api/homePage";
 import {
   Camera,
   CheckCircle,
   Heart,
   Home,
-  MapPin,
-  MessageCircle,
   Phone,
   Share2,
   Star,
-  ThumbsUp,
   Tv,
   Wifi,
   Wind,
@@ -28,39 +25,6 @@ const amenities = [
   { icon: Tv, name: "Tivi" },
 ];
 
-const reviews = [
-  {
-    id: 1,
-    name: "Nguyễn Minh Anh",
-    avatar:
-      "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150",
-    rating: 5,
-    date: "2 tuần trước",
-    comment:
-      "Phòng rất đẹp, sạch sẽ và tiện nghi đầy đủ. Chủ nhà rất thân thiện và hỗ trợ nhiệt tình. Tôi sẽ ở lại lâu dài.",
-  },
-  {
-    id: 2,
-    name: "Trần Văn Bình",
-    avatar:
-      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150",
-    rating: 4,
-    date: "1 tháng trước",
-    comment:
-      "Vị trí thuận tiện, gần trung tâm. Phòng khá ổn nhưng cần cải thiện thêm về âm thanh cách âm.",
-  },
-  {
-    id: 3,
-    name: "Lê Thị Cẩm",
-    avatar:
-      "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150",
-    rating: 5,
-    date: "1 tháng trước",
-    comment:
-      "Phòng tuyệt vời! Nội thất hiện đại, wifi mạnh, có chỗ để xe an toàn. Rất hài lòng với sự lựa chọn này.",
-  },
-];
-
 const formatCurrency = (value) => {
   return new Intl.NumberFormat("vi-VN", {
     style: "currency",
@@ -70,27 +34,44 @@ const formatCurrency = (value) => {
 
 const RentalRoomDetail = () => {
   const [showContractModal, setShowContractModal] = useState(false);
-  const [showReviewModal, setShowReviewModal] = useState(false);
   const [liked, setLiked] = useState(false);
   const [loading, setLoading] = useState(false);
   const { id: phongId } = useParams();
   const [room, setRoom] = useState(null);
   const [loadingRoom, setLoadingRoom] = useState(true);
+  const [servicePrices, setServicePrices] = useState([]);
+  const [loadingServices, setLoadingServices] = useState(true);
+
 
   useEffect(() => {
-    const fetchRoom = async () => {
+    const fetchData = async () => {
       try {
-        const res = await getRoomUserByIdAPI(phongId);
-        console.log("Dữ liệu phòng:", res);
-        setRoom(res);
+        setLoadingRoom(true);
+        setLoadingServices(true);
+
+        const roomRes = await getRoomUserByIdAPI(phongId);
+        setRoom(roomRes);
+
+        const servicesRes = await getServicePrices();
+        setServicePrices(servicesRes);
       } catch (err) {
-        console.error("Lỗi khi tải dữ liệu phòng:", err);
+        console.error("Lỗi khi tải dữ liệu:", err);
       } finally {
         setLoadingRoom(false);
+        setLoadingServices(false);
       }
     };
-    fetchRoom();
+
+    fetchData();
   }, [phongId]);
+
+  const getUtilityPrice = (serviceName) => {
+    const service = servicePrices.find(s => s.ten.toLowerCase().includes(serviceName));
+    return service ? formatCurrency(service.gia_tri) : "Chưa cập nhật";
+  };
+
+  const electricPrice = getUtilityPrice("điện");
+  const waterPrice = getUtilityPrice("nước");
 
   const [formData, setFormData] = useState({
     ho_ten: "",
@@ -101,25 +82,29 @@ const RentalRoomDetail = () => {
     duration: "1",
     termsAgreed: false,
   });
-  const [reviewForm, setReviewForm] = useState({
-    rating: 5,
-    comment: "",
-    name: "",
-  });
 
+  const calculateServiceFee = () => {
+    if (!servicePrices.length) return 0;
+
+    return servicePrices
+      .filter(service =>
+        !["điện", "nước"].some(keyword =>
+          service.ten.toLowerCase().includes(keyword)
+        )
+      )
+      .reduce((total, service) => total + Number(service.gia_tri), 0);
+  };
+
+
+  const totalServiceFee = calculateServiceFee();
+  const roomPrice = Number(room?.gia) || 0;
+  const deposit = roomPrice;
+  const totalInitialCost = roomPrice + deposit + totalServiceFee;
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
-    }));
-  };
-
-  const handleReviewChange = (e) => {
-    const { name, value } = e.target;
-    setReviewForm((prev) => ({
-      ...prev,
-      [name]: value,
     }));
   };
 
@@ -192,13 +177,6 @@ const RentalRoomDetail = () => {
     }
   };
 
-  const handleSubmitReview = (e) => {
-    e.preventDefault();
-    console.log("Review data:", reviewForm);
-    setShowReviewModal(false);
-    alert("Cảm ơn bạn đã đánh giá!");
-    setReviewForm({ rating: 5, comment: "", name: "" });
-  };
 
   const renderStars = (rating) => {
     return [...Array(5)].map((_, i) => (
@@ -296,8 +274,8 @@ const RentalRoomDetail = () => {
                         alt="Main room"
                         className="h-full w-full rounded-l-2xl object-cover"
                         onError={(e) =>
-                          (e.target.src =
-                            "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=600&h=400&fit=crop")
+                        (e.target.src =
+                          "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=600&h=400&fit=crop")
                         }
                       />
                     </div>
@@ -308,8 +286,8 @@ const RentalRoomDetail = () => {
                           alt={`Room image ${index + 1}`}
                           className="h-full w-full object-cover"
                           onError={(e) =>
-                            (e.target.src =
-                              "https://images.unsplash.com/photo-1513694203232-719a280e022f?w=300&h=200&fit=crop")
+                          (e.target.src =
+                            "https://images.unsplash.com/photo-1513694203232-719a280e022f?w=300&h=200&fit=crop")
                           }
                         />
                       </div>
@@ -321,8 +299,8 @@ const RentalRoomDetail = () => {
                           alt="More images"
                           className="h-full w-full rounded-br-2xl object-cover"
                           onError={(e) =>
-                            (e.target.src =
-                              "https://images.unsplash.com/photo-1560185007-cde436f6a4d0?w=300&h=200&fit=crop")
+                          (e.target.src =
+                            "https://images.unsplash.com/photo-1560185007-cde436f6a4d0?w=300&h=200&fit=crop")
                           }
                         />
                         <div className="bg-opacity-50 absolute inset-0 flex items-center justify-center rounded-br-2xl bg-black">
@@ -357,11 +335,10 @@ const RentalRoomDetail = () => {
                       </span>
                     </div>
                     <span
-                      className={`rounded-full px-4 py-2 text-sm font-semibold ${
-                        room.trang_thai === "trong"
-                          ? "bg-green-100 text-green-700"
-                          : "bg-red-100 text-red-700"
-                      }`}
+                      className={`rounded-full px-4 py-2 text-sm font-semibold ${room.trang_thai === "trong"
+                        ? "bg-green-100 text-green-700"
+                        : "bg-red-100 text-red-700"
+                        }`}
                     >
                       {room.trang_thai === "trong"
                         ? "✓ Có sẵn ngay"
@@ -408,86 +385,6 @@ const RentalRoomDetail = () => {
                   ))}
                 </div>
               </div>
-
-              {/* Location */}
-              <div className="mb-8">
-                <h2 className="mb-4 text-2xl font-bold text-gray-800">
-                  Vị trí
-                </h2>
-                <div className="flex items-start gap-3 rounded-xl bg-gray-50 p-4">
-                  <MapPin className="mt-1 text-red-500" size={24} />
-                  <div>
-                    <p className="font-medium text-gray-800">
-                      {room.dia_chi || "Không có thông tin địa chỉ"}
-                    </p>
-                    <p className="mt-1 text-gray-600">
-                      Trung tâm thành phố • Gần Metro • Nhiều tiện ích xung
-                      quanh
-                    </p>
-                    <button className="mt-2 font-medium text-blue-600 hover:underline">
-                      Xem trên bản đồ →
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Reviews Section */}
-            <div className="rounded-2xl bg-white p-8 shadow-lg">
-              <div className="mb-6 flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-gray-800">
-                  Đánh giá từ khách thuê
-                </h2>
-                <button
-                  onClick={() => setShowReviewModal(true)}
-                  className="rounded-lg bg-blue-600 px-6 py-2 font-medium text-white transition-colors hover:bg-blue-700"
-                >
-                  Viết đánh giá
-                </button>
-              </div>
-
-              <div className="space-y-6">
-                {reviews.map((review) => (
-                  <div
-                    key={review.id}
-                    className="border-b border-gray-100 pb-6 last:border-b-0"
-                  >
-                    <div className="flex items-start gap-4">
-                      <img
-                        src={review.avatar}
-                        alt={review.name}
-                        className="h-12 w-12 rounded-full object-cover"
-                      />
-                      <div className="flex-1">
-                        <div className="mb-2 flex items-center gap-3">
-                          <h4 className="font-semibold text-gray-800">
-                            {review.name}
-                          </h4>
-                          <div className="flex items-center gap-1">
-                            {renderStars(review.rating)}
-                          </div>
-                          <span className="text-sm text-gray-500">
-                            {review.date}
-                          </span>
-                        </div>
-                        <p className="leading-relaxed text-gray-700">
-                          {review.comment}
-                        </p>
-                        <div className="mt-3 flex items-center gap-4">
-                          <button className="flex items-center gap-2 text-gray-500 transition-colors hover:text-blue-600">
-                            <ThumbsUp size={16} />
-                            <span className="text-sm">Hữu ích (12)</span>
-                          </button>
-                          <button className="flex items-center gap-2 text-gray-500 transition-colors hover:text-blue-600">
-                            <MessageCircle size={16} />
-                            <span className="text-sm">Trả lời</span>
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
             </div>
           </div>
 
@@ -497,45 +394,77 @@ const RentalRoomDetail = () => {
               <h3 className="mb-6 text-2xl font-bold text-gray-800">
                 Chi tiết đặt phòng
               </h3>
+
               <div className="mb-6 space-y-4">
                 <div className="flex items-center justify-between border-b border-gray-100 py-3">
                   <span className="text-gray-600">Giá thuê hàng tháng</span>
                   <span className="font-semibold text-gray-800">
-                    {room.gia ? formatCurrency(room.gia) : "Chưa có giá"}
+                    {room?.gia ? formatCurrency(room.gia) : "Chưa có giá"}
                   </span>
                 </div>
-                <div className="flex items-center justify-between border-b border-gray-100 py-3">
-                  <span className="text-gray-600">Phí dịch vụ</span>
-                  <span className="font-semibold text-gray-800">
-                    {formatCurrency(0)}
-                  </span>
+
+                {/* Hiển thị giá điện/nước riêng */}
+                <div className="border-b border-gray-100 py-3">
+                  <p className="mb-2 text-sm font-medium text-gray-600">Giá tiện ích:</p>
+                  <ul className="space-y-2 text-sm">
+                    <li className="flex justify-between">
+                      <span>Giá điện (mỗi kWh):</span>
+                      <span>
+                        {loadingServices ? "Đang tải..." : electricPrice}
+                      </span>
+                    </li>
+                    <li className="flex justify-between">
+                      <span>Giá nước (mỗi m³):</span>
+                      <span>
+                        {loadingServices ? "Đang tải..." : waterPrice}
+                      </span>
+                    </li>
+                  </ul>
                 </div>
+                {!loadingServices && (
+                  <div className="border-b border-gray-100 py-3">
+                    <p className="mb-2 text-sm font-medium text-gray-600">Các tiện ích khác:</p>
+                    <ul className="space-y-2 text-sm">
+                      {servicePrices
+                        .filter(service =>
+                          !["điện", "nước"].some(keyword =>
+                            service.ten.toLowerCase().includes(keyword)
+                          )
+                        )
+                        .map((service, index) => (
+                          <li key={index} className="flex justify-between">
+                            <span>{service.ten}:</span>
+                            <span>{formatCurrency(service.gia_tri)}</span>
+                          </li>
+                        ))}
+                    </ul>
+                  </div>
+                )}
                 <div className="flex items-center justify-between border-b border-gray-100 py-3">
                   <span className="text-gray-600">Tiền đặt cọc</span>
                   <span className="font-semibold text-gray-800">
-                    {room.gia ? formatCurrency(room.gia) : "Chưa có giá"}
+                    {room?.gia ? formatCurrency(room.gia) : "Chưa có giá"}
                   </span>
                 </div>
+
                 <div className="flex items-center justify-between rounded-lg bg-blue-50 px-4 py-4">
                   <span className="font-bold text-gray-800">
                     Tổng chi phí ban đầu
                   </span>
                   <span className="text-2xl font-bold text-blue-600">
-                    {room.gia
-                      ? formatCurrency(room.gia + 0 + room.gia)
-                      : "Chưa có giá"}
+                    {formatCurrency(totalInitialCost)}
                   </span>
+
                 </div>
               </div>
 
               <button
                 onClick={() => setShowContractModal(true)}
                 className="mb-4 w-full transform rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 py-4 text-lg font-bold text-white shadow-lg transition-all hover:scale-105 hover:from-blue-700 hover:to-blue-800"
-                disabled={room.trang_thai !== "trong"}
+                disabled={room?.trang_thai !== "trong" || loadingRoom}
               >
-                {room.trang_thai === "trong"
-                  ? "Đặt phòng ngay"
-                  : "Phòng không khả dụng"}
+                {loadingRoom ? "Đang tải..." :
+                  room?.trang_thai === "trong" ? "Đặt phòng ngay" : "Phòng không khả dụng"}
               </button>
 
               <div className="mb-4 text-center">
@@ -653,87 +582,7 @@ const RentalRoomDetail = () => {
           </div>
         )}
 
-        {/* Review Modal */}
-        {showReviewModal && (
-          <div className="bg-opacity-50 fixed inset-0 z-[100] flex items-center justify-center bg-black p-4">
-            <div className="w-full max-w-lg rounded-2xl bg-white p-8 shadow-2xl">
-              <div className="mb-6 flex items-center justify-between">
-                <h3 className="text-2xl font-bold text-gray-800">
-                  Viết đánh giá
-                </h3>
-                <button
-                  onClick={() => setShowReviewModal(false)}
-                  className="rounded-full p-2 transition-colors hover:bg-gray-100"
-                >
-                  <X size={24} className="text-gray-500" />
-                </button>
-              </div>
 
-              <div className="space-y-6">
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-gray-700">
-                    Họ tên của bạn
-                  </label>
-                  <input
-                    type="text"
-                    name="name"
-                    required
-                    value={reviewForm.name}
-                    onChange={handleReviewChange}
-                    placeholder="Nhập họ tên"
-                    className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="mb-3 block text-sm font-medium text-gray-700">
-                    Đánh giá của bạn
-                  </label>
-                  <div className="flex gap-2">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <button
-                        key={star}
-                        type="button"
-                        onClick={() =>
-                          setReviewForm((prev) => ({ ...prev, rating: star }))
-                        }
-                        className="focus:outline-none"
-                      >
-                        <Star
-                          size={32}
-                          className={
-                            star <= reviewForm.rating
-                              ? "fill-current text-yellow-400"
-                              : "text-gray-300"
-                          }
-                        />
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-gray-700">
-                    Nhận xét chi tiết
-                  </label>
-                  <textarea
-                    name="comment"
-                    required
-                    value={reviewForm.comment}
-                    onChange={handleReviewChange}
-                    placeholder="Chia sẻ trải nghiệm của bạn về phòng trọ này..."
-                    rows="4"
-                    className="w-full resize-none rounded-lg border border-gray-300 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <button
-                  onClick={handleSubmitReview}
-                  className="w-full rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 py-3 font-bold text-white transition-all hover:from-blue-700 hover:to-blue-800"
-                >
-                  Gửi đánh giá
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

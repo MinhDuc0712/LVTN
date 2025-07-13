@@ -40,8 +40,8 @@ const ListingCard = ({ listings }) => {
   useEffect(() => {
     const fetchFavorites = async () => {
       try {
-        const token = sessionStorage.getItem("token"); // Hoặc kiểm tra qua context
-        if (!token) return; // Chưa đăng nhập → bỏ qua, không gọi API
+        const token = sessionStorage.getItem("token"); 
+        if (!token) return; 
 
         const response = await getFavoritesAPI();
         const data = Array.isArray(response) ? response : response.data;
@@ -57,7 +57,6 @@ const ListingCard = ({ listings }) => {
         setFavoritesStatus(statusMap);
       } catch (error) {
         console.error("Lỗi tải danh sách yêu thích:", error);
-        // Không hiện toast nếu là lỗi 401
         if (error.response?.status !== 401) {
           toast.error("Lỗi khi tải danh sách yêu thích");
         }

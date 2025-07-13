@@ -5,9 +5,8 @@ const FilterSection = ({ onApplyFilters, isLoading }) => {
   const [selectedArea, setSelectedArea] = useState(null);
 
   const handleApply = () => {
-    if (isLoading) return; // Ngăn chặn click khi đang loading
+    if (isLoading) return; 
 
-    // Chuẩn bị params lọc
     const filters = {};
 
     if (selectedPrice) filters.price = selectedPrice;

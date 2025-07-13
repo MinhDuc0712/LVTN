@@ -24,7 +24,7 @@ export default function PricingTable() {
       name: 'Tin thường',
       color: 'bg-gradient-to-r from-blue-500 to-blue-600',
       textColor: 'text-white',
-      dailyPrice: 5000, // Đã đổi từ 2000 lên 5000
+      dailyPrice: 5000, 
       icon: <List className="w-6 h-6" />,
       features: [
         'Hiển thị trong danh mục',
