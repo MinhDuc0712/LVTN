@@ -48,6 +48,7 @@ import Price from "./pages/admin/Home/Price";
 import ElectricBill from "./pages/admin/Home/ElectricBill";
 import AddElectric from "./pages/admin/Home/AddElectric";
 import WaterBill from "./pages/admin/Home/WaterBill";
+import ServicePriceForm from "./pages/admin/Home/AddPrice";
 import AddWater from "./pages/admin/Home/AddWater";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -319,6 +320,22 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute requireAuth={true} requireAdmin={true}>
             <Price />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/AddPrice"
+        element={
+          <ProtectedRoute requireAuth={true} requireAdmin={true}>
+            <ServicePriceForm />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/AddPrice/edit/:id"
+        element={
+          <ProtectedRoute requireAuth={true} requireAdmin={true}>
+            <ServicePriceForm />
           </ProtectedRoute>
         }
       />

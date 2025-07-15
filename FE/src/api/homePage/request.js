@@ -464,3 +464,28 @@ export const getHopDong = async () => {
   const response = await axiosAdmin.get("/hopdong");
   return response;
 }
+
+export const getServicePrices = async () => {
+  const response = await axiosAdmin.get("/giadichvu");
+  return response.data;
+};
+
+export const createServicePrice = async (data) => {
+  const response = await axiosAdmin.post("/giadichvu", data);
+  return response.data;
+};
+
+export const updateServicePrice = async (id, data) => {
+  const response = await axiosAdmin.put(`/giadichvu/${id}`, data);
+  return response.data;
+};
+
+export const deleteServicePrice = async (id) => {
+  const response = await axiosAdmin.delete(`/giadichvu/${id}`);
+  return response.data;
+};
+
+export const getServicePriceDetail = async (id) => {
+  const response = await axiosAdmin.get(`/giadichvu/${id}`);
+  return response.data;
+};

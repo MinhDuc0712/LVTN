@@ -14,7 +14,7 @@ import GoongMapLibre from "../../map";
 
 function UserPost() {
   const navigate = useNavigate();
-  const { id } = useParams(); // Lấy ID từ URL
+  const { id } = useParams(); 
   const isEditMode = !!id;
 
   const {
@@ -234,7 +234,7 @@ function UserPost() {
       if (isEditMode) {
         await updateHouse({ id, data: postData });
         toast.success("Cập nhật tin thành công!");
-        navigate(`/post/paymentpost?id=${id}`);
+        navigate(`/posts`);
       } else {
         const { houseId } = await createHouse(postData);
         toast.success("Đăng tin thành công!");
