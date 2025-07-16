@@ -88,7 +88,7 @@ const Home = () => {
       try {
         setLoading(true);
         const housesResponse = await getHouses();
-        console.log("Houses response:", housesResponse);
+        // console.log("Houses response:", housesResponse);
         const allHouses = housesResponse?.data || housesResponse || [];
         const featuredHouses = allHouses.filter((item) => item.NoiBat === 1);
 
