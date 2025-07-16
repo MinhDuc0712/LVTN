@@ -50,6 +50,7 @@ import AddElectric from "./pages/admin/Home/AddElectric";
 import WaterBill from "./pages/admin/Home/WaterBill";
 import AddWater from "./pages/admin/Home/AddWater";
 import ProtectedRoute from "./components/ProtectedRoute";
+import Role from "./pages/admin/Role";
 
 const AppRoutes = () => {
   return (
@@ -226,6 +227,16 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
+
+          <Route
+        path="/admin/permissions"
+        element={
+          <ProtectedRoute requireAuth={true} requireAdmin={true}>
+            <Role />
+          </ProtectedRoute>
+        }
+      />
+
       <Route
         path="/admin/category"
         element={

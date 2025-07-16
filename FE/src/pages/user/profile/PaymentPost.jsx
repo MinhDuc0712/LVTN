@@ -1,9 +1,10 @@
 import { useAuthUser } from "@/api/homePage/";
+import { postPaymentForHouse } from "@/api/homePage/request";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { toast } from "react-toastify";
+import { FaArrowLeft } from "react-icons/fa";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { postPaymentForHouse } from "@/api/homePage/request";
+import { toast } from "react-toastify";
 import Sidebar from "./Sidebar";
 function useQuery() {
   return new URLSearchParams(useLocation().search);
@@ -280,7 +281,7 @@ function PaymentPost() {
                 className="flex w-1/2 items-center justify-center gap-2 rounded-xl bg-gray-300 px-6 py-3 font-medium text-black transition hover:bg-gray-400"
                 to="/post"
               >
-                <span className="text-lg">←</span> Quay lại
+                <span className="text-lg"><FaArrowLeft/></span> Quay lại
               </Link>
               <button
                 onClick={handlePayment}

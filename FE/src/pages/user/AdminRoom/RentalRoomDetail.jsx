@@ -17,7 +17,7 @@ import {
   Zap,
 } from "lucide-react";
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 
 const amenities = [
   { icon: Wind, name: "Điều hòa" },
@@ -81,7 +81,7 @@ const RentalRoomDetail = () => {
     const fetchRoom = async () => {
       try {
         const res = await getRoomUserByIdAPI(phongId);
-        console.log("Dữ liệu phòng:", res);
+        // console.log("Dữ liệu phòng:", res);
         setRoom(res);
       } catch (err) {
         console.error("Lỗi khi tải dữ liệu phòng:", err);
@@ -91,6 +91,20 @@ const RentalRoomDetail = () => {
     };
     fetchRoom();
   }, [phongId]);
+
+  const getLocalToday = () => {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, "0");
+    const dd = String(today.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  };
+  useEffect(() => {
+    setFormData((prev) => ({
+      ...prev,
+      startDate: getLocalToday(),
+    }));
+  }, []);
 
   const [formData, setFormData] = useState({
     ho_ten: "",
@@ -259,15 +273,18 @@ const RentalRoomDetail = () => {
         {/* Header Navigation */}
         <nav className="mb-8 flex items-center justify-between">
           <div className="text-sm text-gray-600">
-            <span className="cursor-pointer hover:text-blue-600">
+            <Link to="/" className="cursor-pointer hover:text-blue-600">
               Trang chủ
-            </span>
+            </Link>
             <span className="mx-2">/</span>
-            <span className="cursor-pointer hover:text-blue-600">
+            <Link
+              to="/RentHouse"
+              className="cursor-pointer hover:text-blue-600"
+            >
               Danh sách phòng
-            </span>
+            </Link>
             <span className="mx-2">/</span>
-            <span className="font-medium text-gray-800">Chi tiết phòng</span>
+            <span className="font-medium text-gray-800">{room?.ten_phong}</span>
           </div>
           <div className="flex gap-3">
             <button
@@ -289,51 +306,49 @@ const RentalRoomDetail = () => {
             <div className="relative">
               <div className="grid h-96 grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-4">
                 {room.images && room.images.length > 0 ? (
-                  <>
-                    <div className="col-span-2 row-span-2">
+                  room.images.length === 1 ? (
+                    <div className="col-span-4 row-span-2">
                       <img
                         src={room.images[0].image_path}
                         alt="Main room"
-                        className="h-full w-full rounded-l-2xl object-cover"
-                        onError={(e) =>
-                          (e.target.src =
-                            "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=600&h=400&fit=crop")
-                        }
+                        className="h-full w-full rounded-2xl object-cover"
                       />
                     </div>
-                    {room.images.slice(1, 5).map((image, index) => (
-                      <div key={index}>
+                  ) : (
+                    <>
+                      <div className="col-span-2 row-span-2">
                         <img
-                          src={image.image_path}
-                          alt={`Room image ${index + 1}`}
-                          className="h-full w-full object-cover"
-                          onError={(e) =>
-                            (e.target.src =
-                              "https://images.unsplash.com/photo-1513694203232-719a280e022f?w=300&h=200&fit=crop")
-                          }
+                          src={room.images[0].image_path}
+                          alt="Main room"
+                          className="h-full w-full rounded-l-2xl object-cover"
                         />
                       </div>
-                    ))}
-                    {room.images.length > 4 && (
-                      <div className="relative">
-                        <img
-                          src={room.images[4]?.image_path}
-                          alt="More images"
-                          className="h-full w-full rounded-br-2xl object-cover"
-                          onError={(e) =>
-                            (e.target.src =
-                              "https://images.unsplash.com/photo-1560185007-cde436f6a4d0?w=300&h=200&fit=crop")
-                          }
-                        />
-                        <div className="bg-opacity-50 absolute inset-0 flex items-center justify-center rounded-br-2xl bg-black">
-                          <button className="flex items-center gap-2 text-white hover:underline">
-                            <Camera size={20} />
-                            <span>Xem thêm ảnh</span>
-                          </button>
+                      {room.images.slice(1, 5).map((image, index) => (
+                        <div key={index}>
+                          <img
+                            src={image.image_path}
+                            alt={`Room image ${index + 1}`}
+                            className="h-full w-full object-cover"
+                          />
                         </div>
-                      </div>
-                    )}
-                  </>
+                      ))}
+                      {room.images.length > 4 && (
+                        <div className="relative">
+                          <img
+                            src={room.images[4]?.image_path}
+                            alt="More images"
+                            className="h-full w-full rounded-br-2xl object-cover"
+                          />
+                          <div className="bg-opacity-50 absolute inset-0 flex items-center justify-center rounded-br-2xl bg-black">
+                            <button className="flex items-center gap-2 text-white hover:underline">
+                              <Camera size={20} />
+                              <span>Xem thêm ảnh</span>
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )
                 ) : (
                   <div className="col-span-4 row-span-2 flex items-center justify-center rounded-2xl bg-gray-100">
                     <p className="text-gray-500">Không có hình ảnh</p>
@@ -521,9 +536,7 @@ const RentalRoomDetail = () => {
                     Tổng chi phí ban đầu
                   </span>
                   <span className="text-2xl font-bold text-blue-600">
-                    {room.gia
-                      ? formatCurrency(room.gia + 0 + room.gia)
-                      : "Chưa có giá"}
+                    {room.gia ? formatCurrency(room.gia) : "Chưa có giá"}
                   </span>
                 </div>
               </div>
@@ -621,6 +634,7 @@ const RentalRoomDetail = () => {
                       required
                       value={formData.startDate}
                       onChange={handleInputChange}
+                      min={getLocalToday()}
                       className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-blue-500"
                     />
                   </div>

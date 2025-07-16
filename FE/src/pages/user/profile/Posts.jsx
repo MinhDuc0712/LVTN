@@ -63,7 +63,7 @@ function Posts() {
   const handleFreeRelist = async (post) => {
     try {
       const res = await relistHouse(post.id);
-      const data = res?.data;
+      console.log(res);
       if (res?.require_payment) {
         const mode = res?.mode || "renew";
         setPaymentMode(mode);
@@ -284,7 +284,7 @@ function Posts() {
               Danh sách tin đăng
             </h1>
           </div>
-          <p className="ml-11 text-gray-600">
+          <p className="ml-1 text-gray-600">
             Quản lý và theo dõi tất cả tin đăng của bạn
           </p>
         </div>

@@ -171,10 +171,10 @@ export default function SidebarWithNavbar({ children }) {
             <Link to="/admin/permissions">
               <SidebarItem icon={<Key />} label="Quản lý quyền" />
             </Link>
-            
+{/*             
             <Link to="/admin/reviews">
               <SidebarItem icon={<Star />} label="Quản lý đánh giá" />
-            </Link>
+            </Link> */}
             <Link to="/admin/users">
               <SidebarItem icon={<Users />} label="Quản lý người dùng" />
             </Link>

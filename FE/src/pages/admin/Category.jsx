@@ -61,7 +61,7 @@ export default function Category() {
     } catch (error) {
       console.error("Delete error:", error);
       // setMessage("Xóa thất bại: " + (error.response?.data?.message || error.message));
-      toast.error(`Xóa thất bại`);
+      toast.error(`Xóa thất bại:  ${error.response?.data?.message}`);
     }
   };
 
