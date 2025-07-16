@@ -173,6 +173,17 @@ const Header = () => {
                         <User className="mr-2 h-5 w-5" />
                         Hồ sơ
                       </Link>
+
+                    </li>
+                    <li>
+                      <Link
+                        to="/HouseList"
+                        className="flex cursor-pointer items-center px-4 py-2 hover:bg-gray-100"
+                        onClick={() => setIsDropdownOpen(false)}
+                      >
+                        <Home className="mr-2 h-5 w-5" />
+                        Nhà thuê
+                      </Link>
                     </li>
                     <li>
                       <button
@@ -345,6 +356,14 @@ const Header = () => {
                       >
                         <User className="mr-3 h-5 w-5" />
                         Hồ sơ
+                      </Link>
+                      <Link
+                        to="/HouseList"
+                        className="flex items-center px-2 py-2 text-gray-700 hover:text-orange-700"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <Home  className="mr-3 h-5 w-5" />
+                        Nhà thuê 
                       </Link>
                       <button
                         onClick={() => {

@@ -1,4 +1,3 @@
-// src/pages/Home.jsx
 import {
   getFeaturedHouses,
   getHouses,
@@ -20,14 +19,43 @@ const Home = () => {
   const [isFilterLoading, setIsFilterLoading] = useState(false);
   const [noResults, setNoResults] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchKeyword, setSearchKeyword] = useState('');
   const itemsPerPage = 5;
   const { filters } = useFilter();
 
-  // Hàm xử lý lọc dữ liệu từ FilterSection
+  const handleSearch = (keyword) => {
+    setSearchKeyword(keyword);
+    setCurrentPage(1);
+
+    if (!keyword.trim()) {
+      const featuredOnly = allListings.filter((item) => item.NoiBat === 1);
+      setFilteredListings(featuredOnly);
+      setNoResults(false);
+      return;
+    }
+
+    const lowerCaseKeyword = keyword.toLowerCase();
+    
+    const results = allListings.filter(item => {
+      const matchesTitle = item.TieuDe?.toLowerCase().includes(lowerCaseKeyword);
+      const matchesDescription = item.MoTaChiTiet?.toLowerCase().includes(lowerCaseKeyword);
+      return matchesTitle || matchesDescription;
+    });
+
+    if (results.length > 0) {
+      setFilteredListings(results);
+      setNoResults(false);
+    } else {
+      setFilteredListings([]);
+      setNoResults(true);
+    }
+  };
+
   const handleApplyFilters = async (sectionFilters) => {
     setIsFilterLoading(true);
     setNoResults(false);
     setCurrentPage(1);
+    setSearchKeyword(''); 
 
     try {
       const combinedFilters = { ...filters, ...sectionFilters };
@@ -138,38 +166,36 @@ const Home = () => {
   const formattedFiltered = getPaginatedData();
   useEffect(() => {
     const applyHeaderFilters = async () => {
-  if (Object.keys(filters).length > 0) {
-    setIsFilterLoading(true);
-    try {
-      const response = await getHousesWithFilter(filters);
-      if (response.data && response.data.length > 0) {
-        const featuredFromFilter = response.data.filter(
-          (item) => item.NoiBat === 1,
-        );
-        setFilteredListings(featuredFromFilter);
-        setNoResults(false);
+      setSearchKeyword(''); 
+      if (Object.keys(filters).length > 0) {
+        setIsFilterLoading(true);
+        try {
+          const response = await getHousesWithFilter(filters);
+          if (response.data && response.data.length > 0) {
+            const featuredFromFilter = response.data.filter(
+              (item) => item.NoiBat === 1,
+            );
+            setFilteredListings(featuredFromFilter);
+            setNoResults(false);
+          } else {
+            setNoResults(true);
+            setFilteredListings([]);
+          }
+        } catch (error) {
+          console.error("Lỗi khi áp dụng bộ lọc từ Header:", error);
+          setError("Có lỗi xảy ra khi lọc dữ liệu");
+        } finally {
+          setIsFilterLoading(false);
+        }
       } else {
-        setNoResults(true);
-        setFilteredListings([]);
+        const featuredOnly = allListings.filter((item) => item.NoiBat === 1);
+        setFilteredListings(featuredOnly);
+        setNoResults(false);
       }
-    } catch (error) {
-      console.error("Lỗi khi áp dụng bộ lọc từ Header:", error);
-      setError("Có lỗi xảy ra khi lọc dữ liệu");
-    } finally {
-      setIsFilterLoading(false);
-    }
-  } else {
-    // Khi không có filter từ header, vẫn chỉ hiển thị nhà nổi bật
-    const featuredOnly = allListings.filter((item) => item.NoiBat === 1);
-    setFilteredListings(featuredOnly);
-    setNoResults(false);
-  }
-};
+    };
 
     applyHeaderFilters();
   }, [filters, allListings]);
-
-  // const formattedFiltered = formatListingData(filteredListings);
 
   if (loading)
     return <div className="py-8 text-center">Đang tải dữ liệu...</div>;
@@ -184,15 +210,35 @@ const Home = () => {
           <div className="w-full md:w-2/3">
             <div className="mb-6">
               <h2 className="mb-4 text-xl font-bold">
-                {noResults ? "Không tìm thấy kết quả" : "Nhà đất nổi bật"}
+                {noResults 
+                  ? "Không tìm thấy kết quả" 
+                  : searchKeyword 
+                    ? `Kết quả tìm kiếm cho "${searchKeyword}"` 
+                    : "Nhà đất nổi bật"}
               </h2>
+
+              {/* Thanh tìm kiếm */}
+              <div className="mb-4 flex">
+                <input
+                  type="text"
+                  placeholder="Tìm kiếm theo đặc điểm nổi bật"
+                  value={searchKeyword}
+                  onChange={(e) => handleSearch(e.target.value)}
+                  className="flex-1 rounded-l border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+                <button
+                  className="rounded-r bg-purple-600 px-4 py-2 text-white hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  onClick={() => handleSearch(searchKeyword)}
+                >
+                  Tìm kiếm
+                </button>
+              </div>
 
               {isFilterLoading ? (
                 <div className="py-4 text-center">Đang tải kết quả lọc...</div>
               ) : noResults ? (
                 <div className="rounded-lg bg-yellow-100 p-4">
-                  Không tìm thấy nhà nổi bật nào phù hợp với tiêu chí lọc của
-                  bạn
+                  Không tìm thấy nhà nào phù hợp với tiêu chí tìm kiếm của bạn
                 </div>
               ) : (
                 <>

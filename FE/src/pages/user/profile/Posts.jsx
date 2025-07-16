@@ -1,4 +1,3 @@
-// Enhanced Posts.jsx with improved UI and lucide-react icons
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Building,

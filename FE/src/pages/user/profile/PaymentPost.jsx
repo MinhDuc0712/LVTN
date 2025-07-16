@@ -53,7 +53,7 @@ function PaymentPost() {
         };
       });
 
-      // Show different notifications based on post type
+    
       if (type === "vip") {
         toast.success("Thanh toán thành công! Bài đăng của bạn đã được đăng.");
       } else {
