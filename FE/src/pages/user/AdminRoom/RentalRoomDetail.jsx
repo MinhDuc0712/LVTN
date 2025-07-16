@@ -1,4 +1,9 @@
-import { createKhach, createHopDong, getRoomUserByIdAPI, getServicePrices } from "@/api/homePage";
+import {
+  createKhach,
+  createHopDong,
+  getRoomUserByIdAPI,
+  getServicePrices,
+} from "@/api/homePage";
 import {
   Camera,
   CheckCircle,
@@ -42,7 +47,6 @@ const RentalRoomDetail = () => {
   const [servicePrices, setServicePrices] = useState([]);
   const [loadingServices, setLoadingServices] = useState(true);
 
-
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -79,7 +83,9 @@ const RentalRoomDetail = () => {
     }));
   }, []);
   const getUtilityPrice = (serviceName) => {
-    const service = servicePrices.find(s => s.ten.toLowerCase().includes(serviceName));
+    const service = servicePrices.find((s) =>
+      s.ten.toLowerCase().includes(serviceName),
+    );
     return service ? formatCurrency(service.gia_tri) : "Chưa cập nhật";
   };
 
@@ -100,14 +106,14 @@ const RentalRoomDetail = () => {
     if (!servicePrices.length) return 0;
 
     return servicePrices
-      .filter(service =>
-        !["điện", "nước"].some(keyword =>
-          service.ten.toLowerCase().includes(keyword)
-        )
+      .filter(
+        (service) =>
+          !["điện", "nước"].some((keyword) =>
+            service.ten.toLowerCase().includes(keyword),
+          ),
       )
       .reduce((total, service) => total + Number(service.gia_tri), 0);
   };
-
 
   const totalServiceFee = calculateServiceFee();
   const roomPrice = Number(room?.gia) || 0;
@@ -189,7 +195,6 @@ const RentalRoomDetail = () => {
       setLoading(false);
     }
   };
-
 
   const renderStars = (rating) => {
     return [...Array(5)].map((_, i) => (
@@ -280,11 +285,11 @@ const RentalRoomDetail = () => {
           {/* Main Content */}
           <div className="space-y-8 lg:col-span-2">
             {/* Image Gallery */}
-            <div className="relative">
+           <div className="relative">
               <div className="grid h-96 grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-4">
                 {room.images && room.images.length > 0 ? (
-                  room.images.length === 1 ? (
-                    <div className="col-span-4 row-span-2">
+                  <>
+                    <div className="col-span-2 row-span-2">
                       <img
                         src={room.images[0].image_path}
                         alt="Main room"
@@ -295,9 +300,8 @@ const RentalRoomDetail = () => {
                         }
                       />
                     </div>
-                  ) : (
-                    <>
-                      <div className="col-span-2 row-span-2">
+                    {room.images.slice(1, 5).map((image, index) => (
+                      <div key={index}>
                         <img
                           src={image.image_path}
                           alt={`Room image ${index + 1}`}
@@ -326,24 +330,9 @@ const RentalRoomDetail = () => {
                             <span>Xem thêm ảnh</span>
                           </button>
                         </div>
-                      ))}
-                      {room.images.length > 4 && (
-                        <div className="relative">
-                          <img
-                            src={room.images[4]?.image_path}
-                            alt="More images"
-                            className="h-full w-full rounded-br-2xl object-cover"
-                          />
-                          <div className="bg-opacity-50 absolute inset-0 flex items-center justify-center rounded-br-2xl bg-black">
-                            <button className="flex items-center gap-2 text-white hover:underline">
-                              <Camera size={20} />
-                              <span>Xem thêm ảnh</span>
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </>
-                  )
+                      </div>
+                    )}
+                  </>
                 ) : (
                   <div className="col-span-4 row-span-2 flex items-center justify-center rounded-2xl bg-gray-100">
                     <p className="text-gray-500">Không có hình ảnh</p>
@@ -367,10 +356,11 @@ const RentalRoomDetail = () => {
                       </span>
                     </div>
                     <span
-                      className={`rounded-full px-4 py-2 text-sm font-semibold ${room.trang_thai === "trong"
-                        ? "bg-green-100 text-green-700"
-                        : "bg-red-100 text-red-700"
-                        }`}
+                      className={`rounded-full px-4 py-2 text-sm font-semibold ${
+                        room.trang_thai === "trong"
+                          ? "bg-green-100 text-green-700"
+                          : "bg-red-100 text-red-700"
+                      }`}
                     >
                       {room.trang_thai === "trong"
                         ? "✓ Có sẵn ngay"
@@ -437,7 +427,9 @@ const RentalRoomDetail = () => {
 
                 {/* Hiển thị giá điện/nước riêng */}
                 <div className="border-b border-gray-100 py-3">
-                  <p className="mb-2 text-sm font-medium text-gray-600">Giá tiện ích:</p>
+                  <p className="mb-2 text-sm font-medium text-gray-600">
+                    Giá tiện ích:
+                  </p>
                   <ul className="space-y-2 text-sm">
                     <li className="flex justify-between">
                       <span>Giá điện (mỗi kWh):</span>
@@ -455,13 +447,16 @@ const RentalRoomDetail = () => {
                 </div>
                 {!loadingServices && (
                   <div className="border-b border-gray-100 py-3">
-                    <p className="mb-2 text-sm font-medium text-gray-600">Các tiện ích khác:</p>
+                    <p className="mb-2 text-sm font-medium text-gray-600">
+                      Các tiện ích khác:
+                    </p>
                     <ul className="space-y-2 text-sm">
                       {servicePrices
-                        .filter(service =>
-                          !["điện", "nước"].some(keyword =>
-                            service.ten.toLowerCase().includes(keyword)
-                          )
+                        .filter(
+                          (service) =>
+                            !["điện", "nước"].some((keyword) =>
+                              service.ten.toLowerCase().includes(keyword),
+                            ),
                         )
                         .map((service, index) => (
                           <li key={index} className="flex justify-between">
@@ -486,7 +481,6 @@ const RentalRoomDetail = () => {
                   <span className="text-2xl font-bold text-blue-600">
                     {formatCurrency(totalInitialCost)}
                   </span>
-
                 </div>
               </div>
 
@@ -495,8 +489,11 @@ const RentalRoomDetail = () => {
                 className="mb-4 w-full transform rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 py-4 text-lg font-bold text-white shadow-lg transition-all hover:scale-105 hover:from-blue-700 hover:to-blue-800"
                 disabled={room?.trang_thai !== "trong" || loadingRoom}
               >
-                {loadingRoom ? "Đang tải..." :
-                  room?.trang_thai === "trong" ? "Đặt phòng ngay" : "Phòng không khả dụng"}
+                {loadingRoom
+                  ? "Đang tải..."
+                  : room?.trang_thai === "trong"
+                    ? "Đặt phòng ngay"
+                    : "Phòng không khả dụng"}
               </button>
 
               <div className="mb-4 text-center">
@@ -614,8 +611,6 @@ const RentalRoomDetail = () => {
             </div>
           </div>
         )}
-
-
       </div>
     </div>
   );
