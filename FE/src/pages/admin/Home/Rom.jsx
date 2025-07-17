@@ -1,9 +1,10 @@
-import { getRoomByIdAPI, getRoomsAPI } from "@/api/homePage/request";
+import { deleteRoomAPI, getRoomsAPI } from "@/api/homePage/request";
 import { useEffect, useState } from "react";
 import { FaEdit, FaSearch, FaTrash } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import "react-toastify/dist/ReactToastify.css";
 import SidebarWithNavbar from "../SidebarWithNavbar";
+import { toast } from 'react-toastify';
 export default function RoomListPage() {
   const [rooms, setRooms] = useState([]);
   const [filteredRooms, setFilteredRooms] = useState([]);
@@ -65,20 +66,27 @@ export default function RoomListPage() {
   }, [rooms, searchTerm, statusFilter, floorFilter]);
 
   const handleDelete = async (id, name) => {
-    const confirm = window.confirm(`Bạn chắc chắn muốn xoá ${name}?`);
-    if (!confirm) return;
+  const confirm = window.confirm(`Bạn chắc chắn muốn xoá ${name}?`);
+  if (!confirm) return;
 
-    try {
-      const response = await getRoomByIdAPI(id);
-      if (response.status !== 200) {
-        console.error("Không thể xoá phòng:", response.statusText);
-        return;
-      }
-      setRooms((prev) => prev.filter((r) => r.id !== id));
-    } catch (error) {
-      console.error("Lỗi khi xoá phòng:", error);
+  setRooms(prev => prev.filter(r => r.id !== id));
+
+  try {
+    const response = await deleteRoomAPI(id); 
+    if (response.status !== 200 && response.status !== 204) {
+      throw new Error("Delete failed");
     }
-  };
+    toast.success(`Đã xoá ${name} thành công`);
+  } catch (error) {
+    setRooms(prev => [...prev, rooms.find(r => r.id === id)]);
+    toast.error(
+      error.response?.data?.message || 
+      error.message || 
+      `Xoá ${name} thất bại`
+    );
+    console.error("Lỗi khi xoá phòng:", error);
+  }
+};
 
   /* ---------- fetch API ---------- */
   useEffect(() => {
@@ -110,30 +118,6 @@ export default function RoomListPage() {
 
     fetchData();
   }, []);
-// const handleDelete = async (room) => {
-//   if (!window.confirm(`Bạn chắc chắn muốn xoá phòng “${room.name}” ?`)) return;
-
-//   // Optimistic remove
-//   setRooms(prev => prev.filter(r => r.id !== room.id));
-
-//   try {
-//     const res = await deleteRoomAPI(room.id);   // ⬅️ phải trả 200/204 mới đúng
-//     if (res.status !== 200 && res.status !== 204) {
-//       throw new Error("Delete failed");         // buộc vào catch
-//     }
-//     toast.success("Đã xoá phòng thành công");
-//   } catch (err) {
-//     // Rollback UI
-//     setRooms(prev => [...prev, room]);
-//     toast.error(
-//       err.response?.data?.message
-//         || err.message
-//         || "Xoá phòng thất bại"
-//     );
-//   }
-// };
-
-
   useEffect(() => {
     let result = rooms;
     
@@ -278,7 +262,7 @@ export default function RoomListPage() {
                           </Link>
                           <button
                             className="text-red-600 hover:text-red-900 flex items-center"
-                            onClick={() => handleDelete(room)}
+                            onClick={() => handleDelete(room.id, room.name)}
                           >
                             <FaTrash className="mr-1" /> Xóa
                           </button>

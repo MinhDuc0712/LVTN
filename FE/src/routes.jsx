@@ -50,6 +50,9 @@ import AddElectric from "./pages/admin/Home/AddElectric";
 import WaterBill from "./pages/admin/Home/WaterBill";
 import ServicePriceForm from "./pages/admin/Home/AddPrice";
 import AddWater from "./pages/admin/Home/AddWater";
+import Tenant from "./pages/admin/Home/Tenant";
+import AddMoney from "./pages/admin/Home/AddMoney";
+import CollectMoney from "./pages/admin/Home/CollectMoney";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 const AppRoutes = () => {
@@ -368,6 +371,30 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute requireAuth={true} requireAdmin={true}>
             <AddWater />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/Tenant"
+        element={
+          <ProtectedRoute requireAuth={true} requireAdmin={true}>
+            <Tenant />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/AddMoney"
+        element={
+          <ProtectedRoute requireAuth={true} requireAdmin={true}>
+            <AddMoney />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/CollectMoney"
+        element={
+          <ProtectedRoute requireAuth={true} requireAdmin={true}>
+            <CollectMoney />
           </ProtectedRoute>
         }
       />

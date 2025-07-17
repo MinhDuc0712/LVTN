@@ -27,7 +27,7 @@ export default function ContractListPage() {
       const fetchData = async () => {
           try {
               const res = await getHopDong();
-              console.log('Contracts fetched:', res);
+              // console.log('Contracts fetched:', res);
               setContracts(res);
               setCurrentTenant(res);
           } catch (error) {

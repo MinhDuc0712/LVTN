@@ -1,161 +1,288 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import SidebarWithNavbar from "../SidebarWithNavbar";
-import { FaCalendarAlt, FaSave, FaTint } from "react-icons/fa";
-import { Link } from "react-router-dom";
-
-const hopDongList = [
-    { id: 1, roomName: "Phòng 101" },
-    { id: 2, roomName: "Phòng 102" },
-    { id: 3, roomName: "Phòng 201" },
-];
+import { FaCalendarAlt, FaSave } from "react-icons/fa";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  getHopDong,
+  getServicePrices,
+  createWaterBills,
+  getLastWaterReading,
+} from "@/api/homePage/request";
+import { toast } from "react-toastify";
 
 export default function CreateWaterBill() {
-    const [thang, setThang] = useState("2025-07");
-    const [donGia, setDonGia] = useState(15000);
+  const [selectedDate, setSelectedDate] = useState(
+    new Date().toISOString().split("T")[0]
+  );
+  const [donGia, setDonGia] = useState(0);
+  const [hoaDonList, setHoaDonList] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
-    const [hoaDonList, setHoaDonList] = useState(
-        hopDongList.map((hd) => ({
-            hopdong_id: hd.id,
-            roomName: hd.roomName,
-            chi_so_dau: "",
-            chi_so_cuoi: "",
-        }))
+  const formatCurrencyVND = (amount) => {
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+      minimumFractionDigits: 0,
+    }).format(amount);
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      toast.dismiss();
+      toast.info(`Đang tải dữ liệu cho ngày: ${selectedDate}`);
+      try {
+        const [hopdongs, servicePrices] = await Promise.all([
+          getHopDong(),
+          getServicePrices(),
+        ]);
+
+        const nuoc = servicePrices.find(
+          (sp) => sp.ten.toLowerCase().trim() === "nước"
+        );
+        if (nuoc) setDonGia(nuoc.gia_tri);
+
+        const hoaDonWithLastReading = await Promise.all(
+          hopdongs.map(async (hd) => {
+            try {
+              const response = await getLastWaterReading(hd.id, selectedDate);
+              return {
+                hopdong_id: hd.id,
+                roomName: hd.phong?.ten_phong || `Phòng ${hd.phong_id}`,
+                chi_so_dau: response?.chi_so_cuoi || 0,
+                chi_so_cuoi: "",
+                lastMonth: response?.thang_truoc || null,
+              };
+            } catch (error) {
+              toast.error(
+                `Lỗi khi lấy chỉ số nước phòng ${hd.phong?.ten_phong || hd.phong_id}`
+              );
+              return {
+                hopdong_id: hd.id,
+                roomName: hd.phong?.ten_phong || `Phòng ${hd.phong_id}`,
+                chi_so_dau: 0,
+                chi_so_cuoi: "",
+                lastMonth: null,
+              };
+            }
+          })
+        );
+
+        setHoaDonList(hoaDonWithLastReading);
+      } catch (error) {
+        toast.error("Không thể tải dữ liệu hợp đồng hoặc giá dịch vụ.");
+        setError("Không thể tải dữ liệu hợp đồng hoặc giá dịch vụ.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [selectedDate]);
+
+  const handleChange = (index, field, value) => {
+    const updated = [...hoaDonList];
+    updated[index][field] = value;
+    setHoaDonList(updated);
+  };
+
+  const tinhTien = (dau, cuoi) => {
+    const soNuoc = cuoi - dau;
+    return soNuoc > 0 ? soNuoc * donGia : 0;
+  };
+
+  const validateData = () => {
+    const hasEmptyFields = hoaDonList.some(
+      (item) => item.chi_so_dau === "" || item.chi_so_cuoi === ""
     );
 
-    const handleChange = (index, field, value) => {
-        const updated = [...hoaDonList];
-        updated[index][field] = value;
-        setHoaDonList(updated);
-    };
+    if (hasEmptyFields) {
+      toast.dismiss();
+      toast.warning("Vui lòng nhập đầy đủ chỉ số nước cho tất cả các phòng");
+      return false;
+    }
 
-    const tinhTien = (dau, cuoi) => {
-        const soNuoc = cuoi - dau;
-        return soNuoc > 0 ? soNuoc * donGia : 0;
-    };
+    const invalidItems = hoaDonList.filter((item) => {
+      const dau = Number(item.chi_so_dau);
+      const cuoi = Number(item.chi_so_cuoi);
+      return isNaN(dau) || isNaN(cuoi) || cuoi < dau;
+    });
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        const dataToSubmit = hoaDonList.map((item) => ({
-            hopdong_id: item.hopdong_id,
-            chi_so_dau: Number(item.chi_so_dau),
-            chi_so_cuoi: Number(item.chi_so_cuoi),
-            don_gia: Number(donGia),
-            thang,
-        }));
+    if (invalidItems.length > 0) {
+      const roomNames = invalidItems.map((item) => item.roomName).join(", ");
+      toast.dismiss();
+      toast.error(
+        `Chỉ số không hợp lệ tại: ${roomNames}\nYêu cầu: chỉ số cuối phải ≥ đầu và không âm`
+      );
+      return false;
+    }
 
-        console.log("Hóa đơn nước gửi backend:", dataToSubmit);
-        // TODO: gọi API POST /api/hoa-don-nuoc
-    };
+    return true;
+  };
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!validateData()) return;
+
+    const dataToSubmit = hoaDonList.map((item) => ({
+      hopdong_id: item.hopdong_id,
+      chi_so_dau: Number(item.chi_so_dau),
+      chi_so_cuoi: Number(item.chi_so_cuoi),
+      don_gia: tinhTien(
+        Number(item.chi_so_dau),
+        Number(item.chi_so_cuoi)
+      ),
+      ngay_tao: selectedDate,
+    }));
+
+    try {
+      setSubmitting(true);
+      const result = await createWaterBills(dataToSubmit);
+
+      if (result.success) {
+        toast.error(result.message || "Lưu hóa đơn không thành công");
+      } else {
+        
+        toast.success("Lưu hóa đơn nước thành công");
+        navigate("/admin/WaterBill");
+      }
+    } catch (error) {
+      let errorMessage = "Lỗi khi lưu hóa đơn nước";
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+      toast.error(errorMessage);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (loading) {
     return (
-        <SidebarWithNavbar>
-            <div className="container mx-auto px-4 py-8">
-                <div className="mb-6 flex items-center justify-between">
-                    <h1 className="text-2xl font-bold text-blue-800">
-                        Tạo hóa đơn nước
-                    </h1>
-                    <Link
-                        to="/admin/ElectricBill"
-                        className="text-sm text-blue-600 hover:underline"
-                    >
-                        &larr; Quay lại danh sách
-                    </Link>
-                </div>
-                <form onSubmit={handleSubmit} className="bg-white shadow rounded p-6 space-y-6">
-                    <div className="flex gap-4 flex-col md:flex-row">
-                        <div className="flex-1">
-                            <label className="block font-medium mb-1">
-                                <FaCalendarAlt className="inline mr-2" />
-                                Tháng áp dụng
-                            </label>
-                            <input
-                                type="month"
-                                value={thang}
-                                onChange={(e) => setThang(e.target.value)}
-                                className="w-full border border-gray-300 px-3 py-2 rounded"
-                                required
-                            />
-                        </div>
-                        <div className="flex-1">
-                            <label className="block font-medium mb-1">Đơn giá nước (VNĐ/m³)</label>
-                            <input
-                                type="number"
-                                value={donGia}
-                                onChange={(e) => setDonGia(e.target.value)}
-                                className="w-full border border-gray-300 px-3 py-2 rounded"
-                                required
-                            />
-                        </div>
-                    </div>
-
-                    {/* Danh sách hợp đồng */}
-                    <div className="overflow-auto">
-                        <table className="min-w-full mt-4 border">
-                            <thead className="bg-gray-100">
-                                <tr>
-                                    <th className="border px-4 py-2 text-left">Phòng</th>
-                                    <th className="border px-4 py-2 text-left">Chỉ số đầu</th>
-                                    <th className="border px-4 py-2 text-left">Chỉ số cuối</th>
-                                    <th className="border px-4 py-2 text-left">Số m³</th>
-                                    <th className="border px-4 py-2 text-left">Thành tiền (VNĐ)</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {hoaDonList.map((hd, index) => {
-                                    const soNuoc =
-                                        Number(hd.chi_so_cuoi) - Number(hd.chi_so_dau);
-                                    const thanhTien = tinhTien(
-                                        Number(hd.chi_so_dau),
-                                        Number(hd.chi_so_cuoi)
-                                    );
-                                    return (
-                                        <tr key={hd.hopdong_id}>
-                                            <td className="border px-4 py-2">{hd.roomName}</td>
-                                            <td className="border px-4 py-2">
-                                                <input
-                                                    type="number"
-                                                    className="w-full px-2 py-1 border rounded"
-                                                    value={hd.chi_so_dau}
-                                                    onChange={(e) =>
-                                                        handleChange(index, "chi_so_dau", e.target.value)
-                                                    }
-                                                    required
-                                                />
-                                            </td>
-                                            <td className="border px-4 py-2">
-                                                <input
-                                                    type="number"
-                                                    className="w-full px-2 py-1 border rounded"
-                                                    value={hd.chi_so_cuoi}
-                                                    onChange={(e) =>
-                                                        handleChange(index, "chi_so_cuoi", e.target.value)
-                                                    }
-                                                    required
-                                                />
-                                            </td>
-                                            <td className="border px-4 py-2 text-center">
-                                                {soNuoc > 0 ? soNuoc : "-"}
-                                            </td>
-                                            <td className="border px-4 py-2 text-right text-blue-600 font-medium">
-                                                {thanhTien > 0 ? thanhTien.toLocaleString() : "-"}
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div className="text-right pt-4">
-                        <button
-                            type="submit"
-                            className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center gap-2"
-                        >
-                            <FaSave /> Lưu hóa đơn nước
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </SidebarWithNavbar>
+      <SidebarWithNavbar>
+        <div className="p-6">Đang tải dữ liệu...</div>
+      </SidebarWithNavbar>
     );
+  }
+
+  if (error) {
+    return (
+      <SidebarWithNavbar>
+        <div className="p-6 text-red-600">{error}</div>
+      </SidebarWithNavbar>
+    );
+  }
+
+  return (
+    <SidebarWithNavbar>
+      <div className="container mx-auto px-4 py-8">
+        <div className="mb-6 flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-blue-800">Tạo hóa đơn nước</h1>
+          <Link
+            to="/admin/WaterBill"
+            className="text-sm text-blue-600 hover:underline"
+          >
+            &larr; Quay lại danh sách
+          </Link>
+        </div>
+        <form
+          onSubmit={handleSubmit}
+          className="bg-white shadow rounded p-6 space-y-6"
+        >
+          <div className="flex gap-4 flex-col md:flex-row">
+            <div className="flex-1">
+              <label className="block font-medium mb-1">
+                <FaCalendarAlt className="inline mr-2" />
+                Ngày tạo hóa đơn
+              </label>
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="w-full border border-gray-300 px-3 py-2 rounded"
+                required
+              />
+            </div>
+
+            <div className="flex-1">
+              <label className="block font-medium mb-1">
+                Đơn giá nước (VNĐ/m³)
+              </label>
+              <div className="w-full px-3 py-2 border border-gray-300 rounded bg-gray-100 text-gray-800 flex items-center justify-between">
+                <span>{formatCurrencyVND(donGia)}</span>
+                <span className="text-sm text-gray-500">/ 1 m³</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="overflow-auto">
+            <table className="min-w-full mt-4 border">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="border px-4 py-2 text-left">Phòng</th>
+                  <th className="border px-4 py-2 text-left">Chỉ số đầu</th>
+                  <th className="border px-4 py-2 text-left">Chỉ số cuối</th>
+                  <th className="border px-4 py-2 text-left">Số m³</th>
+                  <th className="border px-4 py-2 text-left">Thành tiền (VNĐ)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {hoaDonList.map((hd, index) => {
+                  const soNuoc =
+                    Number(hd.chi_so_cuoi) - Number(hd.chi_so_dau);
+                  const thanhTien = tinhTien(
+                    Number(hd.chi_so_dau),
+                    Number(hd.chi_so_cuoi)
+                  );
+                  return (
+                    <tr key={hd.hopdong_id}>
+                      <td className="border px-4 py-2">{hd.roomName}</td>
+                      <td className="border px-4 py-2">
+                        <input
+                          type="number"
+                          className="w-full px-2 py-1 border rounded"
+                          value={hd.chi_so_dau}
+                          disabled
+                        />
+                      </td>
+                      <td className="border px-4 py-2">
+                        <input
+                          type="number"
+                          className="w-full px-2 py-1 border rounded"
+                          value={hd.chi_so_cuoi}
+                          onChange={(e) =>
+                            handleChange(index, "chi_so_cuoi", e.target.value)
+                          }
+                          required
+                        />
+                      </td>
+                      <td className="border px-4 py-2 text-center">
+                        {soNuoc > 0 ? soNuoc : "-"}
+                      </td>
+                      <td className="border px-4 py-2 text-right text-blue-600 font-medium">
+                        {thanhTien > 0 ? formatCurrencyVND(thanhTien) : "-"}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="text-right">
+            <button
+              type="submit"
+              className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center gap-2 disabled:opacity-50"
+              disabled={submitting}
+            >
+              <FaSave /> {submitting ? "Đang lưu..." : "Lưu hóa đơn"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </SidebarWithNavbar>
+  );
 }
