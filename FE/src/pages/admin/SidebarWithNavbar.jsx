@@ -19,6 +19,7 @@ import {
   FileText,
   Droplet,
   Zap,
+  UserCheck,
   CircleDollarSign
 } from "lucide-react";
 import { useState } from "react";
@@ -87,9 +88,8 @@ export default function SidebarWithNavbar({ children }) {
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
         <div
-          className={`fixed top-20 left-0 z-20 h-full w-64 space-y-4 bg-gradient-to-b from-blue-100 to-blue-300 p-4 shadow-lg transition-transform duration-300 ease-in-out md:static ${
-            sidebarOpen ? "translate-x-0" : "-translate-x-full"
-          } md:translate-x-0 md:rounded-r-3xl`}
+          className={`fixed top-20 left-0 z-20 h-full w-64 space-y-4 bg-gradient-to-b from-blue-100 to-blue-300 p-2 shadow-lg transition-transform duration-300 ease-in-out md:static ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
+            } md:translate-x-0 md:rounded-r-3xl`}
         >
           {/* User Info */}
           <div className="flex items-center gap-3 border-b border-blue-300 pb-4">
@@ -120,10 +120,18 @@ export default function SidebarWithNavbar({ children }) {
             <Link to="/admin/post">
               <SidebarItem icon={<Home />} label="Quản lý bài đăng" />
             </Link>
-            
+            <Link to="/admin/top_up">
+              <SidebarItem icon={<Wallet />} label="Quản lý nạp tiền" />
+            </Link>
+            <Link to="/admin/permissions">
+              <SidebarItem icon={<Key />} label="Quản lý quyền" />
+            </Link>
+            <Link to="/admin/users">
+              <SidebarItem icon={<Key />} label="Quản lý quyền" />
+            </Link>
             {/* Quản lý phòng thuê - Dropdown */}
             <div>
-              <button 
+              <button
                 onClick={() => setRoomManagementOpen(!roomManagementOpen)}
                 className="flex items-center w-full p-3 rounded-xl hover:bg-blue-200 transition duration-200 text-blue-900 font-medium"
               >
@@ -135,7 +143,7 @@ export default function SidebarWithNavbar({ children }) {
                   </svg>
                 </span>
               </button>
-              
+
               {roomManagementOpen && (
                 <div className="ml-8 mt-1 space-y-1">
                   <Link to="/admin/Room">
@@ -147,6 +155,9 @@ export default function SidebarWithNavbar({ children }) {
                   <Link to="/admin/Contracts">
                     <SidebarItem icon={<FileText />} label="Hợp đồng" />
                   </Link>
+                  <Link to="/admin/Tenant">
+                    <SidebarItem icon={<UserCheck />} label="Quản lý khách hàng" />
+                  </Link>
                   <Link to="/admin/Price">
                     <SidebarItem icon={<CircleDollarSign />} label="Giá dịch vụ" />
                   </Link>
@@ -156,30 +167,14 @@ export default function SidebarWithNavbar({ children }) {
                   <Link to="/admin/WaterBill">
                     <SidebarItem icon={<Droplet />} label="Hóa đơn nước" />
                   </Link>
-                  <Link to="/admin/rent-bills">
+                  <Link to="/admin/CollectMoney">
                     <SidebarItem icon={<CreditCard />} label="Hóa đơn tiền nhà" />
                   </Link>
                 </div>
               )}
             </div>
-
-            <Link to="/admin/top_up">
-              <SidebarItem icon={<Wallet />} label="Quản lý nạp tiền" />
-            </Link>
-            
-            {/* Quản lý quyền */}
-            <Link to="/admin/permissions">
-              <SidebarItem icon={<Key />} label="Quản lý quyền" />
-            </Link>
-{/*             
-            <Link to="/admin/reviews">
-              <SidebarItem icon={<Star />} label="Quản lý đánh giá" />
-            </Link> */}
-            <Link to="/admin/users">
-              <SidebarItem icon={<Users />} label="Quản lý người dùng" />
-            </Link>
           </nav>
-          
+
           {/* Logout */}
           <div className="border-t border-blue-300 pt-4">
             <button

@@ -486,7 +486,7 @@ export const createHopDong = async (data) => {
 
 export const getHopDong = async () => {
   const response = await axiosAdmin.get("/hopdong");
-  return response;
+  return response.data;
 }
 
 export const getServicePrices = async () => {
@@ -512,4 +512,66 @@ export const deleteServicePrice = async (id) => {
 export const getServicePriceDetail = async (id) => {
   const response = await axiosAdmin.get(`/giadichvu/${id}`);
   return response.data;
+};
+// hóa đơn điện 
+export const createElectricBills = async (data) => {
+  const response = await axiosAdmin.post('/electric-bills', data);
+  return response.data;
+};
+export const getElectricBills = async () => {
+  const { data } = await axiosAdmin.get('/electric-bills');
+  return data; 
+};
+
+export const toggleElectricBillStatus = async (id) => {
+  const response = await axiosAdmin.put(`/electric-bills/${id}/toggle-status`);
+  return response.data;
+};
+
+export const getLastElectricReading = async (hopdong_id, ngayTao) => {
+  try {
+    const response = await axiosAdmin.get(`/electric/last-reading/${hopdong_id}`, {
+      params: { 
+        thang: ngayTao
+      }
+    });
+    
+    return {
+      chi_so_cuoi: response.data?.data?.chi_so_cuoi || response.data?.chi_so_cuoi || 0,
+      thang_truoc: response.data?.data?.thang_truoc || response.data?.thang_truoc || null
+    };
+  } catch (error) {
+    throw error;
+  }
+};
+// hóa đơn nước 
+export const createWaterBills = async (data) => {
+  const response = await axiosAdmin.post('/water-bills', data);
+  return response.data;
+};
+export const getWaterBills = async () => {
+  const { data } = await axiosAdmin.get('/water-bills');
+  return data; 
+};
+
+export const toggleWaterStatus = async (id) => {
+  const response = await axiosAdmin.put(`/water/${id}/toggle-status`);
+  return response.data;
+};
+
+export const getLastWaterReading = async (hopdong_id, ngayTao) => {
+  try {
+    const response = await axiosAdmin.get(`/water/last-reading/${hopdong_id}`, {
+      params: { 
+        thang: ngayTao
+      }
+    });
+    
+    return {
+      chi_so_cuoi: response.data?.data?.chi_so_cuoi || response.data?.chi_so_cuoi || 0,
+      thang_truoc: response.data?.data?.thang_truoc || response.data?.thang_truoc || null
+    };
+  } catch (error) {
+    throw error;
+  }
 };

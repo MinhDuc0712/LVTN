@@ -22,6 +22,7 @@ export default function ContractListPage() {
   const [itemsPerPage] = useState(5);
 
   useEffect(() => {
+
     const fetchData = async () => {
       try {
         const res = await getHopDong();
