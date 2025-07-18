@@ -279,7 +279,7 @@ function PaymentPost() {
             <div className="mt-6 flex justify-between gap-4">
               <Link
                 className="flex w-1/2 items-center justify-center gap-2 rounded-xl bg-gray-300 px-6 py-3 font-medium text-black transition hover:bg-gray-400"
-                to="/post"
+                to={`/post/${post.id}`}
               >
                 <span className="text-lg"><FaArrowLeft/></span> Quay lại
               </Link>

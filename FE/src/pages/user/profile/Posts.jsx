@@ -16,16 +16,12 @@ import {
   MapPin,
   RotateCcw,
   Sparkles,
-  X
+  X,
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
 import { Link } from "react-router-dom";
-import {
-  getUserHouses,
-  hideHouse,
-  relistHouse,
-} from "@/api/homePage/request";
+import { getUserHouses, hideHouse, relistHouse } from "@/api/homePage/request";
 import Sidebar from "./Sidebar";
 function Posts() {
   const [activeTab, setActiveTab] = useState("all");
@@ -41,6 +37,23 @@ function Posts() {
   });
   const [paymentMode, setPaymentMode] = useState("new");
 
+  const formatCurrency = (value) => {
+    const number = Number(value);
+
+    if (number >= 1_000_000_000_000) {
+      return `${(number / 1_000_000_000_000_000_000_000_000)} tỷ/tháng`;
+    }
+
+    if (number < 1_000_000) {
+      return `${number.toLocaleString("vi-VN")} đồng/tháng`;
+    } else {
+      const millions = number / 1_000_000;
+      const display = Number.isInteger(millions)
+        ? millions.toLocaleString("vi-VN")
+        : millions.toFixed(1).replace(".", ",");
+      return `${display} triệu/tháng`;
+    }
+  };
   const handleHidePost = (post) => {
     setSelectedPost(post);
     setShowHideModal(true);
@@ -91,7 +104,7 @@ function Posts() {
     image: house.images?.[0]?.DuongDanHinh || "/default.jpg",
     label: house.category?.name || "Khác",
     title: house.TieuDe,
-    price: `${Number(house.Gia).toLocaleString()} VND / tháng`,
+    price: formatCurrency(Number(house.Gia)),
     startDate: house.NgayDang || "---",
     endDate: house.NgayHetHan || "---",
     status: house.TrangThai,
@@ -380,7 +393,7 @@ function Posts() {
                     >
                       <td className="p-4">
                         <div className="rounded-lg bg-gray-50 px-3 py-2 text-center font-bold text-gray-800">
-                          #{post.id}
+                          {post.id}
                         </div>
                       </td>
                       <td className="p-4">
@@ -392,22 +405,19 @@ function Posts() {
                           />
                         </div>
                       </td>
-                      <td className="p-4">
+                      <td className="p-6">
                         <div className="flex flex-col gap-3">
                           <span
                             className={`w-fit rounded-full px-3 py-1.5 text-xs font-semibold text-white shadow-sm ${categoryColors[post.label] || "bg-gradient-to-r from-blue-500 to-blue-600"}`}
                           >
                             {post.label}
                           </span>
-                          <a
-                            href="#"
-                            className="line-clamp-2 text-sm font-semibold text-gray-800 transition-colors duration-200 hover:text-blue-600"
-                          >
+                          <span className="line-clamp-2 max-w-[250px] text-sm font-semibold break-words text-gray-800 transition-colors duration-200 hover:text-blue-600">
                             {post.title}
-                          </a>
+                          </span>
                         </div>
                       </td>
-                      <td className="p-4">
+                      <td className="p-6">
                         <div className="rounded-lg border border-green-200 bg-green-50 px-3 py-2 font-bold text-green-700">
                           {post.price}
                         </div>
