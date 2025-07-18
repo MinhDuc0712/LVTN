@@ -200,6 +200,16 @@ function UserPost() {
       return;
     }
 
+    if (formData.Gia < 100000) {
+      toast.error("Giá không được nhỏ hơn 100.000đ");
+      return;
+    }
+
+    if (formData.Gia > 10000000000) {
+      toast.error("Giá không được lớn hơn 10.000.000.000đ");
+      return;
+    }
+
     if (formData.MoTaChiTiet.length < 50) {
       toast.error("Mô tả chi tiết phải có ít nhất 50 ký tự");
       return;

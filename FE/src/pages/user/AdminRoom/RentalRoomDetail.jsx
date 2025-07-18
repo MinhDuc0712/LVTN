@@ -19,6 +19,7 @@ import {
   Zap,
 } from "lucide-react";
 import { useState, useEffect } from "react";
+import { toast } from "react-toastify";
 import { Link, useParams } from "react-router-dom";
 
 const amenities = [
@@ -127,18 +128,37 @@ const RentalRoomDetail = () => {
     }));
   };
 
+  const validateForm = () => {
+    const phoneRegex = /^(0[3|5|7|8|9])+([0-9]{8})$/;
+    const cmndRegex = /^[0-9]{9,12}$/;
+
+    if (!formData.ho_ten.trim()) {
+      toast.error("Vui lòng nhập họ tên.");
+      return false;
+    }
+    if (!formData.cmnd.trim() || !cmndRegex.test(formData.cmnd)) {
+      toast.error("CMND/CCCD phải có từ 9 đến 12 chữ số.");
+      return false;
+    }
+    if (!formData.sdt.trim() || !phoneRegex.test(formData.sdt)) {
+      toast.error("Số điện thoại không hợp lệ.");
+      return false;
+    }
+    if (formData.email && !/\S+@\S+\.\S+/.test(formData.email)) {
+      toast.error("Email không hợp lệ.");
+      return false;
+    }
+    if (!formData.startDate) {
+      toast.error("Vui lòng chọn ngày bắt đầu thuê.");
+      return false;
+    }
+    return true;
+  };
+
   const handleSubmitContract = async (e) => {
     e.preventDefault();
 
-    if (
-      !formData.ho_ten ||
-      !formData.sdt ||
-      !formData.cmnd ||
-      !formData.startDate
-    ) {
-      alert("Vui lòng điền đầy đủ thông tin bắt buộc.");
-      return;
-    }
+    if (!validateForm()) return;
 
     try {
       setLoading(true);
@@ -174,7 +194,7 @@ const RentalRoomDetail = () => {
 
       await createHopDong(hopDongPayload);
 
-      alert("Đăng ký thuê phòng thành công!");
+      toast.success("Đăng ký thuê phòng thành công!");
       setShowContractModal(false);
       setFormData({
         ho_ten: "",
@@ -186,11 +206,22 @@ const RentalRoomDetail = () => {
         termsAgreed: false,
       });
     } catch (error) {
-      const errorMessage = error.response?.data?.errors
-        ? Object.values(error.response.data.errors).flat().join(", ")
-        : error.message;
-      console.error("Lỗi tạo hợp đồng:", errorMessage);
-      alert(`Không thể đăng ký thuê phòng: ${errorMessage}`);
+      const errors = error.response?.data?.errors;
+
+      if (errors) {
+        if (errors.cmnd?.[0]?.includes("taken")) {
+          toast.error("Số CMND/CCCD đã được sử dụng.");
+        } else if (errors.sdt?.[0]?.includes("taken")) {
+          toast.error("Số điện thoại đã tồn tại.");
+        } else if (errors.email?.[0]?.includes("taken")) {
+          toast.error("Email đã tồn tại.");
+        } else {
+          toast.error(`Lỗi: ${error.message}`);
+        }
+      } else {
+        toast.error(`Đăng ký thất bại: ${error.message}`);
+      }
+      console.error("Lỗi tạo hợp đồng:", error);
     } finally {
       setLoading(false);
     }
@@ -285,7 +316,7 @@ const RentalRoomDetail = () => {
           {/* Main Content */}
           <div className="space-y-8 lg:col-span-2">
             {/* Image Gallery */}
-           <div className="relative">
+            <div className="relative">
               <div className="grid h-96 grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-4">
                 {room.images && room.images.length > 0 ? (
                   <>
@@ -295,8 +326,8 @@ const RentalRoomDetail = () => {
                         alt="Main room"
                         className="h-full w-full rounded-l-2xl object-cover"
                         onError={(e) =>
-                        (e.target.src =
-                          "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=600&h=400&fit=crop")
+                          (e.target.src =
+                            "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=600&h=400&fit=crop")
                         }
                       />
                     </div>
@@ -307,8 +338,8 @@ const RentalRoomDetail = () => {
                           alt={`Room image ${index + 1}`}
                           className="h-full w-full object-cover"
                           onError={(e) =>
-                          (e.target.src =
-                            "https://images.unsplash.com/photo-1513694203232-719a280e022f?w=300&h=200&fit=crop")
+                            (e.target.src =
+                              "https://images.unsplash.com/photo-1513694203232-719a280e022f?w=300&h=200&fit=crop")
                           }
                         />
                       </div>
@@ -320,8 +351,8 @@ const RentalRoomDetail = () => {
                           alt="More images"
                           className="h-full w-full rounded-br-2xl object-cover"
                           onError={(e) =>
-                          (e.target.src =
-                            "https://images.unsplash.com/photo-1560185007-cde436f6a4d0?w=300&h=200&fit=crop")
+                            (e.target.src =
+                              "https://images.unsplash.com/photo-1560185007-cde436f6a4d0?w=300&h=200&fit=crop")
                           }
                         />
                         <div className="bg-opacity-50 absolute inset-0 flex items-center justify-center rounded-br-2xl bg-black">

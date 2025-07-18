@@ -59,7 +59,7 @@ const PostModeration = () => {
           }
 
           const response = await getAllHousesForAdmin(params);
-          console.log("Response data:", response);
+          // console.log("Response data:", response);
           const housesData = Array.isArray(response.data) ? response.data : [];
 
           allData = [...allData, ...housesData];
