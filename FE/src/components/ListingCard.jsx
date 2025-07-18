@@ -8,7 +8,14 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 
-const formatnumber = (num) => new Intl.NumberFormat("vi-VN").format(num);
+const formatnumber = (number) => {
+  if (number < 1_000_000) {
+    return `${number.toLocaleString("vi-VN")} đồng/tháng`; ;
+  } else {
+    const trieu = number / 1_000_000;
+    return trieu % 1 === 0 ? `${trieu} triệu/tháng` : `${trieu.toFixed(1)} triệu/tháng`;
+  }
+};
 
 const getDistrictAndCity = (address) => {
   if (!address) return { district: "", city: "" };
@@ -148,7 +155,7 @@ const ListingCard = ({ listings }) => {
                 {listing.title}
               </Link>
               <div className="mb-2 text-2xl font-bold text-amber-600">
-                {formatnumber(listing.price)} triệu/tháng
+                {formatnumber(listing.price)}
               </div>
               <div className="mb-2 flex gap-4 text-sm text-gray-600">
                 <div className="flex items-center gap-1">

@@ -208,6 +208,27 @@ export const changePasswordAPI = async (data) => {
   }
 };
 
+export const getRoleAPI = async () => {
+  const response = await axiosAdmin.get("/roles");
+  console.log("getRoleAPI response:", response);
+  return response;
+}; 
+
+export const postRoleAPI = async (data) => {
+  const response = await axiosAdmin.post("/roles", data);
+  return response;
+};
+
+export const updateRoleAPI = async (id, data) => {
+  const response = await axiosAdmin.put(`/roles/${id}`, data);
+  return response;
+};
+
+export const deleteRoleAPI = async (id) => {
+  const response = await axiosAdmin.delete(`/roles/${id}`);
+  return response;
+};
+
 // API thêm house
 export const postHouseAPI = async (data) => {
   const response = await axiosUser.post("/houses", data);
@@ -393,8 +414,11 @@ export const fetchDashboardStats = async () => {
   return res;
 };
 
-export const fetchChartData = async () => {
-  const res = await axiosAdmin.get("/dashboard-charts");
+export const fetchChartData = async (filter) => {
+  const res = await axiosAdmin.get(`/dashboard-charts`, {
+    params: { filter },
+  });
+  
   // console.log("Chart data:", res);
   return res;
 };

@@ -1,4 +1,9 @@
-import { createKhach, createHopDong, getRoomUserByIdAPI, getServicePrices } from "@/api/homePage";
+import {
+  createKhach,
+  createHopDong,
+  getRoomUserByIdAPI,
+  getServicePrices,
+} from "@/api/homePage";
 import {
   Camera,
   CheckCircle,
@@ -14,7 +19,8 @@ import {
   Zap,
 } from "lucide-react";
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { toast } from "react-toastify";
+import { Link, useParams } from "react-router-dom";
 
 const amenities = [
   { icon: Wind, name: "Điều hòa" },
@@ -42,7 +48,6 @@ const RentalRoomDetail = () => {
   const [servicePrices, setServicePrices] = useState([]);
   const [loadingServices, setLoadingServices] = useState(true);
 
-
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -65,8 +70,23 @@ const RentalRoomDetail = () => {
     fetchData();
   }, [phongId]);
 
+  const getLocalToday = () => {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, "0");
+    const dd = String(today.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  };
+  useEffect(() => {
+    setFormData((prev) => ({
+      ...prev,
+      startDate: getLocalToday(),
+    }));
+  }, []);
   const getUtilityPrice = (serviceName) => {
-    const service = servicePrices.find(s => s.ten.toLowerCase().includes(serviceName));
+    const service = servicePrices.find((s) =>
+      s.ten.toLowerCase().includes(serviceName),
+    );
     return service ? formatCurrency(service.gia_tri) : "Chưa cập nhật";
   };
 
@@ -87,14 +107,14 @@ const RentalRoomDetail = () => {
     if (!servicePrices.length) return 0;
 
     return servicePrices
-      .filter(service =>
-        !["điện", "nước"].some(keyword =>
-          service.ten.toLowerCase().includes(keyword)
-        )
+      .filter(
+        (service) =>
+          !["điện", "nước"].some((keyword) =>
+            service.ten.toLowerCase().includes(keyword),
+          ),
       )
       .reduce((total, service) => total + Number(service.gia_tri), 0);
   };
-
 
   const totalServiceFee = calculateServiceFee();
   const roomPrice = Number(room?.gia) || 0;
@@ -108,18 +128,37 @@ const RentalRoomDetail = () => {
     }));
   };
 
+  const validateForm = () => {
+    const phoneRegex = /^(0[3|5|7|8|9])+([0-9]{8})$/;
+    const cmndRegex = /^[0-9]{9,12}$/;
+
+    if (!formData.ho_ten.trim()) {
+      toast.error("Vui lòng nhập họ tên.");
+      return false;
+    }
+    if (!formData.cmnd.trim() || !cmndRegex.test(formData.cmnd)) {
+      toast.error("CMND/CCCD phải có từ 9 đến 12 chữ số.");
+      return false;
+    }
+    if (!formData.sdt.trim() || !phoneRegex.test(formData.sdt)) {
+      toast.error("Số điện thoại không hợp lệ.");
+      return false;
+    }
+    if (formData.email && !/\S+@\S+\.\S+/.test(formData.email)) {
+      toast.error("Email không hợp lệ.");
+      return false;
+    }
+    if (!formData.startDate) {
+      toast.error("Vui lòng chọn ngày bắt đầu thuê.");
+      return false;
+    }
+    return true;
+  };
+
   const handleSubmitContract = async (e) => {
     e.preventDefault();
 
-    if (
-      !formData.ho_ten ||
-      !formData.sdt ||
-      !formData.cmnd ||
-      !formData.startDate
-    ) {
-      alert("Vui lòng điền đầy đủ thông tin bắt buộc.");
-      return;
-    }
+    if (!validateForm()) return;
 
     try {
       setLoading(true);
@@ -155,7 +194,7 @@ const RentalRoomDetail = () => {
 
       await createHopDong(hopDongPayload);
 
-      alert("Đăng ký thuê phòng thành công!");
+      toast.success("Đăng ký thuê phòng thành công!");
       setShowContractModal(false);
       setFormData({
         ho_ten: "",
@@ -167,16 +206,26 @@ const RentalRoomDetail = () => {
         termsAgreed: false,
       });
     } catch (error) {
-      const errorMessage = error.response?.data?.errors
-        ? Object.values(error.response.data.errors).flat().join(", ")
-        : error.message;
-      console.error("Lỗi tạo hợp đồng:", errorMessage);
-      alert(`Không thể đăng ký thuê phòng: ${errorMessage}`);
+      const errors = error.response?.data?.errors;
+
+      if (errors) {
+        if (errors.cmnd?.[0]?.includes("taken")) {
+          toast.error("Số CMND/CCCD đã được sử dụng.");
+        } else if (errors.sdt?.[0]?.includes("taken")) {
+          toast.error("Số điện thoại đã tồn tại.");
+        } else if (errors.email?.[0]?.includes("taken")) {
+          toast.error("Email đã tồn tại.");
+        } else {
+          toast.error(`Lỗi: ${error.message}`);
+        }
+      } else {
+        toast.error(`Đăng ký thất bại: ${error.message}`);
+      }
+      console.error("Lỗi tạo hợp đồng:", error);
     } finally {
       setLoading(false);
     }
   };
-
 
   const renderStars = (rating) => {
     return [...Array(5)].map((_, i) => (
@@ -237,15 +286,18 @@ const RentalRoomDetail = () => {
         {/* Header Navigation */}
         <nav className="mb-8 flex items-center justify-between">
           <div className="text-sm text-gray-600">
-            <span className="cursor-pointer hover:text-blue-600">
+            <Link to="/" className="cursor-pointer hover:text-blue-600">
               Trang chủ
-            </span>
+            </Link>
             <span className="mx-2">/</span>
-            <span className="cursor-pointer hover:text-blue-600">
+            <Link
+              to="/RentHouse"
+              className="cursor-pointer hover:text-blue-600"
+            >
               Danh sách phòng
-            </span>
+            </Link>
             <span className="mx-2">/</span>
-            <span className="font-medium text-gray-800">Chi tiết phòng</span>
+            <span className="font-medium text-gray-800">{room?.ten_phong}</span>
           </div>
           <div className="flex gap-3">
             <button
@@ -274,8 +326,8 @@ const RentalRoomDetail = () => {
                         alt="Main room"
                         className="h-full w-full rounded-l-2xl object-cover"
                         onError={(e) =>
-                        (e.target.src =
-                          "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=600&h=400&fit=crop")
+                          (e.target.src =
+                            "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=600&h=400&fit=crop")
                         }
                       />
                     </div>
@@ -286,8 +338,8 @@ const RentalRoomDetail = () => {
                           alt={`Room image ${index + 1}`}
                           className="h-full w-full object-cover"
                           onError={(e) =>
-                          (e.target.src =
-                            "https://images.unsplash.com/photo-1513694203232-719a280e022f?w=300&h=200&fit=crop")
+                            (e.target.src =
+                              "https://images.unsplash.com/photo-1513694203232-719a280e022f?w=300&h=200&fit=crop")
                           }
                         />
                       </div>
@@ -299,8 +351,8 @@ const RentalRoomDetail = () => {
                           alt="More images"
                           className="h-full w-full rounded-br-2xl object-cover"
                           onError={(e) =>
-                          (e.target.src =
-                            "https://images.unsplash.com/photo-1560185007-cde436f6a4d0?w=300&h=200&fit=crop")
+                            (e.target.src =
+                              "https://images.unsplash.com/photo-1560185007-cde436f6a4d0?w=300&h=200&fit=crop")
                           }
                         />
                         <div className="bg-opacity-50 absolute inset-0 flex items-center justify-center rounded-br-2xl bg-black">
@@ -335,10 +387,11 @@ const RentalRoomDetail = () => {
                       </span>
                     </div>
                     <span
-                      className={`rounded-full px-4 py-2 text-sm font-semibold ${room.trang_thai === "trong"
-                        ? "bg-green-100 text-green-700"
-                        : "bg-red-100 text-red-700"
-                        }`}
+                      className={`rounded-full px-4 py-2 text-sm font-semibold ${
+                        room.trang_thai === "trong"
+                          ? "bg-green-100 text-green-700"
+                          : "bg-red-100 text-red-700"
+                      }`}
                     >
                       {room.trang_thai === "trong"
                         ? "✓ Có sẵn ngay"
@@ -405,7 +458,9 @@ const RentalRoomDetail = () => {
 
                 {/* Hiển thị giá điện/nước riêng */}
                 <div className="border-b border-gray-100 py-3">
-                  <p className="mb-2 text-sm font-medium text-gray-600">Giá tiện ích:</p>
+                  <p className="mb-2 text-sm font-medium text-gray-600">
+                    Giá tiện ích:
+                  </p>
                   <ul className="space-y-2 text-sm">
                     <li className="flex justify-between">
                       <span>Giá điện (mỗi kWh):</span>
@@ -423,13 +478,16 @@ const RentalRoomDetail = () => {
                 </div>
                 {!loadingServices && (
                   <div className="border-b border-gray-100 py-3">
-                    <p className="mb-2 text-sm font-medium text-gray-600">Các tiện ích khác:</p>
+                    <p className="mb-2 text-sm font-medium text-gray-600">
+                      Các tiện ích khác:
+                    </p>
                     <ul className="space-y-2 text-sm">
                       {servicePrices
-                        .filter(service =>
-                          !["điện", "nước"].some(keyword =>
-                            service.ten.toLowerCase().includes(keyword)
-                          )
+                        .filter(
+                          (service) =>
+                            !["điện", "nước"].some((keyword) =>
+                              service.ten.toLowerCase().includes(keyword),
+                            ),
                         )
                         .map((service, index) => (
                           <li key={index} className="flex justify-between">
@@ -454,7 +512,6 @@ const RentalRoomDetail = () => {
                   <span className="text-2xl font-bold text-blue-600">
                     {formatCurrency(totalInitialCost)}
                   </span>
-
                 </div>
               </div>
 
@@ -463,8 +520,11 @@ const RentalRoomDetail = () => {
                 className="mb-4 w-full transform rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 py-4 text-lg font-bold text-white shadow-lg transition-all hover:scale-105 hover:from-blue-700 hover:to-blue-800"
                 disabled={room?.trang_thai !== "trong" || loadingRoom}
               >
-                {loadingRoom ? "Đang tải..." :
-                  room?.trang_thai === "trong" ? "Đặt phòng ngay" : "Phòng không khả dụng"}
+                {loadingRoom
+                  ? "Đang tải..."
+                  : room?.trang_thai === "trong"
+                    ? "Đặt phòng ngay"
+                    : "Phòng không khả dụng"}
               </button>
 
               <div className="mb-4 text-center">
@@ -550,6 +610,7 @@ const RentalRoomDetail = () => {
                       required
                       value={formData.startDate}
                       onChange={handleInputChange}
+                      min={getLocalToday()}
                       className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
@@ -581,8 +642,6 @@ const RentalRoomDetail = () => {
             </div>
           </div>
         )}
-
-
       </div>
     </div>
   );

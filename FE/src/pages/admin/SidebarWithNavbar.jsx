@@ -120,21 +120,12 @@ export default function SidebarWithNavbar({ children }) {
             <Link to="/admin/post">
               <SidebarItem icon={<Home />} label="Quản lý bài đăng" />
             </Link>
-
-
-
             <Link to="/admin/top_up">
               <SidebarItem icon={<Wallet />} label="Quản lý nạp tiền" />
             </Link>
-
-            {/* Quản lý quyền */}
-            {/* <Link to="/admin/permissions">
+            <Link to="/admin/permissions">
               <SidebarItem icon={<Key />} label="Quản lý quyền" />
-            </Link> */}
-
-            {/* <Link to="/admin/reviews">
-              <SidebarItem icon={<Star />} label="Quản lý đánh giá" />
-            </Link> */}
+            </Link>
             <Link to="/admin/users">
               <SidebarItem icon={<Key />} label="Quản lý quyền" />
             </Link>
