@@ -1,16 +1,14 @@
 import {
-  createKhach,
   createHopDong,
   getRoomUserByIdAPI,
-  getServicePrices,
+  getServicePrices
 } from "@/api/homePage";
+import { useAuth } from "@/context/AuthContext";
 import {
   Camera,
   CheckCircle,
-  Heart,
   Home,
   Phone,
-  Share2,
   Star,
   Tv,
   Wifi,
@@ -18,9 +16,9 @@ import {
   X,
   Zap,
 } from "lucide-react";
-import { useState, useEffect } from "react";
-import { toast } from "react-toastify";
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const amenities = [
   { icon: Wind, name: "Điều hòa" },
@@ -32,17 +30,21 @@ const amenities = [
 ];
 
 const formatCurrency = (value) => {
-  return new Intl.NumberFormat("vi-VN", {
-    style: "currency",
-    currency: "VND",
-  }).format(value);
+  if (value < 1_000_000) {
+    return `${Math.round(value).toLocaleString("vi-VN")} đồng/tháng`;
+  } else {
+    const trieu = value / 1_000_000;
+    return trieu % 1 === 0
+      ? `${trieu} triệu/tháng`
+      : `${trieu.toFixed(1)} triệu/tháng`;
+  }
 };
 
 const RentalRoomDetail = () => {
   const [showContractModal, setShowContractModal] = useState(false);
-  const [liked, setLiked] = useState(false);
   const [loading, setLoading] = useState(false);
   const { id: phongId } = useParams();
+  const { user } = useAuth();
   const [room, setRoom] = useState(null);
   const [loadingRoom, setLoadingRoom] = useState(true);
   const [servicePrices, setServicePrices] = useState([]);
@@ -77,12 +79,7 @@ const RentalRoomDetail = () => {
     const dd = String(today.getDate()).padStart(2, "0");
     return `${yyyy}-${mm}-${dd}`;
   };
-  useEffect(() => {
-    setFormData((prev) => ({
-      ...prev,
-      startDate: getLocalToday(),
-    }));
-  }, []);
+
   const getUtilityPrice = (serviceName) => {
     const service = servicePrices.find((s) =>
       s.ten.toLowerCase().includes(serviceName),
@@ -98,10 +95,21 @@ const RentalRoomDetail = () => {
     sdt: "",
     email: "",
     cmnd: "",
-    startDate: "",
+    startDate: getLocalToday(),
     duration: "1",
     termsAgreed: false,
   });
+
+  useEffect(() => {
+    if (user) {
+      setFormData((prev) => ({
+        ...prev,
+        ho_ten: user.HoTen || "",
+        sdt: user.SDT || "",
+        email: user.Email || "",
+      }));
+    }
+  }, [user]);
 
   const calculateServiceFee = () => {
     if (!servicePrices.length) return 0;
@@ -159,22 +167,13 @@ const RentalRoomDetail = () => {
     e.preventDefault();
 
     if (!validateForm()) return;
+    if (room.trang_thai !== "trong") {
+      toast.error("Phòng không khả dụng để đặt.");
+      return;
+    }
 
     try {
       setLoading(true);
-      const resKhach = await createKhach({
-        ho_ten: formData.ho_ten,
-        sdt: formData.sdt,
-        cmnd: formData.cmnd,
-        email: formData.email || null,
-        dia_chi: "",
-      });
-
-      const khach = resKhach?.khach;
-      console.log("Khách hàng đã tạo:", khach);
-      if (!khach || !khach.id) {
-        throw new Error("Không lấy được ID khách hàng từ API.");
-      }
 
       const start = new Date(formData.startDate);
       const durationMonths = parseInt(formData.duration);
@@ -183,45 +182,60 @@ const RentalRoomDetail = () => {
 
       const hopDongPayload = {
         phong_id: phongId,
-        khach_id: khach.id,
+        cmnd: formData.cmnd.trim(),
+        MaNguoiDung: user?.MaNguoiDung || user?.id || null,
+        ho_ten: formData.ho_ten.trim(),
+        sdt: formData.sdt.trim(),
+        email: formData.email ? formData.email.trim() : null,
         ngay_bat_dau: start.toISOString().split("T")[0],
         ngay_ket_thuc: end.toISOString().split("T")[0],
-        tien_coc: room?.gia,
-        tien_thue: room?.gia,
-        chi_phi_tien_ich: 0,
+        tien_coc: room?.gia || 0,
+        tien_thue: room?.gia || 0,
+        chi_phi_tien_ich: totalServiceFee,
         ghi_chu: "",
       };
 
-      await createHopDong(hopDongPayload);
+      console.log("Sending hopDongPayload:", hopDongPayload);
+
+      const response = await createHopDong(hopDongPayload);
 
       toast.success("Đăng ký thuê phòng thành công!");
       setShowContractModal(false);
       setFormData({
-        ho_ten: "",
-        sdt: "",
-        email: "",
+        ho_ten: user?.HoTen || "",
+        sdt: user?.SDT || "",
+        email: user?.Email || "",
         cmnd: "",
-        startDate: "",
+        startDate: getLocalToday(),
         duration: "1",
         termsAgreed: false,
       });
     } catch (error) {
-      const errors = error.response?.data?.errors;
-
-      if (errors) {
-        if (errors.cmnd?.[0]?.includes("taken")) {
-          toast.error("Số CMND/CCCD đã được sử dụng.");
-        } else if (errors.sdt?.[0]?.includes("taken")) {
+      const message = error.response?.data?.message || error.message;
+      if (error.response?.data?.errors) {
+        const errors = error.response.data.errors;
+        if (errors.cmnd?.[0]?.includes("unique")) {
+          toast.error("Số CCCD/CMND đã được sử dụng.");
+        } else if (errors.sdt?.[0]?.includes("unique")) {
           toast.error("Số điện thoại đã tồn tại.");
-        } else if (errors.email?.[0]?.includes("taken")) {
+        } else if (errors.email?.[0]?.includes("unique")) {
           toast.error("Email đã tồn tại.");
+        } else if (errors.MaNguoiDung?.[0]?.includes("exists")) {
+          toast.error("Mã người dùng không hợp lệ.");
+        } else if (
+          errors.ho_ten?.[0]?.includes("khớp") ||
+          errors.sdt?.[0]?.includes("khớp")
+        ) {
+          toast.error(
+            "Thông tin họ tên hoặc số điện thoại không khớp với CMND/CCCD đã đăng ký.",
+          );
         } else {
-          toast.error(`Lỗi: ${error.message}`);
+          toast.error(`Lỗi: ${message}`);
         }
       } else {
-        toast.error(`Đăng ký thất bại: ${error.message}`);
+        toast.error(`Đăng ký thất bại: ${message}`);
       }
-      console.error("Lỗi tạo hợp đồng:", error);
+      console.error("Lỗi tạo hợp đồng:", error.response?.data || error);
     } finally {
       setLoading(false);
     }
@@ -298,17 +312,6 @@ const RentalRoomDetail = () => {
             </Link>
             <span className="mx-2">/</span>
             <span className="font-medium text-gray-800">{room?.ten_phong}</span>
-          </div>
-          <div className="flex gap-3">
-            <button
-              onClick={() => setLiked(!liked)}
-              className={`rounded-full border p-2 transition-all ${liked ? "border-red-200 bg-red-50 text-red-500" : "border-gray-200 bg-white text-gray-500 hover:bg-gray-50"}`}
-            >
-              <Heart size={20} className={liked ? "fill-current" : ""} />
-            </button>
-            <button className="rounded-full border border-gray-200 bg-white p-2 text-gray-500 transition-all hover:bg-gray-50">
-              <Share2 size={20} />
-            </button>
           </div>
         </nav>
 
@@ -405,7 +408,6 @@ const RentalRoomDetail = () => {
                   <div className="text-3xl font-bold text-blue-600">
                     {room.gia ? formatCurrency(room.gia) : "Chưa có giá"}
                   </div>
-                  <div className="text-gray-500">/ tháng</div>
                 </div>
               </div>
 
@@ -506,10 +508,10 @@ const RentalRoomDetail = () => {
                 </div>
 
                 <div className="flex items-center justify-between rounded-lg bg-blue-50 px-4 py-4">
-                  <span className="font-bold text-gray-800">
-                    Tổng chi phí ban đầu
+                  <span className="text-[20px] font-bold text-gray-800 uppercase">
+                    Tổng chi phí ban đầu:
                   </span>
-                  <span className="text-2xl font-bold text-blue-600">
+                  <span className="text-right text-[20px] font-bold text-blue-600">
                     {formatCurrency(totalInitialCost)}
                   </span>
                 </div>

@@ -1,11 +1,26 @@
-import React, { useState } from 'react';
+import {
+    AlertCircle,
+    Building2,
+    Calendar,
+    Car,
+    CheckCircle,
+    DollarSign,
+    Droplet,
+    Eye,
+    FileText,
+    Home,
+    Mail,
+    MapPin,
+    Phone,
+    Shield,
+    User,
+    Wifi,
+    Zap
+} from 'lucide-react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Sidebar from './Sidebar';
-import {
-    MapPin, Calendar, DollarSign, User, Phone, Mail, Eye,
-    FileText, AlertCircle, CheckCircle, Clock, Wifi, Car,
-    Shield, Building2, MessageCircle, Zap, Droplet, Home
-} from 'lucide-react';
+
 
 export default function HouseList() {
     const [activeItem, setActiveItem] = useState('my-rental');

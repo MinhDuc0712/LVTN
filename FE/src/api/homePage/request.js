@@ -575,3 +575,4 @@ export const getLastWaterReading = async (hopdong_id, ngayTao) => {
     throw error;
   }
 };
+
