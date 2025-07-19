@@ -57,14 +57,13 @@ export default function NapTienPage() {
     isError,
     error,
   } = useGetDepositTransactions({
-    per_page: 1000, 
+    per_page: 1000,
   });
-
 
   const depositsData = useMemo(() => {
     if (!depositsResponse) return [];
     if (Array.isArray(depositsResponse.data)) return depositsResponse.data;
-    if (Array.isArray(depositsResponse)) return depositsResponse; 
+    if (Array.isArray(depositsResponse)) return depositsResponse;
     if (depositsResponse.meta?.data) return depositsResponse.meta.data;
     return [];
   }, [depositsResponse]);
@@ -82,7 +81,7 @@ export default function NapTienPage() {
         (txn) =>
           txn.user?.HoTen?.toLowerCase().includes(q) ||
           String(txn.ma_giao_dich).toLowerCase().includes(q) ||
-          String(txn.ma_nguoi_dung).toLowerCase().includes(q)
+          String(txn.ma_nguoi_dung).toLowerCase().includes(q),
       );
     }
 
@@ -92,7 +91,7 @@ export default function NapTienPage() {
   // ---------- PAGINATION ---------- //
   const totalPages = useMemo(
     () => Math.max(1, Math.ceil(filteredData.length / itemsPerPage)),
-    [filteredData.length, itemsPerPage]
+    [filteredData.length, itemsPerPage],
   );
 
   const currentData = useMemo(() => {
@@ -116,7 +115,7 @@ export default function NapTienPage() {
   const deleteMutation = useDeleteDepositTransaction();
 
   const { data: userData, isLoading: userLoading } = useGetUserByIdentifier(
-    form.ma_nguoi_dung
+    form.ma_nguoi_dung,
   );
   useEffect(() => {
     if (userData) {
@@ -171,13 +170,15 @@ export default function NapTienPage() {
         if (formData.trang_thai === TRANSACTION_STATUS.COMPLETED) {
           await updateUserBalanceAPI(
             formData.ma_nguoi_dung,
-            formData.so_tien + formData.khuyen_mai
+            formData.so_tien + formData.khuyen_mai,
           );
         }
       } else {
         await addMutation.mutateAsync(formData);
       }
-      toast.success(editId ? "Cập nhật giao dịch thành công" : "Thêm giao dịch thành công");
+      toast.success(
+        editId ? "Cập nhật giao dịch thành công" : "Thêm giao dịch thành công",
+      );
       resetForm();
       queryClient.invalidateQueries(["depositTransactions"]);
     } catch (err) {
@@ -199,7 +200,10 @@ export default function NapTienPage() {
   };
 
   const formatCurrency = (num) =>
-    new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(num || 0);
+    new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+    }).format(num || 0);
 
   const handleDelete = async (id) => {
     if (!window.confirm("Bạn có chắc chắn muốn xóa giao dịch này?")) return;
@@ -213,32 +217,69 @@ export default function NapTienPage() {
   };
 
   // ---------- RENDER HELPERS ---------- //
-  const renderPageNumbers = () => (
+  const renderPageNumbers = () => {
+  const pageButtons = [];
+
+  if (totalPages <= 5) {
+    for (let i = 1; i <= totalPages; i++) {
+      pageButtons.push(i);
+    }
+  } else {
+    pageButtons.push(1);
+
+    if (currentPage > 3) {
+      pageButtons.push("...");
+    }
+
+    const start = Math.max(2, currentPage - 1);
+    const end = Math.min(totalPages - 1, currentPage + 1);
+
+    for (let i = start; i <= end; i++) {
+      pageButtons.push(i);
+    }
+
+    if (currentPage < totalPages - 2) {
+      pageButtons.push("...");
+    }
+
+    pageButtons.push(totalPages);
+  }
+
+  return (
     <div className="flex flex-wrap gap-1">
-      {[...Array(totalPages)].map((_, idx) => {
-        const page = idx + 1;
-        return (
+      {pageButtons.map((page, index) =>
+        page === "..." ? (
+          <span key={`ellipsis-${index}`} className="px-3 py-1 text-gray-500 text-sm">
+            ...
+          </span>
+        ) : (
           <button
-            key={page}
-            onClick={() => setCurrentPage(page)}
+            key={`page-${page}`}
+            onClick={() => {
+              setCurrentPage(page);
+              window.scrollTo({ top: 0, behavior: "smooth" }); // optional scroll to top
+            }}
             disabled={page === currentPage}
-            className={`px-3 py-1 rounded text-sm ${page === currentPage
+            className={`px-3 py-1 rounded text-sm ${
+              page === currentPage
                 ? "bg-blue-600 text-white cursor-default"
                 : "bg-white border hover:bg-gray-100"
-              }`}
+            }`}
           >
             {page}
           </button>
-        );
-      })}
+        )
+      )}
     </div>
   );
+};
+
 
   // ---------- RENDER ---------- //
   if (isError) {
     return (
       <SidebarWithNavbar>
-        <div className="text-center py-10 text-red-500">
+        <div className="py-10 text-center text-red-500">
           Lỗi khi tải dữ liệu: {error?.message || "Không xác định"}
         </div>
       </SidebarWithNavbar>
@@ -249,25 +290,25 @@ export default function NapTienPage() {
     <SidebarWithNavbar>
       <Toaster position="top-right" />
 
-      <div className="max-w-7xl mx-auto py-4 px-4">
-        <h1 className="text-2xl font-bold text-center text-blue-700 mb-6">
+      <div className="mx-auto max-w-7xl px-4 py-4">
+        <h1 className="mb-6 text-center text-2xl font-bold text-blue-700">
           Quản lý nạp tiền
         </h1>
 
         {/* ---------- SEARCH & FILTER ---------- */}
-        <div className="mb-6 flex flex-col lg:flex-row gap-4">
+        <div className="mb-6 flex flex-col gap-4 lg:flex-row">
           <input
             type="text"
             placeholder="🔍 Tìm theo tên hoặc số điện thoại..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="flex-1 border rounded-lg p-2 border-blue-300 focus:ring-2 focus:ring-blue-500"
+            className="flex-1 rounded-lg border border-blue-300 p-2 focus:ring-2 focus:ring-blue-500"
           />
 
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="border rounded-lg p-2 border-blue-300 focus:ring-2 focus:ring-blue-500"
+            className="rounded-lg border border-blue-300 p-2 focus:ring-2 focus:ring-blue-500"
           >
             <option value="Tất cả">Tất cả trạng thái</option>
             {Object.values(TRANSACTION_STATUS).map((status) => (
@@ -280,7 +321,7 @@ export default function NapTienPage() {
           <select
             value={itemsPerPage}
             onChange={(e) => setItemsPerPage(Number(e.target.value))}
-            className="px-2 py-1 border rounded"
+            className="rounded border px-2 py-1"
           >
             {ITEMS_PER_PAGE_OPTIONS.map((option) => (
               <option key={option} value={option}>
@@ -294,9 +335,11 @@ export default function NapTienPage() {
               resetForm();
               setShowForm(!showForm);
             }}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors inline-flex items-center gap-2"
+            className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
           >
-            {showForm ? "Đóng form" : (
+            {showForm ? (
+              "Đóng form"
+            ) : (
               <>
                 <FaPlus /> Thêm giao dịch
               </>
@@ -306,23 +349,23 @@ export default function NapTienPage() {
 
         {/* ---------- FORM THÊM / SỬA ---------- */}
         {showForm && (
-          <div className="bg-white rounded-xl shadow p-6 mb-6 border border-gray-200">
-            <h2 className="text-lg font-semibold text-blue-700 mb-4">
+          <div className="mb-6 rounded-xl border border-gray-200 bg-white p-6 shadow">
+            <h2 className="mb-4 text-lg font-semibold text-blue-700">
               {editId ? "Chỉnh sửa giao dịch" : "Thêm giao dịch mới"}
             </h2>
 
             <form onSubmit={handleSubmit}>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2">
                 {/* Mã người dùng / SĐT */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
                     Số điện thoại hoặc Mã người dùng *
                   </label>
                   <input
                     name="ma_nguoi_dung"
                     value={form.ma_nguoi_dung}
                     onChange={handleChange}
-                    className="w-full border rounded-lg p-2 border-blue-300 focus:ring-2 focus:ring-blue-500"
+                    className="w-full rounded-lg border border-blue-300 p-2 focus:ring-2 focus:ring-blue-500"
                     placeholder="Nhập mã người dùng hoặc SĐT"
                     required
                   />
@@ -330,20 +373,30 @@ export default function NapTienPage() {
 
                 {/* Tên người dùng */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Tên người dùng</label>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                    Tên người dùng
+                  </label>
                   <input
-                    value={userLoading ? "Đang tìm kiếm..." : form.ho_ten || "Nhập mã/SĐT để tìm kiếm"}
+                    value={
+                      userLoading
+                        ? "Đang tìm kiếm..."
+                        : form.ho_ten || "Nhập mã/SĐT để tìm kiếm"
+                    }
                     readOnly
-                    className="w-full border rounded-lg p-2 bg-gray-100 border-gray-300"
+                    className="w-full rounded-lg border border-gray-300 bg-gray-100 p-2"
                   />
                   {!userLoading && !userData && form.ma_nguoi_dung && (
-                    <p className="text-red-500 text-sm mt-1">Không tìm thấy người dùng</p>
+                    <p className="mt-1 text-sm text-red-500">
+                      Không tìm thấy người dùng
+                    </p>
                   )}
                 </div>
 
                 {/* Số tiền */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Số tiền (VND) *</label>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                    Số tiền (VND) *
+                  </label>
                   <input
                     name="so_tien"
                     value={form.so_tien}
@@ -351,7 +404,7 @@ export default function NapTienPage() {
                     type="number"
                     min="1000"
                     step="1000"
-                    className="w-full border rounded-lg p-2 border-blue-300 focus:ring-2 focus:ring-blue-500"
+                    className="w-full rounded-lg border border-blue-300 p-2 focus:ring-2 focus:ring-blue-500"
                     placeholder="Nhập số tiền"
                     required
                   />
@@ -359,26 +412,30 @@ export default function NapTienPage() {
 
                 {/* Khuyến mãi */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Khuyến mãi (%)</label>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                    Khuyến mãi (%)
+                  </label>
                   <input
                     name="khuyen_mai"
                     value={form.khuyen_mai}
                     onChange={handleChange}
                     type="number"
                     min="0"
-                    className="w-full border rounded-lg p-2 border-blue-300 focus:ring-2 focus:ring-blue-500"
+                    className="w-full rounded-lg border border-blue-300 p-2 focus:ring-2 focus:ring-blue-500"
                     placeholder="Nhập khuyến mãi"
                   />
                 </div>
 
                 {/* Phương thức */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Phương thức *</label>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                    Phương thức *
+                  </label>
                   <select
                     name="phuong_thuc"
                     value={form.phuong_thuc}
                     onChange={handleChange}
-                    className="w-full border rounded-lg p-2 border-blue-300 focus:ring-2 focus:ring-blue-500"
+                    className="w-full rounded-lg border border-blue-300 p-2 focus:ring-2 focus:ring-blue-500"
                     required
                   >
                     <option value="">Chọn phương thức</option>
@@ -392,12 +449,14 @@ export default function NapTienPage() {
 
                 {/* Trạng thái */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Trạng thái</label>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                    Trạng thái
+                  </label>
                   <select
                     name="trang_thai"
                     value={form.trang_thai}
                     onChange={handleChange}
-                    className="w-full border rounded-lg p-2 border-blue-300 focus:ring-2 focus:ring-blue-500"
+                    className="w-full rounded-lg border border-blue-300 p-2 focus:ring-2 focus:ring-blue-500"
                   >
                     {Object.values(TRANSACTION_STATUS).map((status) => (
                       <option key={status} value={status}>
@@ -412,14 +471,14 @@ export default function NapTienPage() {
                 <button
                   type="button"
                   onClick={resetForm}
-                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100"
+                  className="rounded-lg border border-gray-300 px-4 py-2 hover:bg-gray-100"
                 >
                   Hủy
                 </button>
 
                 <button
                   type="submit"
-                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors inline-flex items-center gap-2 disabled:opacity-50"
+                  className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-2 text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
                   disabled={addMutation.isLoading || updateMutation.isLoading}
                 >
                   {editId ? (
@@ -441,14 +500,14 @@ export default function NapTienPage() {
         )}
 
         {/* Bảng danh sách */}
-        <div className="bg-white rounded-xl shadow overflow-hidden border border-gray-200">
+        <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow">
           {isLoading ? (
-            <div className="text-center py-10">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+            <div className="py-10 text-center">
+              <div className="inline-block h-8 w-8 animate-spin rounded-full border-t-2 border-b-2 border-blue-500"></div>
               <p className="mt-2 text-gray-600">Đang tải dữ liệu...</p>
             </div>
           ) : !currentData || currentData.length === 0 ? (
-            <div className="text-center py-10 text-gray-600">
+            <div className="py-10 text-center text-gray-600">
               Không có giao dịch nào để hiển thị
             </div>
           ) : (
@@ -481,7 +540,7 @@ export default function NapTienPage() {
                       <th className="px-4 py-3 text-left text-xs font-bold text-blue-700 uppercase">
                         Ngày nạp
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-bold text-blue-700 uppercase">
+                      <th className="px-10 py-3 text-left text-xs font-bold text-blue-700 uppercase">
                         Trạng thái
                       </th>
                       <th className="px-4 py-3 text-center text-xs font-bold text-blue-700 uppercase">
@@ -489,44 +548,51 @@ export default function NapTienPage() {
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="divide-y divide-gray-200 bg-white">
                     {currentData.map((txn) => (
                       <tr key={txn.id}>
-                        <td className="px-4 py-4">{txn.user?.HoTen || "Không có tên"}</td>
+                        <td className="px-4 py-4">
+                          {txn.user?.HoTen || "Không có tên"}
+                        </td>
                         <td className="px-4 py-4">{txn.ma_giao_dich}</td>
                         <td className="px-4 py-4 text-amber-400">
                           {formatCurrency(txn.so_tien)}
                         </td>
-                        <td className="px-4 py-4 text-blue-600">{txn.khuyen_mai}%</td>
+                        <td className="px-4 py-4 text-blue-600">
+                          {txn.khuyen_mai}%
+                        </td>
                         <td className="px-4 py-4 text-green-600">
                           {formatCurrency(txn.thuc_nhan)}
                         </td>
                         <td className="px-4 py-4">{txn.phuong_thuc}</td>
-                        <td className="px-4 py-4">{txn.ghi_chu || "Không có ghi chú"}</td>
+                        <td className="px-4 py-4">
+                          {txn.ghi_chu || "Không có ghi chú"}
+                        </td>
                         <td className="px-4 py-4">{txn.ngay_nap}</td>
                         <td className="px-4 py-4">
                           <span
-                            className={`px-3 py-1 rounded-full text-xs font-medium ${txn.trang_thai === "Hoàn tất"
-                              ? "bg-green-100 text-green-700"
-                              : txn.trang_thai === "Đang xử lý"
-                                ? "bg-yellow-100 text-yellow-700"
-                                : "bg-red-100 text-red-700"
-                              }`}
+                            className={`rounded-full px-3 py-1 text-xs font-medium ${
+                              txn.trang_thai === "Hoàn tất"
+                                ? "bg-green-100 text-green-700"
+                                : txn.trang_thai === "Đang xử lý"
+                                  ? "bg-yellow-100 text-yellow-700"
+                                  : "bg-red-100 text-red-700"
+                            }`}
                           >
                             {txn.trang_thai}
                           </span>
                         </td>
-                        <td className="px-4 py-4 text-right space-x-2 whitespace-nowrap">
+                        <td className="space-x-2 px-4 py-4 text-right whitespace-nowrap">
                           <button
                             onClick={() => handleEdit(txn)}
-                            className="text-sm px-3 py-1 rounded bg-blue-500 text-white hover:bg-blue-600 inline-flex items-center gap-1"
+                            className="inline-flex items-center gap-1 rounded bg-blue-500 px-3 py-1 text-sm text-white hover:bg-blue-600"
                           >
                             <FaEdit /> Sửa
                           </button>
 
                           <button
                             onClick={() => handleDelete(txn.id)}
-                            className="text-sm px-3 py-1 rounded bg-red-500 text-white hover:bg-red-600 inline-flex items-center gap-1"
+                            className="inline-flex items-center gap-1 rounded bg-red-500 px-3 py-1 text-sm text-white hover:bg-red-600"
                           >
                             <FaTrash /> Xoá
                           </button>
@@ -538,17 +604,18 @@ export default function NapTienPage() {
               </div>
 
               {/* Phân trang */}
-              <div className="flex flex-col sm:flex-row justify-between items-center px-4 py-4 bg-gray-50 border-t gap-4">
+              <div className="flex flex-col items-center justify-between gap-4 border-t bg-gray-50 px-4 py-4 sm:flex-row">
                 <div className="text-sm text-gray-600">
                   Hiển thị {(currentPage - 1) * itemsPerPage + 1}-
-                  {Math.min(currentPage * itemsPerPage, filteredData.length)} trên tổng {filteredData.length}
+                  {Math.min(currentPage * itemsPerPage, filteredData.length)}{" "}
+                  trên tổng {filteredData.length}
                 </div>
 
                 <div className="flex items-center gap-4">
                   <button
                     disabled={currentPage === 1}
                     onClick={() => setCurrentPage((p) => p - 1)}
-                    className="px-3 py-1 bg-white border rounded hover:bg-gray-100 disabled:opacity-50 flex items-center justify-center"
+                    className="flex items-center justify-center rounded border bg-white px-3 py-1 hover:bg-gray-100 disabled:opacity-50"
                   >
                     <FaArrowLeft className="text-sm" />
                   </button>
@@ -558,13 +625,12 @@ export default function NapTienPage() {
                   <button
                     disabled={currentPage === totalPages}
                     onClick={() => setCurrentPage((p) => p + 1)}
-                    className="px-3 py-1 bg-white border rounded hover:bg-gray-100 disabled:opacity-50 flex items-center justify-center"
+                    className="flex items-center justify-center rounded border bg-white px-3 py-1 hover:bg-gray-100 disabled:opacity-50"
                   >
                     <FaArrowRight className="text-sm" />
                   </button>
                 </div>
               </div>
-
             </>
           )}
         </div>

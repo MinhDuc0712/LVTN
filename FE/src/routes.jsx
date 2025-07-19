@@ -54,6 +54,7 @@ import Tenant from "./pages/admin/Home/Tenant";
 import AddMoney from "./pages/admin/Home/AddMoney";
 import CollectMoney from "./pages/admin/Home/CollectMoney";
 import ProtectedRoute from "./components/ProtectedRoute";
+import Role from "./pages/admin/Role";
 
 const AppRoutes = () => {
   return (
@@ -230,6 +231,16 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
+
+          <Route
+        path="/admin/permissions"
+        element={
+          <ProtectedRoute requireAuth={true} requireAdmin={true}>
+            <Role />
+          </ProtectedRoute>
+        }
+      />
+
       <Route
         path="/admin/category"
         element={

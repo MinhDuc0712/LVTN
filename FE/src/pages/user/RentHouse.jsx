@@ -24,7 +24,7 @@ const RoomListing = () => {
     name: "Chung cư mini HOME CONVENIENT",
     address: "180 Cao Lỗ Phường 4 Quận 8 TP.HCM",
     description:
-      "Tòa nhà mới xây gồm 5 tầng, 20 phòng hiện đại, an ninh 24/7, có chỗ để xe, thang máy, gần chợ và siêu thị.",
+      `Tòa nhà mới xây gồm ${rooms?.[rooms.length-1]?.floor} tầng, ${rooms.length} phòng hiện đại, an ninh 24/7, có chỗ để xe, thang máy, gần chợ và siêu thị.`,
     image:
       "http://4.bp.blogspot.com/-l6K2NpDjDnA/VPpm87afMRI/AAAAAAAAAGc/eRP_2hZAkas/s1600/chung-cu-mini-ha-noi.jpg",
   };
@@ -47,7 +47,7 @@ const RoomListing = () => {
           amenities: [],
         }));
         setRooms(formatted);
-        console.log("Phòng đã định dạng:", formatted);
+        // console.log("Phòng đã định dạng:", formatted);
       } catch (err) {
         console.error("Lỗi tải phòng:", err);
       }
