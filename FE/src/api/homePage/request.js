@@ -551,3 +551,20 @@ export const getLastWaterReading = async (hopdong_id, ngayTao) => {
     throw error;
   }
 };
+//phieuthutien
+export const createPaymentReceipt = async (data) => {
+  const response = await axiosAdmin.post('/phieuthutien', data);
+  return response.data;
+};
+export const getPaymentReceipts = async () => {
+  const { data } = await axiosAdmin.get('/phieuthutien');
+  return data;
+};
+export const deletePaymentReceipt = async (id) => {
+  const response = await axiosAdmin.delete(`/phieuthutien/${id}`);
+  return response.data;
+};
+export const updatePaymentReceipt = async (id, data) => {
+  const res = await axiosAdmin.put(`/phieuthutien/${id}`, data);
+  return res.data;
+};

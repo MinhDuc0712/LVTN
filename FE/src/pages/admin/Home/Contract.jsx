@@ -152,6 +152,7 @@ const handleCreateInvoice = (contract) => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ngày bắt đầu</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ngày kết thúc</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tiền cọc</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Chi Phí Tiện ích</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trạng thái</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Thao tác</th>
                 </tr>
@@ -176,6 +177,8 @@ const handleCreateInvoice = (contract) => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {formatCurrency(contract.tien_coc)} VND
+                    </td><td className="px-6 py-4 whitespace-nowrap">
+                      {formatCurrency(contract.chi_phi_tien_ich)} VND
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColors[contract.phong.trang_thai]}`}>
