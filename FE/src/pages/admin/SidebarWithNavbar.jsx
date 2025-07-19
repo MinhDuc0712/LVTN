@@ -127,7 +127,7 @@ export default function SidebarWithNavbar({ children }) {
               <SidebarItem icon={<Key />} label="Quản lý quyền" />
             </Link>
             <Link to="/admin/users">
-              <SidebarItem icon={<Key />} label="Quản lý quyền" />
+              <SidebarItem icon={<Users />} label="Quản lý người dùng" />
             </Link>
             {/* Quản lý phòng thuê - Dropdown */}
             <div>
