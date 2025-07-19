@@ -1,87 +1,122 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import SidebarWithNavbar from "../SidebarWithNavbar";
-import { FaHome, FaWater, FaMoneyBillWave, FaCalculator, FaSave, FaTimes } from "react-icons/fa";
+import { FaHome, FaWater, FaMoneyBillWave, FaCalculator, FaSave, FaTimes, FaMoneyBill } from "react-icons/fa";
+import { getHopDong, createPaymentReceipt } from "@/api/homePage/request";
+import { toast } from 'react-toastify';
 
 export default function CreatePaymentInvoice() {
-  // Dữ liệu mock
-  const mockContracts = [
-    {
-      id: 1,
-      phong: { id: 101, ten_phong: "PH101" },
-      khach: { id: 1, ten_khach: "Nguyễn Văn A" },
-      tien_thue: 3000000,
-      chi_phi_dien: 500000,
-      chi_phi_nuoc: 200000
-    },
-    {
-      id: 2,
-      phong: { id: 102, ten_phong: "PH102" },
-      khach: { id: 2, ten_khach: "Trần Thị B" },
-      tien_thue: 3500000,
-      chi_phi_dien: 600000,
-      chi_phi_nuoc: 250000
-    }
-  ];
 
-  // State cho form
+  const [contracts, setContracts] = useState([]);
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     contractId: "",
-    month: "2023-10",
+    month: new Date().toISOString().slice(0, 7),
     electricBill: 0,
     waterBill: 0,
     rentAmount: 0,
     paidAmount: 0,
+    services: 0,
     note: "",
   });
 
   const [selectedContract, setSelectedContract] = useState(null);
-  const [errors, setErrors] = useState({});
+  const formatNumber = (amount) =>
+    new Intl.NumberFormat("vi-VN").format(amount);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await getHopDong();
+        setContracts(res);
+      } catch (e) {
+        console.error(e);
+        alert("Không thể tải dữ liệu hợp đồng.");
+      }
+    };
+
+    fetchData();
+  }, []);
+  useEffect(() => {
+    if (selectedContract && formData.month) {
+      const selectedMonth = formData.month;
+
+      const electricBill = selectedContract.phieudien?.find(bill => bill.thang === selectedMonth);
+      const waterBill = selectedContract.phienuoc?.find(bill => bill.thang === selectedMonth);
+
+      setFormData(prev => ({
+        ...prev,
+        electricBill: electricBill ? Number(electricBill.don_gia) : 0,
+        waterBill: waterBill ? Number(waterBill.don_gia) : 0
+      }));
+    }
+  }, [formData.month, selectedContract]);
 
   // Tính toán các giá trị
-  const totalAmount = formData.rentAmount + formData.electricBill + formData.waterBill;
+  const totalAmount = formData.rentAmount + formData.electricBill + formData.waterBill + formData.services;
   const remainingAmount = totalAmount - formData.paidAmount;
-  const isPaidFull = remainingAmount <= 0;
 
   // Xử lý thay đổi form
   const handleChange = (e) => {
     const { name, value } = e.target;
+
     setFormData(prev => ({
       ...prev,
-      [name]: name === "note" ? value : Number(value) || 0
+      [name]: name === "note" || name === "month" ? value : Number(value) || 0
     }));
   };
-
   // Khi chọn hợp đồng
   const handleContractChange = (e) => {
     const contractId = e.target.value;
-    const contract = mockContracts.find(c => c.id === parseInt(contractId));
-    
-    setFormData(prev => ({
-      ...prev,
-      contractId,
-      rentAmount: contract ? contract.tien_thue : 0,
-      electricBill: contract ? contract.chi_phi_dien : 0,
-      waterBill: contract ? contract.chi_phi_nuoc : 0,
-    }));
-    
-    setSelectedContract(contract);
+    const contract = contracts.find(c => c.id === parseInt(contractId));
+    const selectedMonth = formData.month;
+
+    if (contract) {
+      const electricBill = contract.phieudien?.find(bill => bill.thang === selectedMonth);
+      const waterBill = contract.phienuoc?.find(bill => bill.thang === selectedMonth);
+      // console.log("Tháng đang chọn:", selectedMonth);
+      // console.log("Phiếu điện tháng đó:", electricBill);
+      setFormData(prev => ({
+        ...prev,
+        contractId,
+        rentAmount: Number(contract.tien_thue) || 0,
+        electricBill: electricBill ? Number(electricBill.don_gia) : 0,
+        waterBill: waterBill ? Number(waterBill.don_gia) : 0,
+        services: Number(contract.chi_phi_tien_ich) || 0
+      }));
+
+      setSelectedContract(contract);
+    }
   };
 
-  // Format tiền
-  const formatCurrency = (amount) => 
+  const formatCurrency = (amount) =>
     new Intl.NumberFormat("vi-VN").format(amount) + " ₫";
 
-  // Xử lý submit (mock)
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    alert("Chức năng submit sẽ được triển khai sau khi kết nối API");
-    console.log("Form data:", {
-      ...formData,
-      totalAmount,
-      remainingAmount: remainingAmount > 0 ? remainingAmount : 0,
-      status: isPaidFull ? "Đã thanh toán" : "Còn nợ"
-    });
+
+    const totalAmount = formData.rentAmount + formData.electricBill + formData.waterBill + formData.services;
+    const remainingAmount = totalAmount - formData.paidAmount;
+
+    const status =
+      remainingAmount < 0 ? "Trả dư" :
+        remainingAmount > 0 ? "Còn nợ" :
+          "Đã thanh toán";
+
+    const payload = {
+      hopdong_id: Number(formData.contractId),
+      thang: formData.month,
+      so_tien: totalAmount,
+      da_thanh_toan: formData.paidAmount,
+      no: remainingAmount,
+      ngay_thu: new Date().toISOString().slice(0, 10),
+      trang_thai: status,
+      noi_dung: formData.note || ""
+    };
+    const res = await createPaymentReceipt(payload);
+    toast.success(" Tạo phiếu thu tiền thành công!");
+    setTimeout(() => {
+      navigate('/admin/CollectMoney');
+    }, 2000);
   };
 
   return (
@@ -90,7 +125,7 @@ export default function CreatePaymentInvoice() {
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-gray-800">Tạo hóa đơn thu tiền</h1>
           <Link
-            to="/admin/payment-invoices"
+            to="/admin/CollectMoney"
             className="flex items-center px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
           >
             <FaTimes className="mr-2" /> Hủy bỏ
@@ -116,9 +151,9 @@ export default function CreatePaymentInvoice() {
                       required
                     >
                       <option value="">-- Chọn hợp đồng --</option>
-                      {mockContracts.map(contract => (
+                      {contracts.map(contract => (
                         <option key={contract.id} value={contract.id}>
-                          {contract.phong.ten_phong} - {contract.khach.ten_khach}
+                          {contract.phong.ten_phong} - {contract.khach.ho_ten}
                         </option>
                       ))}
                     </select>
@@ -129,7 +164,7 @@ export default function CreatePaymentInvoice() {
                       <div className="p-3 bg-gray-50 rounded-md">
                         <p className="text-sm text-gray-500">Khách hàng</p>
                         <p className="font-medium">
-                          {selectedContract.khach.ten_khach}
+                          {selectedContract.khach.ho_ten}
                         </p>
                       </div>
                       <div className="p-3 bg-gray-50 rounded-md">
@@ -155,7 +190,7 @@ export default function CreatePaymentInvoice() {
                       <input
                         type="month"
                         name="month"
-                        value={formData.month}
+                        value={formData.month || ""}
                         onChange={handleChange}
                         className="w-full px-4 py-2 border border-gray-300 rounded-md"
                         required
@@ -165,45 +200,50 @@ export default function CreatePaymentInvoice() {
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="p-3 bg-blue-50 rounded-md border border-blue-100">
-                      <div className="flex items-center mb-1">
-                        <FaHome className="text-blue-500 mr-2" />
-                        <p className="text-sm text-gray-500">Tiền nhà</p>
+                      <div className="p-3 bg-blue-50 rounded-md  border-blue-100">
+                        <div className="flex items-center mb-1">
+                          <FaHome className="text-blue-500 mr-2" />
+                          <p className="text-sm text-gray-500">Tiền nhà</p>
+                        </div>
+                        <p className="font-medium text-gray-800">
+                          {formatCurrency(formData.rentAmount)}
+                        </p>
                       </div>
-                      <input
-                        type="number"
-                        name="rentAmount"
-                        value={formData.rentAmount}
-                        onChange={handleChange}
-                        className="w-full bg-transparent border-none p-0 font-medium text-gray-800"
-                      />
                     </div>
 
                     <div className="p-3 bg-blue-50 rounded-md border border-blue-100">
-                      <div className="flex items-center mb-1">
-                        <FaWater className="text-blue-500 mr-2" />
-                        <p className="text-sm text-gray-500">Tiền nước</p>
+                      <div className="p-3 bg-blue-50 rounded-md  border-blue-100">
+                        <div className="flex items-center mb-1">
+                          <FaWater className="text-blue-500 mr-2" />
+                          <p className="text-sm text-gray-500">Tiền nước</p>
+                        </div>
+                        <p className="font-medium text-gray-800">
+                          {formatCurrency(formData.waterBill)}
+                        </p>
                       </div>
-                      <input
-                        type="number"
-                        name="waterBill"
-                        value={formData.waterBill}
-                        onChange={handleChange}
-                        className="w-full bg-transparent border-none p-0 font-medium text-gray-800"
-                      />
                     </div>
 
                     <div className="p-3 bg-blue-50 rounded-md border border-blue-100">
-                      <div className="flex items-center mb-1">
-                        <FaCalculator className="text-blue-500 mr-2" />
-                        <p className="text-sm text-gray-500">Tiền điện</p>
+                      <div className="p-3 bg-blue-50 rounded-md  border-blue-100">
+                        <div className="flex items-center mb-1">
+                          <FaCalculator className="text-blue-500 mr-2" />
+                          <p className="text-sm text-gray-500">Tiền điện</p>
+                        </div>
+                        <p className="font-medium text-gray-800">
+                          {formatCurrency(formData.electricBill)}
+                        </p>
                       </div>
-                      <input
-                        type="number"
-                        name="electricBill"
-                        value={formData.electricBill}
-                        onChange={handleChange}
-                        className="w-full bg-transparent border-none p-0 font-medium text-gray-800"
-                      />
+                    </div>
+                    <div className="p-3 bg-blue-50 rounded-md border border-blue-100">
+                      <div className="p-3 bg-blue-50 rounded-md  border-blue-100">
+                        <div className="flex items-center mb-1">
+                          <FaMoneyBillWave className="text-blue-500 mr-2" />
+                          <p className="text-sm text-gray-500">chi phí tiện ích khác</p>
+                        </div>
+                        <p className="font-medium text-gray-800">
+                          {formatCurrency(formData.services)}
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -226,20 +266,32 @@ export default function CreatePaymentInvoice() {
                           Số tiền thanh toán <span className="text-red-500">*</span>
                         </label>
                         <input
-                          type="number"
+                          type="text"
                           name="paidAmount"
-                          value={formData.paidAmount}
-                          onChange={handleChange}
+                          value={formatNumber(formData.paidAmount)}
+                          onChange={(e) => {
+                            const raw = e.target.value.replace(/[^\d]/g, "");
+                            setFormData(prev => ({
+                              ...prev,
+                              paidAmount: Number(raw) || 0
+                            }));
+                          }}
                           className="w-full px-4 py-2 border border-gray-300 rounded-md"
                           required
                         />
                       </div>
                       <div>
-                        <p className="text-sm text-gray-500">Còn lại</p>
-                        <p className={`text-xl font-bold ${remainingAmount > 0 ? "text-red-600" : "text-green-600"}`}>
-                          {formatCurrency(remainingAmount > 0 ? remainingAmount : 0)}
+                        <p className="text-sm text-gray-500">Công nợ</p>
+                        <p
+                          className={`text-xl font-bold ${remainingAmount < 0 ? "text-green-600" : remainingAmount > 0 ? "text-red-600" : "text-gray-800"
+                            }`}
+                        >
+                          {remainingAmount !== 0
+                            ? `${remainingAmount > 0 ? "-" : "+"}${formatNumber(Math.abs(remainingAmount))} ₫`
+                            : "0 ₫"}
                         </p>
                       </div>
+
                     </div>
 
                     <div>
@@ -285,10 +337,20 @@ export default function CreatePaymentInvoice() {
                     </div>
                     <div className="flex justify-between border-t border-gray-200 pt-2">
                       <span className="font-medium">Công nợ:</span>
-                      <span className={`font-medium ${remainingAmount > 0 ? "text-red-600" : "text-green-600"}`}>
-                        {formatCurrency(remainingAmount > 0 ? remainingAmount : 0)}
+                      <span
+                        className={`font-medium ${remainingAmount < 0
+                          ? "text-green-600"
+                          : remainingAmount > 0
+                            ? "text-red-600"
+                            : "text-gray-800"
+                          }`}
+                      >
+                        {remainingAmount !== 0
+                          ? `${remainingAmount > 0 ? "-" : "+"}${formatNumber(Math.abs(remainingAmount))} ₫`
+                          : "0 ₫"}
                       </span>
                     </div>
+
                   </div>
                 </div>
               </div>

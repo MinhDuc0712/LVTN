@@ -1,97 +1,116 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import SidebarWithNavbar from "../SidebarWithNavbar";
-import { 
-  FaSearch, 
-  FaFilter, 
-  FaTimes, 
+import {
+  FaSearch,
+  FaFilter,
+  FaTimes,
   FaFileInvoiceDollar,
   FaCheckCircle,
   FaTimesCircle,
   FaEye,
-  FaPrint,
-  FaFileExport
+  FaEdit,
+  FaTrash,
+  FaMoneyBillWave
 } from "react-icons/fa";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
+import { getPaymentReceipts, deletePaymentReceipt, updatePaymentReceipt } from "@/api/homePage/request";
+import { toast } from "react-toastify";
 
 export default function PaymentInvoiceList() {
-  // Dữ liệu mock
-  const mockInvoices = [
-    {
-      id: 1,
-      ma_hoa_don: "HD202310001",
-      hopdong: {
-        phong: { ten_phong: "PH101" },
-        khach: { ten_khach: "Nguyễn Văn A" }
-      },
-      thang: "2023-10",
-      tong_tien: 3700000,
-      da_thanh_toan: 3700000,
-      con_no: 0,
-      trang_thai: "Đã thanh toán",
-      ngay_tao: "2023-10-05T10:30:00"
-    },
-    {
-      id: 2,
-      ma_hoa_don: "HD202310002",
-      hopdong: {
-        phong: { ten_phong: "PH102" },
-        khach: { ten_khach: "Trần Thị B" }
-      },
-      thang: "2023-10",
-      tong_tien: 4350000,
-      da_thanh_toan: 3000000,
-      con_no: 1350000,
-      trang_thai: "Còn nợ",
-      ngay_tao: "2023-10-06T14:15:00"
-    },
-    {
-      id: 3,
-      ma_hoa_don: "HD202309001",
-      hopdong: {
-        phong: { ten_phong: "PH201" },
-        khach: { ten_khach: "Lê Văn C" }
-      },
-      thang: "2023-09",
-      tong_tien: 4200000,
-      da_thanh_toan: 4200000,
-      con_no: 0,
-      trang_thai: "Đã thanh toán",
-      ngay_tao: "2023-09-05T09:20:00"
-    }
-  ];
+  const [invoices, setInvoices] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [paymentStatus, setPaymentStatus] = useState('partial');
 
-  // State cho bộ lọc
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
   const [filterMonth, setFilterMonth] = useState("");
   const [showFilters, setShowFilters] = useState(false);
 
-  // Format tiền tệ
-  const formatCurrency = (amount) => 
-    new Intl.NumberFormat("vi-VN").format(amount) + " ₫";
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
 
-  // Format ngày tháng
-  const formatDate = (dateString) => 
-    format(new Date(dateString), "dd/MM/yyyy HH:mm", { locale: vi });
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [selectedInvoice, setSelectedInvoice] = useState(null);
+  const [paymentAmount, setPaymentAmount] = useState(0);
 
-  // Lọc hóa đơn
-  const filteredInvoices = mockInvoices.filter((invoice) => {
-    const room = invoice.hopdong.phong.ten_phong.toLowerCase();
-    const customer = invoice.hopdong.khach.ten_khach.toLowerCase();
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchInvoices = async () => {
+      try {
+        const data = await getPaymentReceipts();
+        if (isMounted) {
+          setInvoices(Array.isArray(data) ? data : []);
+        }
+      } catch (err) {
+        if (isMounted) {
+          setError(err.message);
+          setInvoices([]);
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchInvoices();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+  useEffect(() => {
+    if (!selectedInvoice) return;
+    const debt = selectedInvoice.no;
+
+    if (paymentAmount === debt) {
+      setPaymentStatus('full');
+    } else if (paymentAmount < debt) {
+      setPaymentStatus('partial');
+    } else if (paymentAmount > debt) {
+      setPaymentStatus('over');
+    }
+  }, [paymentAmount, selectedInvoice]);
+
+  // Format currency
+  const formatCurrency = (amount) => {
+    const numericValue = typeof amount === 'string'
+      ? parseFloat(amount.replace(/[^\d.-]/g, ''))
+      : Number(amount);
+
+    return isNaN(numericValue)
+      ? '0 ₫'
+      : new Intl.NumberFormat("vi-VN").format(numericValue) + " ₫";
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      return 'N/A';
+    }
+    return format(date, "dd/MM/yyyy HH:mm", { locale: vi });
+  };
+
+  // Filter invoices
+  const filteredInvoices = invoices.filter((invoice) => {
+    const room = invoice.hopdong?.phong?.ten_phong?.toLowerCase() || '';
+    const customer = invoice.hopdong?.khach?.ho_ten?.toLowerCase() || '';
     const searchLower = searchTerm.toLowerCase();
-    
     const matchSearch =
       searchTerm === "" ||
       room.includes(searchLower) ||
       customer.includes(searchLower) ||
-      invoice.ma_hoa_don.toLowerCase().includes(searchLower);
-    
-    const matchStatus = filterStatus 
-      ? invoice.trang_thai.toLowerCase() === filterStatus.toLowerCase()
+      invoice.ma_hoa_don?.toLowerCase().includes(searchLower);
+
+    const matchStatus = filterStatus
+      ? invoice.trang_thai?.toLowerCase() === filterStatus.toLowerCase()
       : true;
-    
+
     const matchMonth = filterMonth
       ? invoice.thang === filterMonth
       : true;
@@ -99,21 +118,133 @@ export default function PaymentInvoiceList() {
     return matchSearch && matchStatus && matchMonth;
   });
 
-  const availableMonths = [...new Set(mockInvoices.map(invoice => invoice.thang))].sort((a, b) => {
-    return new Date(b) - new Date(a); 
+  // Pagination logic
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredInvoices.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredInvoices.length / itemsPerPage);
+
+  const availableMonths = [...new Set(invoices.map(invoice => invoice.thang))].sort((a, b) => {
+    return new Date(b) - new Date(a);
   });
 
   const statusBadge = (status) => {
-    return status === "Đã thanh toán" ? (
-      <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-        <FaCheckCircle className="text-green-500" /> {status}
-      </span>
-    ) : (
-      <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
-        <FaTimesCircle className="text-red-500" /> {status}
+    let bgColor = "";
+    let textColor = "";
+    let icon = null;
+
+    switch (status) {
+      case "Đã thanh toán":
+        bgColor = "bg-green-100";
+        textColor = "text-green-800";
+        icon = <FaCheckCircle className="text-green-500" />;
+        break;
+      case "Còn nợ":
+        bgColor = "bg-red-100";
+        textColor = "text-red-800";
+        icon = <FaTimesCircle className="text-red-500" />;
+        break;
+      case "Trả dư":
+        bgColor = "bg-yellow-100";
+        textColor = "text-yellow-800";
+        icon = <FaMoneyBillWave className="text-yellow-500" />;
+        break;
+      default:
+        bgColor = "bg-gray-100";
+        textColor = "text-gray-800";
+        icon = null;
+        break;
+    }
+
+    return (
+      <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-full ${bgColor} ${textColor}`}>
+        {icon} {status}
       </span>
     );
   };
+
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  const handleEditClick = (invoice) => {
+    setSelectedInvoice(invoice);
+    setPaymentAmount(invoice.con_no);
+    setShowPaymentModal(true);
+  };
+  const formatDateTimeForMySQL = (date) => {
+    const d = new Date(date);
+    const pad = (n) => (n < 10 ? "0" + n : n);
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  };
+
+  const handlePaymentSubmit = async () => {
+    let trangThai = "";
+    if (paymentStatus === "full") {
+      trangThai = "Đã thanh toán";
+    } else if (paymentStatus === "partial") {
+      trangThai = "Còn nợ";
+    } else if (paymentStatus === "over") {
+      trangThai = "Trả dư";
+    }
+    const now = formatDateTimeForMySQL(new Date());
+
+    const data = {
+      da_thanh_toan: Number(selectedInvoice.da_thanh_toan) + Number(paymentAmount),
+      no: Number(selectedInvoice.no) - Number(paymentAmount),
+      trang_thai: trangThai,
+      ngay_thu: now,
+    };
+
+    try {
+      await updatePaymentReceipt(selectedInvoice.id, data);
+      toast.success(`Đã thanh toán ${formatCurrency(paymentAmount)} cho hóa đơn ${selectedInvoice.ma_hoa_don}`);
+      setShowPaymentModal(false);
+    } catch (error) {
+      console.error("🛑 Lỗi:", error.response?.data || error.message);
+      toast.error("Thanh toán thất bại!");
+    }
+  };
+
+
+
+  const handleDelete = async (invoiceId) => {
+    if (window.confirm("Bạn có chắc chắn muốn xóa hóa đơn này?")) {
+      try {
+        await deletePaymentReceipt(invoiceId);
+        setInvoices((prev) => prev.filter((invoice) => invoice.id !== invoiceId));
+        toast.success(`Đã xóa hóa đơn ${invoiceId}`);
+      } catch (error) {
+        toast.error("Xóa hóa đơn thất bại. Vui lòng thử lại.");
+        console.error("Lỗi khi xóa:", error);
+      }
+    }
+  };
+
+  if (loading) {
+    return (
+      <SidebarWithNavbar>
+        <div className="container mx-auto px-4 py-6">
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+          </div>
+        </div>
+      </SidebarWithNavbar>
+    );
+  }
+
+  if (error) {
+    return (
+      <SidebarWithNavbar>
+        <div className="container mx-auto px-4 py-6">
+          <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4">
+            <p>{error}</p>
+          </div>
+        </div>
+      </SidebarWithNavbar>
+    );
+  }
 
   return (
     <SidebarWithNavbar>
@@ -195,6 +326,7 @@ export default function PaymentInvoiceList() {
                 <option value="">Tất cả trạng thái</option>
                 <option value="Đã thanh toán">Đã thanh toán</option>
                 <option value="Còn nợ">Còn nợ</option>
+                <option value="Trả dư">Trả dư</option>
               </select>
             </div>
             <div className="flex justify-end mt-4">
@@ -231,103 +363,292 @@ export default function PaymentInvoiceList() {
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Mã HĐ
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Phòng
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Khách hàng
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Tháng
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Tổng tiền
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Đã thanh toán
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Còn nợ
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Trạng thái
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Ngày tạo
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Thao tác
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredInvoices.map((invoice) => (
-                    <tr key={invoice.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {invoice.ma_hoa_don}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {invoice.hopdong.phong.ten_phong}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {invoice.hopdong.khach.ten_khach}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        Tháng {invoice.thang.split('-')[1]}/{invoice.thang.split('-')[0]}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
-                        {formatCurrency(invoice.tong_tien)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
-                        {formatCurrency(invoice.da_thanh_toan)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
-                        {formatCurrency(invoice.con_no)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {statusBadge(invoice.trang_thai)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatDate(invoice.ngay_tao)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <div className="flex justify-end space-x-3">
-                          <Link
-                            to={`/admin/payment-invoices/${invoice.id}`}
-                            className="text-blue-600 hover:text-blue-900"
-                            title="Xem chi tiết"
-                          >
-                            <FaEye />
-                          </Link>
-                          <button
-                            className="text-gray-600 hover:text-gray-900"
-                            title="In hóa đơn"
-                          >
-                            <FaPrint />
-                          </button>
-                          <button
-                            className="text-green-600 hover:text-green-900"
-                            title="Xuất file"
-                          >
-                            <FaFileExport />
-                          </button>
-                        </div>
-                      </td>
+            <>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Mã HĐ
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Phòng
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Khách hàng
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Tháng
+                      </th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Tổng tiền
+                      </th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Đã thanh toán
+                      </th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Còn nợ
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Trạng thái
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Ngày tạo
+                      </th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Thao tác
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {currentItems.map((invoice) => (
+                      <tr key={invoice.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                          {invoice.hopdong_id}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {invoice.hopdong.phong.ten_phong}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {invoice.hopdong.khach.ho_ten}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          Tháng {invoice.thang.split('-')[1]}/{invoice.thang.split('-')[0]}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+                          {formatCurrency(invoice.so_tien)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+                          {formatCurrency(invoice.da_thanh_toan)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+                          {formatCurrency(invoice.no)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {statusBadge(invoice.trang_thai)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {formatDate(invoice.ngay_thu)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <div className="flex justify-end space-x-3">
+                            <button
+                              onClick={() => handleEditClick(invoice)}
+                              className="text-blue-600 hover:text-blue-900"
+                              title="Thanh toán"
+                            >
+                              <FaEdit />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(invoice.id)}
+                              className="text-red-600 hover:text-red-900"
+                              title="Xóa"
+                            >
+                              <FaTrash />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+                  <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                    <div>
+                      <p className="text-sm text-gray-700">
+                        Hiển thị <span className="font-medium">{indexOfFirstItem + 1}</span> đến{' '}
+                        <span className="font-medium">
+                          {Math.min(indexOfLastItem, filteredInvoices.length)}
+                        </span>{' '}
+                        trong tổng số <span className="font-medium">{filteredInvoices.length}</span> kết quả
+                      </p>
+                    </div>
+                    <div>
+                      <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                        <button
+                          onClick={() => handlePageChange(currentPage - 1)}
+                          disabled={currentPage === 1}
+                          className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <span className="sr-only">Previous</span>
+                          &larr;
+                        </button>
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                          <button
+                            key={page}
+                            onClick={() => handlePageChange(page)}
+                            className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${currentPage === page
+                              ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
+                              : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                              }`}
+                          >
+                            {page}
+                          </button>
+                        ))}
+                        <button
+                          onClick={() => handlePageChange(currentPage + 1)}
+                          disabled={currentPage === totalPages}
+                          className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <span className="sr-only">Next</span>
+                          &rarr;
+                        </button>
+                      </nav>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
+
+      {/* Payment Modal */}
+      {showPaymentModal && selectedInvoice && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+          <div className="w-full max-w-md bg-white rounded-xl shadow-2xl overflow-hidden">
+            {/* Header */}
+            <div className="bg-blue-600 px-6 py-4 flex justify-between items-center">
+              <h3 className="text-lg font-semibold text-white">Thanh toán hóa đơn</h3>
+              <button
+                onClick={() => setShowPaymentModal(false)}
+                className="text-white hover:text-blue-200 transition-colors"
+              >
+                <FaTimes className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="p-6 space-y-4">
+              {/* Thông tin cơ bản */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-gray-500">Phòng</p>
+                  <p className="font-medium">{selectedInvoice.hopdong.phong.ten_phong}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-gray-500">Tháng</p>
+                  <p className="font-medium">
+                    Tháng {selectedInvoice.thang.split('-')[1]}/{selectedInvoice.thang.split('-')[0]}
+                  </p>
+                </div>
+              </div>
+
+              {/* Thông tin thanh toán */}
+              <div className="bg-gray-50 p-4 rounded-lg space-y-3">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Tổng tiền:</span>
+                  <span className="font-semibold">{formatCurrency(selectedInvoice.so_tien)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Đã thanh toán:</span>
+                  <span className="text-green-600 font-semibold">
+                    {formatCurrency(selectedInvoice.da_thanh_toan)}
+                  </span>
+                </div>
+                <div className="flex justify-between border-t pt-2">
+                  <span className="text-gray-600">Còn nợ:</span>
+                  <span className="text-red-600 font-semibold">
+                    {formatCurrency(selectedInvoice.no)}
+                  </span>
+                </div>
+              </div>
+
+              {/* Form thanh toán */}
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Số tiền thanh toán
+                  </label>
+                  <div className="relative rounded-md shadow-sm">
+                    <input
+                      type="text"
+                      className="block w-full pr-12 pl-4 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                      value={paymentAmount?.toLocaleString("vi-VN") ?? "0"}
+                      onChange={(e) => {
+                        const raw = e.target.value.replaceAll(".", "").replace(/\D/g, "");
+                        const number = Number(raw);
+                        setPaymentAmount(number); // ✅ bỏ giới hạn để trả dư
+                      }}
+                    />
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                      <span className="text-gray-500">₫</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Trạng thái thanh toán
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    <button
+                      type="button"
+                      className={`py-2 px-3 rounded-lg border ${paymentStatus === 'full'
+                        ? 'bg-green-100 border-green-500 text-green-700'
+                        : 'bg-white border-gray-300 text-gray-700'
+                        }`}
+                      onClick={() => {
+                        setPaymentStatus('full');
+                        setPaymentAmount(selectedInvoice.no);
+                      }}
+                    >
+                      Thanh toán đủ
+                    </button>
+                    <button
+                      type="button"
+                      className={`py-2 px-3 rounded-lg border ${paymentStatus === 'partial'
+                        ? 'bg-blue-100 border-blue-500 text-blue-700'
+                        : 'bg-white border-gray-300 text-gray-700'
+                        }`}
+                      onClick={() => setPaymentStatus('partial')}
+                    >
+                      Thanh toán một phần
+                    </button>
+                    <button
+                      type="button"
+                      className={`py-2 px-3 rounded-lg border ${paymentStatus === 'over'
+                        ? 'bg-purple-100 border-purple-500 text-purple-700'
+                        : 'bg-white border-gray-300 text-gray-700'
+                        }`}
+                      onClick={() => {
+                        setPaymentStatus('over');
+                        setPaymentAmount(selectedInvoice.no + 100000); // Có thể sửa lại logic này nếu cần
+                      }}
+                    >
+                      Trả dư
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            {/* Footer */}
+            <div className="bg-gray-50 px-6 py-4 flex justify-end space-x-3">
+              <button
+                type="button"
+                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
+                onClick={() => setShowPaymentModal(false)}
+              >
+                Hủy bỏ
+              </button>
+              <button
+                type="button"
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+                onClick={handlePaymentSubmit}
+              >
+                <FaMoneyBillWave className="mr-2" />
+                Xác nhận thanh toán
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </SidebarWithNavbar>
   );
 }
