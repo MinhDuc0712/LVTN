@@ -4,7 +4,6 @@ import SidebarWithNavbar from "../SidebarWithNavbar";
 import {
   FaCheckCircle,
   FaTimesCircle,
-  FaExchangeAlt,
   FaSearch,
   FaCalendarAlt,
   FaFilter,
@@ -14,7 +13,7 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
-import { getElectricBills,toggleElectricBillStatus } from "@/api/homePage/request";
+import { getElectricBills } from "@/api/homePage/request";
 
 export default function ElectricBillList() {
   const [bills, setBills] = useState([]);
@@ -28,17 +27,49 @@ export default function ElectricBillList() {
   });
   const [showFilters, setShowFilters] = useState(false);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+
+
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const filteredBills = bills.filter((b) => {
+    const room = b.roomName?.toLowerCase() || '';
+    const matchSearch =
+      searchTerm === "" ||
+      room.includes(searchTerm.toLowerCase()) ||
+      b.id.toString().includes(searchTerm);
+    const matchStatus = filterStatus ? b.status === filterStatus : true;
+    const matchMonth = filterMonth ? (b.thang && b.thang.includes(filterMonth)) : true;
+
+    return matchSearch && matchStatus && matchMonth;
+  });
+  const currentItems = filteredBills.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredBills.length / itemsPerPage);
+
+
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+  const nextPage = () => currentPage < totalPages && setCurrentPage(currentPage + 1);
+  const prevPage = () => currentPage > 1 && setCurrentPage(currentPage - 1);
+
+
+  const calcUsage = (dau, cuoi) => cuoi - dau;
+  const calcAmount = (bill) => calcUsage(bill.chi_so_dau, bill.chi_so_cuoi) * (bill.don_gia / 10);
+  const formatCurrency = (amount) => new Intl.NumberFormat("vi-VN").format(amount) + " ₫";
+  const formatDate = (dateString) => format(new Date(dateString), "dd/MM/yyyy HH:mm", { locale: vi });
+
+
   useEffect(() => {
     const fetchBills = async () => {
       try {
         setLoading(true);
         const response = await getElectricBills();
-        if (Array.isArray(response)) { 
+        if (Array.isArray(response)) {
           const mapped = response.map((bill) => ({
             id: bill.id,
             hopdong_id: bill.hopdong_id,
             roomName: bill.hopdong?.phong?.ten_phong || `Phòng ${bill.hopdong_id}`,
-            thang: bill.thang, 
+            thang: bill.thang,
             chi_so_dau: bill.chi_so_dau,
             chi_so_cuoi: bill.chi_so_cuoi,
             don_gia: Number(bill.don_gia),
@@ -49,11 +80,9 @@ export default function ElectricBillList() {
           toast.dismiss();
           toast.success("Tải dữ liệu hóa đơn thành công");
         } else {
-          toast.dismiss();
           toast.error("Dữ liệu trả về không hợp lệ");
         }
       } catch (error) {
-        toast.dismiss();
         toast.error("Lỗi khi tải dữ liệu hóa đơn");
       } finally {
         setLoading(false);
@@ -62,27 +91,13 @@ export default function ElectricBillList() {
     fetchBills();
   }, []);
 
-  const calcUsage = (dau, cuoi) => cuoi - dau;
-  const calcAmount = (bill) =>   calcUsage(bill.chi_so_dau, bill.chi_so_cuoi) * (bill.don_gia / 10);
-  const formatCurrency = (amount) => new Intl.NumberFormat("vi-VN").format(amount) + " ₫";
-  const formatDate = (dateString) => format(new Date(dateString), "dd/MM/yyyy HH:mm", { locale: vi });
 
-  const filteredBills = bills.filter((b) => {
-    const room = b.roomName?.toLowerCase() || '';
-    const matchSearch =
-      searchTerm === "" ||
-      room.includes(searchTerm.toLowerCase()) ||
-      b.id.toString().includes(searchTerm);
-    const matchStatus = filterStatus ? b.status === filterStatus : true;
-
-    const matchMonth = filterMonth ?
-      (b.thang && b.thang.includes(filterMonth)) : true;
-
-    return matchSearch && matchStatus && matchMonth;
-  });
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterStatus, filterMonth, itemsPerPage]);
 
   const availableMonths = [...new Set(bills.map(bill => bill.thang))].sort((a, b) => {
-    return new Date(b) - new Date(a); 
+    return new Date(b) - new Date(a);
   });
 
   const statusBadge = (status) =>
@@ -95,40 +110,6 @@ export default function ElectricBillList() {
         <FaTimesCircle className="text-red-500" /> Chưa thanh toán
       </span>
     );
-
- const updateBillStatus = async (billId, newStatus) => {
-  try {
-    setLoading(true); 
-    
-    const result = await toggleElectricBillStatus(billId);
-    
-    if (result.success) {
-      toast.dismiss();
-       toast.error(result.message || "Cập nhật trạng thái thất bại");
-    
-      setBills(prev => prev.map(b => 
-        b.id === billId
-          ? { 
-              ...b, 
-              status: result.data.trang_thai === "Đã thanh toán" ? "paid" : "unpaid",
-              ...(result.data.trang_thai && { 
-                trang_thai: result.data.trang_thai 
-              })
-            }
-          : b
-      ));
-    } else {
-     toast.dismiss();
-      toast.success(result.message || "Đã cập nhật trạng thái hóa đơn");
-    }
-  } catch (error) {
-    toast.dismiss();
-    toast.error(error.response?.data?.message || "Lỗi khi cập nhật trạng thái hóa đơn");
-  } finally {
-    setLoading(false);
-  }
-};
-
   return (
     <SidebarWithNavbar>
       <div className="container mx-auto px-4 py-6">
@@ -156,7 +137,6 @@ export default function ElectricBillList() {
           </div>
         </div>
 
-        {/* BỘ LỌC */}
         {showFilters && (
           <div className="bg-white p-4 rounded-lg shadow mb-6 border border-gray-200">
             <div className="flex justify-between items-center mb-3">
@@ -169,7 +149,6 @@ export default function ElectricBillList() {
               </button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Tìm kiếm */}
               <div className="relative">
                 <FaSearch className="absolute left-3 top-3 text-gray-400" />
                 <input
@@ -181,7 +160,6 @@ export default function ElectricBillList() {
                 />
               </div>
 
-              {/* Lọc theo tháng */}
               <div className="relative">
                 <FaCalendarAlt className="absolute left-3 top-3 text-gray-400" />
                 <select
@@ -201,7 +179,6 @@ export default function ElectricBillList() {
                 </select>
               </div>
 
-              {/* Lọc theo trạng thái */}
               <select
                 className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
                 value={filterStatus}
@@ -227,7 +204,6 @@ export default function ElectricBillList() {
           </div>
         )}
 
-        {/* TABLE */}
         <div className="bg-white rounded-lg shadow overflow-hidden border border-gray-200">
           {loading ? (
             <div className="flex justify-center items-center py-12">
@@ -235,11 +211,7 @@ export default function ElectricBillList() {
             </div>
           ) : filteredBills.length === 0 ? (
             <div className="text-center py-12">
-              <img
-                src="/empty-state.svg"
-                alt="No data"
-                className="mx-auto h-40 w-40 opacity-70"
-              />
+             
               <h3 className="mt-4 text-lg font-medium text-gray-900">
                 Không tìm thấy hóa đơn nào
               </h3>
@@ -275,13 +247,10 @@ export default function ElectricBillList() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Ngày tạo
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Thao tác
-                    </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredBills.map((bill) => (
+                  {currentItems.map((bill) => (
                     <tr key={bill.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                         #{bill.id}
@@ -304,72 +273,80 @@ export default function ElectricBillList() {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {formatDate(bill.created_at)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <div className="flex justify-end space-x-3">
-                          <button
-                            onClick={() => setConfirmModal({ open: true, bill })}
-                            className="text-indigo-600 hover:text-indigo-900"
-                            title="Đổi trạng thái"
-                          >
-                            <FaExchangeAlt />
-                          </button>
-                          <p className="whitespace-nowrap text-sm font-medium text-gray-900">Đổi trạng thái</p>
-                        </div>
-                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
+              
+               {filteredBills.length > 0 && (
+                <div className="bg-gray-50 px-6 py-3 flex items-center justify-between border-t border-gray-200">
+                  <div className="flex-1 flex justify-between sm:hidden">
+                    <button 
+                      onClick={prevPage}
+                      disabled={currentPage === 1}
+                      className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${currentPage === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
+                    >
+                      Trước
+                    </button>
+                    <button 
+                      onClick={nextPage}
+                      disabled={currentPage === totalPages}
+                      className={`ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${currentPage === totalPages ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
+                    >
+                      Sau
+                    </button>
+                  </div>
+                  <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                    <div>
+                      <p className="text-sm text-gray-700">
+                        Hiển thị <span className="font-medium">{indexOfFirstItem + 1}</span> đến{' '}
+                        <span className="font-medium">
+                          {Math.min(indexOfLastItem, filteredBills.length)}
+                        </span>{' '}
+                        của <span className="font-medium">{filteredBills.length}</span> kết quả
+                      </p>
+                    </div>
+                    <div>
+                      <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                        <button 
+                          onClick={prevPage}
+                          disabled={currentPage === 1}
+                          className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 text-sm font-medium ${currentPage === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-500 hover:bg-gray-50'}`}
+                        >
+                          <span className="sr-only">Trước</span>
+                          &larr;
+                        </button>
+                        
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map(number => (
+                          <button
+                            key={number}
+                            onClick={() => paginate(number)}
+                            className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                              currentPage === number
+                                ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
+                                : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                            }`}
+                          >
+                            {number}
+                          </button>
+                        ))}
+                        
+                        <button 
+                          onClick={nextPage}
+                          disabled={currentPage === totalPages}
+                          className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 text-sm font-medium ${currentPage === totalPages ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-500 hover:bg-gray-50'}`}
+                        >
+                          <span className="sr-only">Sau</span>
+                          &rarr;
+                        </button>
+                      </nav>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
-
-        {/* MODAL XÁC NHẬN ĐỔI TRẠNG THÁI */}
-        {confirmModal.open && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
-              <div className="p-6">
-                <h3 className="text-lg font-medium leading-6 text-gray-900 mb-4">
-                  Xác nhận đổi trạng thái hóa đơn
-                </h3>
-                <div className="mb-6">
-                  <p className="text-sm text-gray-500 mb-2">
-                    <span className="font-medium">Phòng:</span> {confirmModal.bill.roomName}
-                  </p>
-                  <p className="text-sm text-gray-500 mb-2">
-                    <span className="font-medium">Tháng:</span> Tháng {confirmModal.bill.thang.split('-')[1]}/{confirmModal.bill.thang.split('-')[0]}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    <span className="font-medium">Chuyển từ:</span> {confirmModal.bill.status === "paid" ? "Đã thanh toán" : "Chưa thanh toán"} →{" "}
-                    <span className="font-medium text-blue-600">
-                      {confirmModal.bill.status === "paid" ? "Chưa thanh toán" : "Đã thanh toán"}
-                    </span>
-                  </p>
-                </div>
-                <div className="flex justify-end space-x-3">
-                  <button
-                    onClick={() => setConfirmModal({ open: false, bill: null })}
-                    className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50"
-                  >
-                    Hủy bỏ
-                  </button>
-                  <button
-                    onClick={() => {
-                      updateBillStatus(
-                        confirmModal.bill.id,
-                        confirmModal.bill.status === "paid" ? "unpaid" : "paid"
-                      );
-                      setConfirmModal({ open: false, bill: null });
-                    }}
-                    className="px-4 py-2 bg-blue-600 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-blue-700"
-                  >
-                    Xác nhận
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </SidebarWithNavbar>
   );

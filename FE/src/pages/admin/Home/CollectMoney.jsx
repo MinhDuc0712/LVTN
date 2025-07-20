@@ -35,6 +35,7 @@ export default function PaymentInvoiceList() {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [paymentAmount, setPaymentAmount] = useState(0);
+  const [paymentNote, setPaymentNote] = useState("");
 
   useEffect(() => {
     let isMounted = true;
@@ -63,6 +64,7 @@ export default function PaymentInvoiceList() {
       isMounted = false;
     };
   }, []);
+
   useEffect(() => {
     if (!selectedInvoice) return;
     const debt = selectedInvoice.no;
@@ -96,7 +98,6 @@ export default function PaymentInvoiceList() {
     return format(date, "dd/MM/yyyy HH:mm", { locale: vi });
   };
 
-  // Filter invoices
   const filteredInvoices = invoices.filter((invoice) => {
     const room = invoice.hopdong?.phong?.ten_phong?.toLowerCase() || '';
     const customer = invoice.hopdong?.khach?.ho_ten?.toLowerCase() || '';
@@ -118,7 +119,7 @@ export default function PaymentInvoiceList() {
     return matchSearch && matchStatus && matchMonth;
   });
 
-  // Pagination logic
+  
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredInvoices.slice(indexOfFirstItem, indexOfLastItem);
@@ -195,14 +196,15 @@ export default function PaymentInvoiceList() {
       no: Number(selectedInvoice.no) - Number(paymentAmount),
       trang_thai: trangThai,
       ngay_thu: now,
+      noi_dung: paymentNote
     };
 
     try {
       await updatePaymentReceipt(selectedInvoice.id, data);
-      toast.success(`Đã thanh toán ${formatCurrency(paymentAmount)} cho hóa đơn ${selectedInvoice.ma_hoa_don}`);
+      toast.success(`Đã thanh toán ${formatCurrency(paymentAmount)} cho hóa đơn ${selectedInvoice.id}`);
       setShowPaymentModal(false);
     } catch (error) {
-      console.error("🛑 Lỗi:", error.response?.data || error.message);
+      console.error("Lỗi:", error.response?.data || error.message);
       toast.error("Thanh toán thất bại!");
     }
   };
@@ -393,9 +395,12 @@ export default function PaymentInvoiceList() {
                         Trạng thái
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Ghi chú
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Ngày tạo
                       </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Thao tác
                       </th>
                     </tr>
@@ -404,7 +409,7 @@ export default function PaymentInvoiceList() {
                     {currentItems.map((invoice) => (
                       <tr key={invoice.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          {invoice.hopdong_id}
+                          {invoice.id}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {invoice.hopdong.phong.ten_phong}
@@ -427,24 +432,29 @@ export default function PaymentInvoiceList() {
                         <td className="px-6 py-4 whitespace-nowrap">
                           {statusBadge(invoice.trang_thai)}
                         </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {statusBadge(invoice.noi_dung)}
+                        </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {formatDate(invoice.ngay_thu)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <div className="flex justify-end space-x-3">
+                          <div className="flex justify-end space-x-4">
                             <button
                               onClick={() => handleEditClick(invoice)}
-                              className="text-blue-600 hover:text-blue-900"
+                              className="inline-flex items-center px-4 py-2 bg-blue-50 border border-blue-100 rounded-lg shadow-sm text-blue-600 hover:bg-blue-100 hover:text-blue-700 transition-all duration-200 ease-in-out transform hover:scale-105"
                               title="Thanh toán"
                             >
-                              <FaEdit />
+                              <FaEdit className="mr-2" />
+                              <span>Thanh toán </span>
                             </button>
                             <button
                               onClick={() => handleDelete(invoice.id)}
-                              className="text-red-600 hover:text-red-900"
+                              className="inline-flex items-center px-4 py-2 bg-red-50 border border-red-100 rounded-lg shadow-sm text-red-600 hover:bg-red-100 hover:text-red-700 transition-all duration-200 ease-in-out transform hover:scale-105"
                               title="Xóa"
                             >
-                              <FaTrash />
+                              <FaTrash className="mr-2" />
+                              <span>Xóa</span>
                             </button>
                           </div>
                         </td>
@@ -572,13 +582,25 @@ export default function PaymentInvoiceList() {
                       onChange={(e) => {
                         const raw = e.target.value.replaceAll(".", "").replace(/\D/g, "");
                         const number = Number(raw);
-                        setPaymentAmount(number); // ✅ bỏ giới hạn để trả dư
+                        setPaymentAmount(number);
                       }}
                     />
                     <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                       <span className="text-gray-500">₫</span>
                     </div>
                   </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Ghi chú
+                  </label>
+                  <textarea
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                    placeholder="Nhập ghi chú (nếu có)..."
+                    rows={2}
+                    value={paymentNote}
+                    onChange={(e) => setPaymentNote(e.target.value)}
+                  />
                 </div>
 
                 <div>

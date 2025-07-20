@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import "react-toastify/dist/ReactToastify.css";
 import SidebarWithNavbar from "../SidebarWithNavbar";
 import { toast } from 'react-toastify';
+
 export default function RoomListPage() {
   const [rooms, setRooms] = useState([]);
   const [filteredRooms, setFilteredRooms] = useState([]);
@@ -15,8 +16,7 @@ export default function RoomListPage() {
   const [statusFilter, setStatusFilter] = useState("");
   const [floorFilter, setFloorFilter] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [roomsPerPage] = useState(5); 
-
+  const [roomsPerPage] = useState(5);
 
   const statusLabels = {
     trong: "Có sẵn",
@@ -24,77 +24,16 @@ export default function RoomListPage() {
     bao_tri: "Bảo trì"
   };
 
-
   const statusColors = {
     trong: "bg-green-100 text-green-800",
     da_thue: "bg-blue-100 text-blue-800",
     bao_tri: "bg-yellow-100 text-yellow-800"
   };
 
-  // const fetchRooms = async () => {
-  //   try {
-  //     const response = await getRoomsAPI();
-  //       setRooms(response);
-  //       setFilteredRooms(response);
-  //   } catch (error) {
-  //     console.error("Lỗi khi tải danh sách phòng:", error);
-  //   }
-  // };
-
-  // useEffect(() => {
-  //   fetchRooms();
-  // }, []);
-
-  useEffect(() => {
-    let filtered = [...rooms];
-
-    if (searchTerm.trim() !== "") {
-      filtered = filtered.filter((r) =>
-        r.ten_phong.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    if (statusFilter) {
-      filtered = filtered.filter((r) => r.trang_thai === statusFilter);
-    }
-
-    if (floorFilter) {
-      filtered = filtered.filter((r) => r.tang.toString() === floorFilter);
-    }
-
-    setFilteredRooms(filtered);
-  }, [rooms, searchTerm, statusFilter, floorFilter]);
-
-  const handleDelete = async (id, name) => {
-  const confirm = window.confirm(`Bạn chắc chắn muốn xoá ${name}?`);
-  if (!confirm) return;
-
-  setRooms(prev => prev.filter(r => r.id !== id));
-
-  try {
-    const response = await deleteRoomAPI(id); 
-    if (response.status !== 200 && response.status !== 204) {
-      throw new Error("Delete failed");
-    }
-    toast.success(`Đã xoá ${name} thành công`);
-  } catch (error) {
-    setRooms(prev => [...prev, rooms.find(r => r.id === id)]);
-    toast.error(
-      error.response?.data?.message || 
-      error.message || 
-      `Xoá ${name} thất bại`
-    );
-    console.error("Lỗi khi xoá phòng:", error);
-  }
-};
-
-  /* ---------- fetch API ---------- */
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await getRoomsAPI();
-        // console.log("Dữ liệu phòng:", response);
-
         const mappedRooms = response.map(room => ({
           id: room.id,
           name: room.ten_phong,
@@ -108,8 +47,6 @@ export default function RoomListPage() {
         setRooms(mappedRooms);
         setFilteredRooms(mappedRooms);
       } catch (error) {
-        if (error.response) {
-        }
         setError("Không tải được danh sách phòng");
       } finally {
         setLoading(false);
@@ -118,49 +55,59 @@ export default function RoomListPage() {
 
     fetchData();
   }, []);
+
+  // Sửa lỗi bộ lọc
   useEffect(() => {
-    let result = rooms;
+    let result = [...rooms];
     
+    // Lọc theo tên phòng
     if (searchTerm) {
       result = result.filter(room => 
         room.name.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
     
+    // Lọc theo trạng thái
     if (statusFilter) {
-      result = result.filter(room => {
-        if (statusFilter === "available") return room.status === "trong";
-        if (statusFilter === "rented") return room.status === "da_thue";
-        if (statusFilter === "maintenance") return room.status === "bao_tri";
-        return true;
-      });
+      result = result.filter(room => room.status === statusFilter);
     }
     
+    // Lọc theo tầng
     if (floorFilter) {
       result = result.filter(room => room.floor.toString() === floorFilter);
     }
     
     setFilteredRooms(result);
-    setCurrentPage(1); 
+    setCurrentPage(1); // Reset về trang đầu tiên khi bộ lọc thay đổi
   }, [searchTerm, statusFilter, floorFilter, rooms]);
 
+  const handleDelete = async (id, name) => {
+    const confirm = window.confirm(`Bạn chắc chắn muốn xoá ${name}?`);
+    if (!confirm) return;
+
+    try {
+      await deleteRoomAPI(id);
+      setRooms(prev => prev.filter(r => r.id !== id));
+      toast.success(`Đã xoá ${name} thành công`);
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || 
+        error.message || 
+        `Xoá ${name} thất bại`
+      );
+      console.error("Lỗi khi xoá phòng:", error);
+    }
+  };
+
+  // Logic phân trang
   const indexOfLastRoom = currentPage * roomsPerPage;
   const indexOfFirstRoom = indexOfLastRoom - roomsPerPage;
   const currentRooms = filteredRooms.slice(indexOfFirstRoom, indexOfLastRoom);
   const totalPages = Math.ceil(filteredRooms.length / roomsPerPage);
 
-
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
-  const nextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1);
-    }
-  };
-  const prevPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-    }
-  };
+  const nextPage = () => currentPage < totalPages && setCurrentPage(currentPage + 1);
+  const prevPage = () => currentPage > 1 && setCurrentPage(currentPage - 1);
 
   if (loading) return <SidebarWithNavbar><p className="p-8">Đang tải...</p></SidebarWithNavbar>;
   if (error) return <SidebarWithNavbar><p className="p-8 text-red-600">{error}</p></SidebarWithNavbar>;
@@ -280,7 +227,8 @@ export default function RoomListPage() {
               </tbody>
             </table>
           </div>
-          {/* Pagination */}
+          
+          {/* Phân trang */}
           {filteredRooms.length > 0 && (
             <div className="bg-gray-50 px-6 py-3 flex items-center justify-between border-t border-gray-200">
               <div className="flex-1 flex justify-between sm:hidden">

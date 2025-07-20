@@ -229,18 +229,6 @@ export const getHouses = async () => {
   // }
 };
 
-export const getFeaturedHouses = async () => {
-  try {
-    const response = await axiosUser.get("/houses/featured");
-    return response.data || response;
-  } catch (error) {
-    console.error(
-      "Error fetching featured houses:",
-      error.response?.data || error.message,
-    );
-    throw error;
-  }
-};
 
 export const getHousesById = async (Id) => {
   const res = await axiosUser.get(`/houses/${Id}`);
@@ -499,10 +487,10 @@ export const getElectricBills = async () => {
   return data; 
 };
 
-export const toggleElectricBillStatus = async (id) => {
-  const response = await axiosAdmin.put(`/electric-bills/${id}/toggle-status`);
-  return response.data;
-};
+// export const toggleElectricBillStatus = async (id) => {
+//   const response = await axiosAdmin.put(`/electric-bills/${id}/toggle-status`);
+//   return response.data;
+// };
 
 export const getLastElectricReading = async (hopdong_id, ngayTao) => {
   try {
@@ -530,10 +518,10 @@ export const getWaterBills = async () => {
   return data; 
 };
 
-export const toggleWaterStatus = async (id) => {
-  const response = await axiosAdmin.put(`/water/${id}/toggle-status`);
-  return response.data;
-};
+// export const toggleWaterStatus = async (id) => {
+//   const response = await axiosAdmin.put(`/water/${id}/toggle-status`);
+//   return response.data;
+// };
 
 export const getLastWaterReading = async (hopdong_id, ngayTao) => {
   try {

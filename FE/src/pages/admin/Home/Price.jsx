@@ -4,7 +4,6 @@ import SidebarWithNavbar from "../SidebarWithNavbar";
 import { FaPlus, FaEdit, FaTrash, FaSearch, FaCalendarAlt } from "react-icons/fa";
 import { getServicePrices, deleteServicePrice } from "../../../api/homePage/request";
 
-// Hàm format tiền VND
 const formatCurrencyVND = (amount) => {
   return new Intl.NumberFormat('vi-VN', {
     style: 'currency',
@@ -34,7 +33,6 @@ export default function ServicePriceList() {
     fetchData();
   }, []);
 
-  // Xử lý xóa
   const handleDelete = async (id) => {
     if (!window.confirm("Bạn có chắc chắn muốn xóa?")) return;
 

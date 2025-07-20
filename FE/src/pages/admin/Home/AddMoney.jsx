@@ -24,18 +24,13 @@ export default function CreatePaymentInvoice() {
   const formatNumber = (amount) =>
     new Intl.NumberFormat("vi-VN").format(amount);
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await getHopDong();
-        setContracts(res);
-      } catch (e) {
-        console.error(e);
-        alert("Không thể tải dữ liệu hợp đồng.");
-      }
-    };
+  const fetchData = async () => {
+    const res = await getHopDong();
+    setContracts(res);
+  };
+  fetchData();
+}, []);
 
-    fetchData();
-  }, []);
   useEffect(() => {
     if (selectedContract && formData.month) {
       const selectedMonth = formData.month;
@@ -74,7 +69,7 @@ export default function CreatePaymentInvoice() {
       const electricBill = contract.phieudien?.find(bill => bill.thang === selectedMonth);
       const waterBill = contract.phienuoc?.find(bill => bill.thang === selectedMonth);
       // console.log("Tháng đang chọn:", selectedMonth);
-      // console.log("Phiếu điện tháng đó:", electricBill);
+      //console.log("Phiếu điện tháng đó:", waterBill);
       setFormData(prev => ({
         ...prev,
         contractId,
@@ -116,7 +111,7 @@ export default function CreatePaymentInvoice() {
     toast.success(" Tạo phiếu thu tiền thành công!");
     setTimeout(() => {
       navigate('/admin/CollectMoney');
-    }, 2000);
+    }, 1000);
   };
 
   return (

@@ -14,7 +14,6 @@ import {
 export default function ContractAdd() {
     const navigate = useNavigate();
 
-    // Giả lập danh sách phòng & khách – thay bằng fetch API khi có backend
     const rooms = ["Phòng 101", "Phòng 201", "Phòng 301"];
     const customers = ["Nguyễn Văn A", "Trần Thị B", "Lê Văn C"];
 

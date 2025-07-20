@@ -12,7 +12,7 @@ import {
   deleteRoomImageAPI,
 } from "../../../api/homePage/request";
 
-/* ---------- hằng số ---------- */
+
 const STATUS_MAP = {
   available: "trong",
   rented: "da_thue",
@@ -30,23 +30,15 @@ const STATUS_OPTIONS = [
 ];
 const FLOOR_OPTIONS = [1, 2, 3, 4, 5];
 
-/* ---------- utils ---------- */
-const formatVND = (v) =>
-  new Intl.NumberFormat("vi-VN", {
-    style: "currency",
-    currency: "VND",
-    maximumFractionDigits: 0,
-  }).format(v);
-
 export default function RoomFormPage({ mode = "add" }) {
-  /* ---------- hooks ---------- */
+
   const { id } = useParams();
   const isEdit = mode === "edit";
   const navigate = useNavigate();
 
-  /* ---------- state ---------- */
+
   const [loading, setLoading] = useState(isEdit);
-  const [previewImages, setPreviewImages] = useState([]); // URL.createObjectURL
+  const [previewImages, setPreviewImages] = useState([]); 
   const [existingImages, setExistingImages] = useState([]);
   const [formData, setFormData] = useState({
     ten_phong: "",
@@ -58,13 +50,12 @@ export default function RoomFormPage({ mode = "add" }) {
     hinh_anh: [],
   });
 
-  /* ---------- cleanup preview URL ---------- */
+
   useEffect(
     () => () => previewImages.forEach((u) => URL.revokeObjectURL(u)),
     [previewImages],
   );
 
-  /* ---------- fetch data khi sửa ---------- */
   useEffect(() => {
     if (!isEdit) return;
 
@@ -118,7 +109,6 @@ export default function RoomFormPage({ mode = "add" }) {
 
         const data = await response.json();
         uploadedUrls.push(data.secure_url);
-        // setUploadProgress(Math.round(((i + 1) / filesToUpload.length) * 100));
       } catch (error) {
         console.error("Error uploading image:", error);
         throw error;
