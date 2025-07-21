@@ -482,10 +482,10 @@ export const getHopDong = async () => {
 export const getUserContracts = async (khachId) => {
   try {
     const response = await axiosUser.get(`/khach/${khachId}`);
-    console.log("API Response:", response);
+    // console.log("API Response:", response);
     return response.data;
   } catch (error) {
-    console.error("API Error:", error.response?.data || error);
+    console.error("API Error:", error.message);
     throw error;
   }
 };
@@ -600,3 +600,43 @@ export const updatePaymentReceipt = async (id, data) => {
   const res = await axiosAdmin.put(`/phieuthutien/${id}`, data);
   return res.data;
 };
+
+export const getUserElecBillsById = async (khachId) => {
+  try {
+    const response = await axiosUser.get(`/phieuDien/${khachId}`);
+    return response.data;
+  } catch (error) {
+    console.error("API Error:", error.message);
+    throw error;
+  }
+}
+
+export const getUserWaterBillsById = async (khachId) => {
+  try {
+    const response = await axiosUser.get(`/phieuNuoc/${khachId}`);
+    return response.data;
+  } catch (error) {
+    console.error("API Error:", error.message);
+    throw error;
+  }
+}
+
+export const getUserPaymentReceiptsById = async (khachId) => {
+  try {
+    const response = await axiosUser.get(`/phieuThuTien/${khachId}`);
+    return response.data;
+  } catch (error) {
+    console.error("API Error:", error.message);
+    throw error;
+  }
+}
+
+export const getUnpaidBillsById = async (khachId) => {
+  try {
+    const response = await axiosUser.get(`/hopdong/${khachId}`);
+    return response.data;
+  } catch (error) {
+    console.error("API Error:", error.message);
+    throw error;
+  }
+}
