@@ -3,7 +3,6 @@ import { FaEdit, FaTrash, FaSearch, FaUserPlus } from "react-icons/fa";
 import SidebarWithNavbar from "../SidebarWithNavbar";
 import { useEffect, useState } from "react";
 
-// Mock data - Thay thế bằng API call thực tế khi có backend
 const mockTenants = [
   {
     id: 1,

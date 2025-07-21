@@ -42,7 +42,7 @@ export default function CreateElectricBill() {
                             return {
                                 hopdong_id: hd.id,
                                 roomName: hd.phong?.ten_phong || `Phòng ${hd.phong_id}`,
-                                chi_so_dau: response?.chi_so_cuoi || 0,
+                                chi_so_dau: response?.chi_so_cuoi !== undefined ? response.chi_so_cuoi : "",
                                 chi_so_cuoi: "",
                                 lastMonth: response?.thang_truoc || null
                             };
@@ -52,7 +52,7 @@ export default function CreateElectricBill() {
                             return {
                                 hopdong_id: hd.id,
                                 roomName: hd.phong?.ten_phong || `Phòng ${hd.phong_id}`,
-                                chi_so_dau: 0,
+                                chi_so_dau: "",
                                 chi_so_cuoi: "",
                                 lastMonth: null
                             };
@@ -243,8 +243,14 @@ export default function CreateElectricBill() {
                                                     min="0"
                                                     className="w-full px-2 py-1 border rounded"
                                                     value={hd.chi_so_dau}
-                                                    disabled
+                                                    onChange={(e) => handleChange(index, "chi_so_dau", e.target.value)}
+                                                    required
                                                 />
+                                                {hd.chi_so_dau === "" && (
+                                                    <p className="text-xs text-gray-500 mt-1 italic">
+                                                        Không có chỉ số kỳ trước — vui lòng nhập thủ công
+                                                    </p>
+                                                )}
                                             </td>
                                             <td className="border px-4 py-2">
                                                 <input

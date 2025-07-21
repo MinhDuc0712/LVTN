@@ -1,5 +1,4 @@
 import {
-  getFeaturedHouses,
   getHouses,
   getHousesWithFilter,
 } from "@/api/homePage";
@@ -94,9 +93,6 @@ const Home = () => {
 
         setAllListings(allHouses);
         setFilteredListings(featuredHouses);
-
-        const featuredResponse = await getFeaturedHouses();
-        setFeaturedListings(featuredResponse?.data || featuredResponse || []);
       } catch (err) {
         setError(err.message);
         console.error("Fetch error:", err);
