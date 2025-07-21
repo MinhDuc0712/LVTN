@@ -39,7 +39,7 @@ export default function HouseList() {
 
         setMyRentals(hopdongs);
       } catch (error) {
-        console.error("Lỗi khi tải danh sách hợp đồng:", error);
+        console.error("Lỗi khi tải danh sách hợp đồng:", error.message);
         toast.error(
           error.response?.data?.message ||
             error.message ||
@@ -77,11 +77,11 @@ export default function HouseList() {
       <div className="mb-4 flex items-start justify-between">
         <div>
           <h3 className="mb-1 text-xl font-semibold text-gray-900">
-            {rental.propertyName || "Phòng không xác định"}
+            {rental.tenPhong || "Phòng không xác định"}
           </h3>
           <p className="text-sm text-gray-600">
-            <strong>Phòng:</strong> {rental.roomNumber || "N/A"} •{" "}
-            <strong>Diện tích:</strong> {rental.area || "N/A"}
+            <strong>Phòng:</strong> {rental.id || "N/A"} •{" "}
+            <strong>Diện tích:</strong> {rental.dienTich || "N/A"}
           </p>
         </div>
         <div className="flex flex-col items-end">
@@ -92,17 +92,17 @@ export default function HouseList() {
         <div>
           <p className="mb-1 text-sm text-gray-600">Tiền thuê hàng tháng</p>
           <p className="text-lg font-bold text-green-600">
-            {formatCurrency(rental.monthlyRent || 0)}
+            {formatCurrency(rental.tienThue || 0)}
           </p>
         </div>
         <div>
           <p className="mb-1 text-sm text-gray-600">Tiền cọc</p>
           <p className="text-lg font-bold text-blue-600">
-            {formatCurrency(rental.deposit || 0)}
+            {formatCurrency(rental.tienCoc || 0)}
           </p>
         </div>
       </div>
-      <p className="mb-4 text-sm text-gray-600">Không có hóa đơn gần đây</p>
+      {/* <p className="mb-4 text-sm text-gray-600">Không có hóa đơn gần đây</p> */}
       <div className="mb-4 flex items-center justify-between rounded-lg border border-gray-200 p-3">
         <div className="flex items-center">
           <Calendar className="mr-2 h-4 w-4 text-gray-500" />
@@ -162,7 +162,7 @@ export default function HouseList() {
             <span className="ml-2">Đang tải dữ liệu...</span>
           </div>
         ) : (
-          <section className="space-y-6">
+          <section className="mx-auto max-w-5xl">
             {myRentals.length > 0 ? (
               myRentals.map((r) => <RentalCard key={r.id} rental={r} />)
             ) : (

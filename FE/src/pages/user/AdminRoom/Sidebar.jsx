@@ -67,7 +67,6 @@ export default function TenantSidebar() {
       icon: Clock,
       label: 'Chưa thanh toán',
       path: '/Unpail',
-      badge: 2,
     },
   ];
 
@@ -135,11 +134,6 @@ export default function TenantSidebar() {
           <Icon className="h-5 w-5 mr-3" />
           <span>{item.label}</span>
         </div>
-        {item.badge && (
-          <span className="bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-            {item.badge}
-          </span>
-        )}
       </button>
     );
   };

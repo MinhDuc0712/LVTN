@@ -1,297 +1,303 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import Sidebar from '../Sidebar';
-import { 
-  ArrowLeft, Home, Calendar, DollarSign, FileText,
-  CheckCircle, AlertCircle, Search, Filter,
-  Printer, Download, ChevronDown, TrendingUp, Clock
-} from 'lucide-react';
+import {
+  AlertCircle,
+  ArrowLeft,
+  Calendar,
+  CheckCircle,
+  ChevronDown,
+  Clock,
+  DollarSign,
+  Download,
+  FileText,
+  Filter,
+  Home,
+  Printer,
+  Search,
+  TrendingUp,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import Sidebar from "../Sidebar";
+import { useAuth } from "@/context/AuthContext";
+import { toast } from "react-toastify";
+import { getUserPaymentReceiptsById } from "@/api/homePage";
 
 const UserRentPaymentHistory = () => {
-  const [activeItem, setActiveItem] = useState('payment-history');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [currentRoom, setCurrentRoom] = useState({
-    id: '401',
-    name: 'Phòng 401',
-    address: '180 Cao Lỗ, P.4, Q.8, TP.HCM',
-    contractNumber: 'HD-2023-401'
-  });
-  
-  // Dữ liệu lịch sử thanh toán tiền nhà
-  const paymentHistory = [
-    {
-      id: 1,
-      period: '11/2023',
-      issueDate: '25/10/2023',
-      dueDate: '05/11/2023',
-      paymentDate: '03/11/2023',
-      amount: 4500000,
-      serviceFee: 200000,
-      total: 4700000,
-      status: 'paid',
-      receiptNumber: 'PT-1123-401',
-      paymentMethod: 'Chuyển khoản'
-    },
-    {
-      id: 2,
-      period: '12/2023',
-      issueDate: '25/11/2023',
-      dueDate: '05/12/2023',
-      paymentDate: '01/12/2023',
-      amount: 4500000,
-      serviceFee: 200000,
-      total: 4700000,
-      status: 'paid',
-      receiptNumber: 'PT-1223-401',
-      paymentMethod: 'Tiền mặt'
-    },
-    {
-      id: 3,
-      period: '01/2024',
-      issueDate: '25/12/2023',
-      dueDate: '05/01/2024',
-      paymentDate: null,
-      amount: 4500000,
-      serviceFee: 200000,
-      total: 4700000,
-      status: 'unpaid',
-      receiptNumber: 'PT-0124-401',
-      paymentMethod: null
-    },
-  ];
+  const [activeItem, setActiveItem] = useState("payment-history");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [paymentBills, setPaymentBills] = useState([]);
+  const { user } = useAuth();
 
-  const formatPrice = (price) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
+  useEffect(() => {
+    console.log("Gọi useEffect - user:", user);
 
-  const filteredPayments = paymentHistory.filter(payment => 
-    payment.period.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    payment.receiptNumber.toLowerCase().includes(searchTerm.toLowerCase())
+    if (!user || !user.MaNguoiDung) {
+      console.log("Chưa có user.MaNguoiDung, bỏ qua fetch");
+      return;
+    }
+
+    const fetchBills = async () => {
+      try {
+        const res = await getUserPaymentReceiptsById(user.MaNguoiDung);
+        console.log("API Response:", JSON.stringify(res, null, 2));
+        if (Array.isArray(res)) {
+          console.log("Set bills (array):", res);
+          setPaymentBills(res);
+        } else if (res.success && Array.isArray(res.data)) {
+          console.log("Set bills (data):", res.data);
+          setPaymentBills(res.data);
+        } else {
+          console.error("Định dạng dữ liệu không mong đợi:", res);
+          toast.error("Dữ liệu phiếu thu tiền nhà không đúng định dạng");
+        }
+      } catch (err) {
+        console.error("Lỗi fetch:", err.message, err.response?.data);
+        toast.error(`Không thể tải phiếu thu tiền nhà: ${err.message}`);
+      }
+    };
+
+    fetchBills();
+  }, [user]);
+
+  const paymentHistory = paymentBills
+    .map((bill) => {
+      if (!bill.thang || !bill.trang_thai || !bill.so_tien) {
+        console.warn("Dữ liệu hóa đơn không hợp lệ:", bill);
+        return null;
+      }
+      const soTien = parseFloat(bill.so_tien);
+      const daThanhToan = parseFloat(bill.da_thanh_toan);
+      return {
+        id: bill.id,
+        period: bill.thang,
+        issueDate: bill.ngay_thu,
+        paymentDate: ["Đã thanh toán", "Trả dư"].includes(bill.trang_thai)
+          ? bill.ngay_thu
+          : null,
+        amount: daThanhToan,
+        total: soTien,
+        status:
+          bill.trang_thai === "Đã thanh toán" || bill.trang_thai === "Trả dư"
+            ? "paid"
+            : bill.trang_thai === "Trễ hạn"
+              ? "late"
+              : "unpaid",
+        receiptNumber: `HD-${bill.id}`,
+        paymentMethod: bill.noi_dung || null,
+        dueDate: bill.ngay_thu ?? "Không rõ",
+      };
+    })
+    .filter(Boolean);
+
+  console.log("Bills state:", paymentBills);
+  console.log("Payment History:", paymentHistory);
+
+  const formatPrice = (price) =>
+    new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+    }).format(price);
+
+  const filteredPayments = paymentHistory.filter(
+    (payment) =>
+      !searchTerm ||
+      payment.period?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      payment.receiptNumber?.toLowerCase().includes(searchTerm.toLowerCase()),
   );
+  const currentDebt = filteredPayments.reduce((sum, p) => {
+    return sum + (p.total - p.amount);
+  }, 0);
+
+  console.log("Filtered Payments:", filteredPayments);
 
   const statusBadge = {
     paid: (
-      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-        <CheckCircle className="h-3 w-3 mr-1" />
+      <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-800">
+        <CheckCircle className="mr-1 h-3 w-3" />
         Đã thanh toán
       </span>
     ),
     unpaid: (
-      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
-        <AlertCircle className="h-3 w-3 mr-1" />
+      <span className="inline-flex items-center rounded-full bg-red-100 px-2 py-1 text-xs font-medium text-red-800">
+        <AlertCircle className="mr-1 h-3 w-3" />
         Chưa thanh toán
       </span>
     ),
     late: (
-      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-        <Clock className="h-3 w-3 mr-1" />
+      <span className="inline-flex items-center rounded-full bg-yellow-100 px-2 py-1 text-xs font-medium text-yellow-800">
+        <Clock className="mr-1 h-3 w-3" />
         Trễ hạn
       </span>
-    )
+    ),
   };
 
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden">
-      {/* Sidebar User */}
+    <div className="flex h-screen overflow-hidden bg-gray-50">
       <Sidebar activeItem={activeItem} setActiveItem={setActiveItem} />
-      
-      {/* Main Content */}
       <div className="flex-1 overflow-y-auto p-4 md:p-8">
-        <div className="max-w-4xl mx-auto">
-          {/* Header */}
-          <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6 gap-4">
+        <div className="mx-auto max-w-6xl">
+          <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
-              <Link to="/HouseList" className="flex items-center text-blue-600 hover:text-blue-800 mb-2">
-                <ArrowLeft className="w-5 h-5 mr-2" />
+              <Link
+                to="/HouseList"
+                className="mb-2 flex items-center text-blue-600 hover:text-blue-800"
+              >
+                <ArrowLeft className="mr-2 h-5 w-5" />
                 Quay lại trang chủ
               </Link>
-              <h1 className="text-2xl font-bold flex items-center">
-                <Home className="w-6 h-6 text-green-600 mr-2" />
+              <h1 className="flex items-center text-2xl font-bold">
+                <Home className="mr-2 h-6 w-6 text-green-600" />
                 Lịch sử thanh toán tiền nhà
               </h1>
             </div>
             <div className="flex gap-3">
-              <button className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
-                <Printer className="w-5 h-5" />
+              <button className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 hover:bg-gray-50">
+                <Printer className="h-5 w-5" />
                 In
               </button>
-              <button className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
-                <Download className="w-5 h-5" />
+              <button className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 hover:bg-gray-50">
+                <Download className="h-5 w-5" />
                 Xuất file
               </button>
             </div>
           </div>
-
-          {/* Current Room Info */}
-          <div className="bg-white rounded-lg shadow p-4 mb-6">
-            <div className="flex flex-col md:flex-row md:items-center justify-between">
-              <div className="mb-4 md:mb-0">
-                <h2 className="text-lg font-semibold flex items-center">
-                  <Home className="w-5 h-5 text-green-600 mr-2" />
-                  {currentRoom.name}
-                </h2>
-                <div className="text-sm text-gray-600 mt-1">
-                  <p>{currentRoom.address}</p>
-                  <p className="mt-1">Số hợp đồng: {currentRoom.contractNumber}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <Filter className="text-gray-400 w-5 h-5" />
-                <select
-                  className="px-4 py-2 border border-gray-300 rounded-lg"
-                  value={currentRoom.id}
-                  onChange={(e) => setCurrentRoom({
-                    id: e.target.value,
-                    name: `Phòng ${e.target.value}`,
-                    address: currentRoom.address,
-                    contractNumber: `HD-2023-${e.target.value}`
-                  })}
-                >
-                  <option value="401">Phòng 401</option>
-                  <option value="402">Phòng 402</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          {/* Search and Filter */}
-          <div className="bg-white rounded-lg shadow p-4 mb-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="mb-6 rounded-lg bg-white p-4 shadow">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-1">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <Search className="absolute top-1/2 left-3 h-5 w-5 -translate-y-1/2 transform text-gray-400" />
                 <input
                   type="text"
                   placeholder="Tìm theo kỳ hoặc số phiếu thu..."
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg"
+                  className="w-full rounded-lg border border-gray-300 py-2 pr-4 pl-10"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
-              <div className="flex items-center gap-2">
-                <Calendar className="text-gray-400 w-5 h-5" />
-                <select
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                  defaultValue="last6"
-                >
-                  <option value="all">Tất cả thời gian</option>
-                  <option value="last6">6 tháng gần nhất</option>
-                  <option value="2023">Năm 2023</option>
-                  <option value="2024">Năm 2024</option>
-                </select>
-              </div>
             </div>
           </div>
-
-          {/* Stats Summary */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-            <div className="bg-white p-4 rounded-lg shadow">
+          <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div className="rounded-lg bg-white p-6">
               <div className="flex items-center">
-                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100">
                   <FileText className="h-5 w-5 text-blue-600" />
                 </div>
                 <div className="ml-3">
-                  <p className="text-sm font-medium text-gray-600">Tổng phiếu thu</p>
+                  <p className="text-sm font-medium text-gray-600">
+                    Tổng phiếu thu
+                  </p>
                   <p className="text-xl font-bold text-gray-900">
                     {filteredPayments.length}
                   </p>
                 </div>
               </div>
             </div>
-            <div className="bg-white p-4 rounded-lg shadow">
+            <div className="rounded-lg bg-white p-4 shadow">
               <div className="flex items-center">
-                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100">
                   <DollarSign className="h-5 w-5 text-green-600" />
                 </div>
                 <div className="ml-3">
-                  <p className="text-sm font-medium text-gray-600">Tổng đã thanh toán</p>
+                  <p className="text-sm font-medium text-gray-600">
+                    Tổng đã thanh toán
+                  </p>
                   <p className="text-xl font-bold text-gray-900">
-                    {formatPrice(filteredPayments
-                      .filter(p => p.status === 'paid')
-                      .reduce((sum, p) => sum + p.total, 0))}
+                    {formatPrice(
+                      filteredPayments
+                        .filter((p) => p.status === "paid")
+                        .reduce((sum, p) => sum + p.total, 0),
+                    )}
                   </p>
                 </div>
               </div>
             </div>
-            <div className="bg-white p-4 rounded-lg shadow">
+            <div className="rounded-lg bg-white p-4 shadow">
               <div className="flex items-center">
-                <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-100">
                   <AlertCircle className="h-5 w-5 text-red-600" />
                 </div>
                 <div className="ml-3">
-                  <p className="text-sm font-medium text-gray-600">Công nợ hiện tại</p>
+                  <p className="text-sm font-medium text-gray-600">
+                    Công nợ hiện tại
+                  </p>
                   <p className="text-xl font-bold text-gray-900">
-                    {formatPrice(filteredPayments
-                      .filter(p => p.status === 'unpaid')
-                      .reduce((sum, p) => sum + p.total, 0))}
+                    {formatPrice(currentDebt)}
                   </p>
                 </div>
               </div>
             </div>
           </div>
-
-          {/* Payment History */}
-          <div className="bg-white rounded-lg shadow overflow-hidden mb-6">
+          <div className="mb-6 overflow-hidden rounded-lg bg-white shadow">
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase">
                       <div className="flex items-center">
                         Kỳ thanh toán
                         <ChevronDown className="ml-1 h-4 w-4 text-gray-400" />
                       </div>
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase">
                       Số phiếu thu
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Tiền phòng
+                    <th className="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase">
+                      Đã thanh toán
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase">
                       Tổng cộng
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase">
                       Trạng thái
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-right text-xs font-medium tracking-wider text-gray-500 uppercase">
                       Thao tác
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="divide-y divide-gray-200 bg-white">
                   {filteredPayments.length > 0 ? (
                     filteredPayments.map((payment) => (
                       <tr key={payment.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">{payment.period}</div>
+                          <div className="text-sm font-medium text-gray-900">
+                            {payment.period}
+                          </div>
                           <div className="text-sm text-gray-500">
                             Hạn: {payment.dueDate}
                             {payment.paymentDate && (
-                              <span className="ml-2">• Thanh toán: {payment.paymentDate}</span>
+                              <span className="ml-2">
+                                • Thanh toán: {payment.paymentDate}
+                              </span>
                             )}
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-500">
                           {payment.receiptNumber}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-500">
                           {formatPrice(payment.amount)}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          {formatPrice(payment.total)}
+                        <td className="px-6 py-4 text-sm font-medium whitespace-nowrap text-gray-900">
+                          {payment.total === 0
+                            ? "Miễn phí"
+                            : formatPrice(payment.total)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           {statusBadge[payment.status]}
                           {payment.paymentMethod && (
-                            <div className="text-xs text-gray-500 mt-1">{payment.paymentMethod}</div>
+                            <div className="mt-1 text-xs text-gray-500">
+                              {payment.paymentMethod}
+                            </div>
                           )}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <td className="px-6 py-4 text-right text-sm font-medium whitespace-nowrap">
                           <Link
                             to={`/User/RentReceipt/${payment.id}`}
-                            className="text-blue-600 hover:text-blue-900 mr-3"
+                            className="mr-3 text-blue-600 hover:text-blue-900"
                           >
                             Chi tiết
                           </Link>
-                          {payment.status === 'unpaid' && (
+                          {(payment.status === "unpaid" ||
+                            payment.status === "late") && (
                             <button className="text-green-600 hover:text-green-900">
                               Thanh toán
                             </button>
@@ -301,7 +307,10 @@ const UserRentPaymentHistory = () => {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="6" className="px-6 py-4 text-center text-sm text-gray-500">
+                      <td
+                        colSpan="6"
+                        className="px-6 py-4 text-center text-sm text-gray-500"
+                      >
                         Không tìm thấy phiếu thu nào phù hợp
                       </td>
                     </tr>
@@ -310,30 +319,35 @@ const UserRentPaymentHistory = () => {
               </table>
             </div>
           </div>
-
-          {/* Payment Summary */}
-          <div className="bg-white rounded-lg shadow p-6 mb-6">
-            <h3 className="text-lg font-semibold mb-4 flex items-center">
-              <TrendingUp className="w-5 h-5 text-green-600 mr-2" />
+          <div className="mb-6 rounded-lg bg-white p-6 shadow">
+            <h3 className="mb-4 flex items-center text-lg font-semibold">
+              <TrendingUp className="mr-2 h-5 w-5 text-green-600" />
               Tổng quan thanh toán
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <div>
-                <h4 className="text-sm font-medium text-gray-500 mb-2">Thông tin hợp đồng</h4>
+                <h4 className="mb-2 text-sm font-medium text-gray-500">
+                  Thông tin hợp đồng
+                </h4>
                 <div className="space-y-2">
                   <p className="text-sm">
-                    <span className="font-medium">Tiền phòng:</span> {formatPrice(4500000)}/tháng
+                    <span className="font-medium">Tiền phòng:</span>{" "}
+                    {formatPrice(4500000)}/tháng
                   </p>
                   <p className="text-sm">
-                    <span className="font-medium">Phí dịch vụ:</span> {formatPrice(200000)}/tháng
+                    <span className="font-medium">Phí dịch vụ:</span>{" "}
+                    {formatPrice(200000)}/tháng
                   </p>
                   <p className="text-sm">
-                    <span className="font-medium">Ngày thanh toán:</span> 05 hàng tháng
+                    <span className="font-medium">Ngày thanh toán:</span> 05
+                    hàng tháng
                   </p>
                 </div>
               </div>
               <div>
-                <h4 className="text-sm font-medium text-gray-500 mb-2">Phương thức thanh toán</h4>
+                <h4 className="mb-2 text-sm font-medium text-gray-500">
+                  Phương thức thanh toán
+                </h4>
                 <div className="space-y-2">
                   <p className="text-sm">
                     <span className="font-medium">Ngân hàng:</span> Vietcombank
@@ -342,24 +356,47 @@ const UserRentPaymentHistory = () => {
                     <span className="font-medium">Số tài khoản:</span> 123456789
                   </p>
                   <p className="text-sm">
-                    <span className="font-medium">Chủ tài khoản:</span> CÔNG TY QUẢN LÝ HOME CONVENIENT
+                    <span className="font-medium">Chủ tài khoản:</span> CÔNG TY
+                    QUẢN LÝ HOME CONVENIENT
                   </p>
                 </div>
               </div>
             </div>
           </div>
-
-          {/* Payment Notice */}
-          {filteredPayments.some(p => p.status === 'unpaid') && (
-            <div className="bg-red-50 border-l-4 border-red-400 p-4">
+          {filteredPayments.some(
+            (p) => p.status === "unpaid" || p.status === "late",
+          ) && (
+            <div className="border-l-4 border-red-400 bg-red-50 p-4">
               <div className="flex">
                 <div className="flex-shrink-0">
                   <AlertCircle className="h-5 w-5 text-red-400" />
                 </div>
                 <div className="ml-3">
                   <p className="text-sm text-red-700">
-                    Bạn có <strong>{filteredPayments.filter(p => p.status === 'unpaid').length} phiếu thu tiền phòng</strong> chưa thanh toán. 
-                    Vui lòng thanh toán trước ngày <strong>05/{new Date().getMonth() + 2}/{new Date().getFullYear()}</strong> để tránh bị phạt trễ hạn 1%/ngày.
+                    Bạn có{" "}
+                    <strong>
+                      {
+                        filteredPayments.filter(
+                          (p) => p.status === "unpaid" || p.status === "late",
+                        ).length
+                      }{" "}
+                      phiếu thu tiền phòng
+                    </strong>{" "}
+                    chưa thanh toán với tổng số tiền{" "}
+                    <strong>
+                      {formatPrice(
+                        filteredPayments
+                          .filter(
+                            (p) => p.status === "unpaid" || p.status === "late",
+                          )
+                          .reduce((sum, p) => sum + (p.total - p.amount), 0),
+                      )}
+                    </strong>
+                    . Vui lòng thanh toán trước ngày{" "}
+                    <strong>
+                      05/{new Date().getMonth() + 2}/{new Date().getFullYear()}
+                    </strong>{" "}
+                    để tránh bị phạt trễ hạn 1%/ngày.
                   </p>
                 </div>
               </div>
