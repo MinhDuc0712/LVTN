@@ -36,7 +36,7 @@ export default function CreatePaymentInvoice() {
       const selectedMonth = formData.month;
 
       const electricBill = selectedContract.phieudien?.find(bill => bill.thang === selectedMonth);
-      const waterBill = selectedContract.phienuoc?.find(bill => bill.thang === selectedMonth);
+      const waterBill = selectedContract.phieunuoc?.find(bill => bill.thang === selectedMonth);
 
       setFormData(prev => ({
         ...prev,
@@ -67,9 +67,10 @@ export default function CreatePaymentInvoice() {
 
     if (contract) {
       const electricBill = contract.phieudien?.find(bill => bill.thang === selectedMonth);
-      const waterBill = contract.phienuoc?.find(bill => bill.thang === selectedMonth);
+      const waterBill = contract.phieunuoc?.find(bill => bill.thang === selectedMonth);
       // console.log("Tháng đang chọn:", selectedMonth);
-      //console.log("Phiếu điện tháng đó:", waterBill);
+      // console.log("Phiếu nước tháng đó:", waterBill);
+      // console.log("Phiếu điện tháng đó:", electricBill);
       setFormData(prev => ({
         ...prev,
         contractId,

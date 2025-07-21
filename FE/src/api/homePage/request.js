@@ -465,7 +465,10 @@ export const createKhach = async (data) => {
   const response = await axiosUser.post("/khach", data);
   return response;
 };
-
+export const getKhachs = async () => {
+  const response = await axiosAdmin.get("/khach");
+  return response;
+};
 export const createHopDong = async (data) => {
   const response = await axiosUser.post("/hopdong", data);
   return response;

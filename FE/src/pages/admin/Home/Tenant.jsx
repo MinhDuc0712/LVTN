@@ -1,98 +1,72 @@
-import { Link } from "react-router-dom";
-import { FaEdit, FaTrash, FaSearch, FaUserPlus } from "react-icons/fa";
-import SidebarWithNavbar from "../SidebarWithNavbar";
 import { useEffect, useState } from "react";
+import { FaSearch} from "react-icons/fa";
+import SidebarWithNavbar from "../SidebarWithNavbar";
+import { getKhachs } from "../../../api/homePage/request";
 
-const mockTenants = [
-  {
-    id: 1,
-    ho_ten: "Nguyễn Văn A",
-    sdt: "0987654321",
-    cccd: "123456789012",
-    email: "nguyenvana@gmail.com",
-    phong_thue: "PH101",
-    ngay_ket_thuc: "2024-01-14",
-    phong_id: 101,
-    trang_thai: "dang_thue"
-  },
-  {
-    id: 3,
-    ho_ten: "Lê Văn C",
-    sdt: "0967891234",
-    cccd: "456789012345",
-    email: "levanc@gmail.com",
-    phong_thue: "PH505",
-    ngay_ket_thuc: "2023-11-09",
-    phong_id: 302,
-    trang_thai: "da_ket_thuc"
-  },
-];
-
-// Component chính
 export default function TenantListPage() {
-  const [tenants, setTenants] = useState([]);
+  const [khachs, setKhachs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const tenantsPerPage = 5;
+  const tenantsPerPage = 5; 
 
-  // Thay thế API call bằng mock data
   useEffect(() => {
-    setTenants(mockTenants);
+    const fetchKhachs = async () => {
+      try {
+        const response = await getKhachs();
+        if (response.success) {
+          const formattedKhachs = response.data.map(khach => ({
+            id: khach.id,
+            ho_ten: khach.ho_ten,
+            sdt: khach.sdt,
+            cccd: khach.cmnd,
+            email: khach.email,
+            dia_chi: khach.dia_chi,
+            phong_thue: khach.phong_thue || [],
+            so_phong: khach.so_phong || 0 
+          }));
+          setKhachs(formattedKhachs);
+        }
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchKhachs();
   }, []);
 
-  // Format date to dd/mm/yyyy
   const formatDate = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
     return date.toLocaleDateString('vi-VN');
   };
 
-  // Filter tenants based on search term
-  const filteredTenants = tenants.filter(tenant => {
+  const filteredTenants = khachs.filter(tenant => {
     const searchLower = searchTerm.toLowerCase();
     return (
       tenant.ho_ten.toLowerCase().includes(searchLower) ||
       tenant.sdt.toLowerCase().includes(searchLower) ||
       tenant.cccd.toLowerCase().includes(searchLower) ||
-      tenant.email.toLowerCase().includes(searchLower)
+      (tenant.email && tenant.email.toLowerCase().includes(searchLower))
     );
   });
 
-  // Get current tenants for pagination
   const indexOfLastTenant = currentPage * tenantsPerPage;
   const indexOfFirstTenant = indexOfLastTenant - tenantsPerPage;
   const currentTenants = filteredTenants.slice(indexOfFirstTenant, indexOfLastTenant);
   const totalPages = Math.ceil(filteredTenants.length / tenantsPerPage);
 
-  const handleDelete = (id) => {
-    if (window.confirm("Bạn có chắc chắn muốn xóa khách thuê này?")) {
-      // Xử lý xóa trong mock data
-      setTenants(tenants.filter(tenant => tenant.id !== id));
-    }
-  };
-
-  // Hiển thị trạng thái
-  const statusLabels = {
-    dang_thue: "Đang thuê",
-    da_ket_thuc: "Đã kết thúc"
-  };
-
-  const statusColors = {
-    dang_thue: "bg-green-100 text-green-800",
-    da_ket_thuc: "bg-gray-100 text-gray-800"
-  };
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
 
   return (
     <SidebarWithNavbar>
       <div className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-blue-800">Danh sách khách thuê</h1>
-          {/* <Link
-            to="/admin/tenant/add"
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center"
-          >
-            <FaUserPlus className="mr-2" /> Thêm khách thuê
-          </Link> */}
         </div>
 
         {/* Search and filter */}
@@ -108,20 +82,6 @@ export default function TenantListPage() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <select 
-              className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              onChange={(e) => {
-                if (e.target.value === "") {
-                  setTenants(mockTenants);
-                } else {
-                  setTenants(mockTenants.filter(tenant => tenant.trang_thai === e.target.value));
-                }
-              }}
-            >
-              <option value="">Tất cả trạng thái</option>
-              <option value="dang_thue">Đang thuê</option>
-              <option value="da_ket_thuc">Đã kết thúc</option>
-            </select>
           </div>
         </div>
 
@@ -136,10 +96,7 @@ export default function TenantListPage() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Số ĐT</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">CCCD</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phòng thuê</th>
-                  {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ngày kết thúc</th> */}
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trạng thái</th>
-                  {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Thao tác</th> */}
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phòng thuê ({currentTenants.reduce((sum, tenant) => sum + tenant.so_phong, 0)})</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -161,38 +118,29 @@ export default function TenantListPage() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         {tenant.email || 'N/A'}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {tenant.phong_thue}
-                      </td>
-                      {/* <td className="px-6 py-4 whitespace-nowrap">
-                        {formatDate(tenant.ngay_ket_thuc)}
-                      </td> */}
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColors[tenant.trang_thai]}`}>
-                          {statusLabels[tenant.trang_thai]}
-                        </span>
-                      </td>
-                      {/* <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex space-x-2">
-                          <Link
-                            to={`/admin/tenant/edit/${tenant.id}`}
-                            className="text-yellow-600 hover:text-yellow-900 flex items-center"
-                          >
-                            <FaEdit className="mr-1" /> Sửa
-                          </Link>
-                          <button
-                            className="text-red-600 hover:text-red-900 flex items-center"
-                            onClick={() => handleDelete(tenant.id)}
-                          >
-                            <FaTrash className="mr-1" /> Xóa
-                          </button>
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col gap-1">
+                          {tenant.phong_thue.length > 0 ? (
+                            tenant.phong_thue.map((phong, i) => (
+                              <div key={i} className="flex items-center gap-2">
+                                <span className="font-medium">{phong.ten_phong}</span>
+                                {phong.ngay_ket_thuc && (
+                                  <span className="text-xs text-gray-500">
+                                    (Kết thúc: {formatDate(phong.ngay_ket_thuc)})
+                                  </span>
+                                )}
+                              </div>
+                            ))
+                          ) : (
+                            <span>N/A</span>
+                          )}
                         </div>
-                      </td> */}
+                      </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="9" className="px-6 py-4 text-center text-gray-500">
+                    <td colSpan="6" className="px-6 py-4 text-center text-gray-500">
                       Không tìm thấy khách thuê nào
                     </td>
                   </tr>

@@ -211,7 +211,7 @@ export default function ElectricBillList() {
             </div>
           ) : filteredBills.length === 0 ? (
             <div className="text-center py-12">
-             
+
               <h3 className="mt-4 text-lg font-medium text-gray-900">
                 Không tìm thấy hóa đơn nào
               </h3>
@@ -277,18 +277,18 @@ export default function ElectricBillList() {
                   ))}
                 </tbody>
               </table>
-              
-               {filteredBills.length > 0 && (
+
+              {filteredBills.length > 0 && (
                 <div className="bg-gray-50 px-6 py-3 flex items-center justify-between border-t border-gray-200">
                   <div className="flex-1 flex justify-between sm:hidden">
-                    <button 
+                    <button
                       onClick={prevPage}
                       disabled={currentPage === 1}
                       className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${currentPage === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
                     >
                       Trước
                     </button>
-                    <button 
+                    <button
                       onClick={nextPage}
                       disabled={currentPage === totalPages}
                       className={`ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${currentPage === totalPages ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
@@ -308,7 +308,7 @@ export default function ElectricBillList() {
                     </div>
                     <div>
                       <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                        <button 
+                        <button
                           onClick={prevPage}
                           disabled={currentPage === 1}
                           className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 text-sm font-medium ${currentPage === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-500 hover:bg-gray-50'}`}
@@ -316,22 +316,21 @@ export default function ElectricBillList() {
                           <span className="sr-only">Trước</span>
                           &larr;
                         </button>
-                        
+
                         {Array.from({ length: totalPages }, (_, i) => i + 1).map(number => (
                           <button
                             key={number}
                             onClick={() => paginate(number)}
-                            className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
-                              currentPage === number
+                            className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${currentPage === number
                                 ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
                                 : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
-                            }`}
+                              }`}
                           >
                             {number}
                           </button>
                         ))}
-                        
-                        <button 
+
+                        <button
                           onClick={nextPage}
                           disabled={currentPage === totalPages}
                           className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 text-sm font-medium ${currentPage === totalPages ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-500 hover:bg-gray-50'}`}
