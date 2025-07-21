@@ -212,7 +212,7 @@ export const getRoleAPI = async () => {
   const response = await axiosAdmin.get("/roles");
   console.log("getRoleAPI response:", response);
   return response;
-}; 
+};
 
 export const postRoleAPI = async (data) => {
   const response = await axiosAdmin.post("/roles", data);
@@ -324,9 +324,9 @@ export const getUserHouses = async () => {
 };
 export const fetchUserPayments = async () => {
   // try {
-    const response = await axiosUser.get("/payments");
-    return response;
-    // console.log("fetchUserPayments response:", response);
+  const response = await axiosUser.get("/payments");
+  return response;
+  // console.log("fetchUserPayments response:", response);
   //   const data = Array.isArray(response) ? response : response.data;
   //   return data ?? [];
   // } catch (error) {
@@ -390,7 +390,7 @@ export const hideHouse = (id) => {
 // Đăng lại
 export const relistHouse = async (id) => {
   const res = await axiosUser.put(`/houses/${id}/relist`);
-  return res; 
+  return res;
 };
 
 export const createZaloPayPayment = async (payload) => {
@@ -407,7 +407,7 @@ export const checkStatus = async (maGiaoDich) => {
   const res = await axiosUser.get(`/zalopay/check-transaction/${maGiaoDich}`);
   // console.log("Check status response:", res);
   return res;
-}
+};
 
 export const fetchDashboardStats = async () => {
   const res = await axiosAdmin.get("/dashboard-stats");
@@ -418,15 +418,15 @@ export const fetchChartData = async (filter) => {
   const res = await axiosAdmin.get(`/dashboard-charts`, {
     params: { filter },
   });
-  
+
   // console.log("Chart data:", res);
   return res;
 };
 
 export const SendOTPAPI = async (email) => {
-    const response = await axiosAuth.post("/send-otp", { Email: email });
-    return response;
-}
+  const response = await axiosAuth.post("/send-otp", { Email: email });
+  return response;
+};
 
 export const VerifyOTPAPI = async (email, otp) => {
   const response = await axiosAuth.post("/verify-otp", { Email: email, otp });
@@ -441,7 +441,7 @@ export const ResetPasswordAPI = async (email, resetToken, newPassword) => {
   });
   return response;
 };
-// PHONG ADMIN 
+// PHONG ADMIN
 export const addRoomAPI = async (formData) => {
   const response = await axiosAdmin.post("/rooms", formData);
   return response;
@@ -449,7 +449,6 @@ export const addRoomAPI = async (formData) => {
 
 export const uploadRoomImagesAPI = (roomId, { urls }) =>
   axiosAdmin.post(`/rooms/${roomId}/images`, { urls });
-
 
 export const getRoomsAPI = async () => {
   const response = await axiosAdmin.get("/rooms");
@@ -468,26 +467,37 @@ export const getRoomImagesAPI = (roomId) =>
 export const getRoomUserAPI = async (data) => {
   const response = await axiosUser.get(`/rooms`, data);
   return response.data;
-}
+};
 export const getRoomUserByIdAPI = async (id) => {
   const response = await axiosUser.get(`/rooms/${id}`);
   return response;
-}
+};
 
 export const createKhach = async (data) => {
   const response = await axiosUser.post("/khach", data);
   return response;
-}
+};
 
 export const createHopDong = async (data) => {
   const response = await axiosUser.post("/hopdong", data);
   return response;
-}
+};
 
 export const getHopDong = async () => {
   const response = await axiosAdmin.get("/hopdong");
   return response.data;
-}
+};
+
+export const getUserContracts = async (khachId) => {
+  try {
+    const response = await axiosUser.get(`/khach/${khachId}`);
+    console.log("API Response:", response);
+    return response.data;
+  } catch (error) {
+    console.error("API Error:", error.response?.data || error);
+    throw error;
+  }
+};
 
 export const getServicePrices = async () => {
   const response = await axiosAdmin.get("/giadichvu");
@@ -513,14 +523,14 @@ export const getServicePriceDetail = async (id) => {
   const response = await axiosAdmin.get(`/giadichvu/${id}`);
   return response.data;
 };
-// hóa đơn điện 
+// hóa đơn điện
 export const createElectricBills = async (data) => {
-  const response = await axiosAdmin.post('/electric-bills', data);
+  const response = await axiosAdmin.post("/electric-bills", data);
   return response.data;
 };
 export const getElectricBills = async () => {
-  const { data } = await axiosAdmin.get('/electric-bills');
-  return data; 
+  const { data } = await axiosAdmin.get("/electric-bills");
+  return data;
 };
 
 export const toggleElectricBillStatus = async (id) => {
@@ -530,28 +540,33 @@ export const toggleElectricBillStatus = async (id) => {
 
 export const getLastElectricReading = async (hopdong_id, ngayTao) => {
   try {
-    const response = await axiosAdmin.get(`/electric/last-reading/${hopdong_id}`, {
-      params: { 
-        thang: ngayTao
-      }
-    });
-    
+    const response = await axiosAdmin.get(
+      `/electric/last-reading/${hopdong_id}`,
+      {
+        params: {
+          thang: ngayTao,
+        },
+      },
+    );
+
     return {
-      chi_so_cuoi: response.data?.data?.chi_so_cuoi || response.data?.chi_so_cuoi || 0,
-      thang_truoc: response.data?.data?.thang_truoc || response.data?.thang_truoc || null
+      chi_so_cuoi:
+        response.data?.data?.chi_so_cuoi || response.data?.chi_so_cuoi || 0,
+      thang_truoc:
+        response.data?.data?.thang_truoc || response.data?.thang_truoc || null,
     };
   } catch (error) {
     throw error;
   }
 };
-// hóa đơn nước 
+// hóa đơn nước
 export const createWaterBills = async (data) => {
-  const response = await axiosAdmin.post('/water-bills', data);
+  const response = await axiosAdmin.post("/water-bills", data);
   return response.data;
 };
 export const getWaterBills = async () => {
-  const { data } = await axiosAdmin.get('/water-bills');
-  return data; 
+  const { data } = await axiosAdmin.get("/water-bills");
+  return data;
 };
 
 export const toggleWaterStatus = async (id) => {
@@ -562,14 +577,16 @@ export const toggleWaterStatus = async (id) => {
 export const getLastWaterReading = async (hopdong_id, ngayTao) => {
   try {
     const response = await axiosAdmin.get(`/water/last-reading/${hopdong_id}`, {
-      params: { 
-        thang: ngayTao
-      }
+      params: {
+        thang: ngayTao,
+      },
     });
-    
+
     return {
-      chi_so_cuoi: response.data?.data?.chi_so_cuoi || response.data?.chi_so_cuoi || 0,
-      thang_truoc: response.data?.data?.thang_truoc || response.data?.thang_truoc || null
+      chi_so_cuoi:
+        response.data?.data?.chi_so_cuoi || response.data?.chi_so_cuoi || 0,
+      thang_truoc:
+        response.data?.data?.thang_truoc || response.data?.thang_truoc || null,
     };
   } catch (error) {
     throw error;
@@ -577,11 +594,11 @@ export const getLastWaterReading = async (hopdong_id, ngayTao) => {
 };
 //phieuthutien
 export const createPaymentReceipt = async (data) => {
-  const response = await axiosAdmin.post('/phieuthutien', data);
+  const response = await axiosAdmin.post("/phieuthutien", data);
   return response.data;
 };
 export const getPaymentReceipts = async () => {
-  const { data } = await axiosAdmin.get('/phieuthutien');
+  const { data } = await axiosAdmin.get("/phieuthutien");
   return data;
 };
 export const deletePaymentReceipt = async (id) => {
@@ -592,4 +609,3 @@ export const updatePaymentReceipt = async (id, data) => {
   const res = await axiosAdmin.put(`/phieuthutien/${id}`, data);
   return res.data;
 };
-

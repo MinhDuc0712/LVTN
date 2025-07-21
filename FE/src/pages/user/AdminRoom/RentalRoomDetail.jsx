@@ -183,7 +183,7 @@ const RentalRoomDetail = () => {
       const hopDongPayload = {
         phong_id: phongId,
         cmnd: formData.cmnd.trim(),
-        MaNguoiDung: user?.MaNguoiDung || user?.id || null,
+        // MaNguoiDung: user?.MaNguoiDung || user?.id || null,
         ho_ten: formData.ho_ten.trim(),
         sdt: formData.sdt.trim(),
         email: formData.email ? formData.email.trim() : null,
@@ -220,8 +220,8 @@ const RentalRoomDetail = () => {
           toast.error("Số điện thoại đã tồn tại.");
         } else if (errors.email?.[0]?.includes("unique")) {
           toast.error("Email đã tồn tại.");
-        } else if (errors.MaNguoiDung?.[0]?.includes("exists")) {
-          toast.error("Mã người dùng không hợp lệ.");
+        // } else if (errors.MaNguoiDung?.[0]?.includes("exists")) {
+        //   toast.error("Mã người dùng không hợp lệ.");
         } else if (
           errors.ho_ten?.[0]?.includes("khớp") ||
           errors.sdt?.[0]?.includes("khớp")

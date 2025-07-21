@@ -62,10 +62,14 @@ export default function ContractListPage() {
   }, [statusFilter, dateFilter, searchTerm, contracts]);
 
   const formatCurrency = (value) => {
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-    }).format(value);
+    if (value < 1_000_000) {
+    return `${Math.round(value).toLocaleString("vi-VN")} đồng/tháng`;
+  } else {
+    const trieu = value / 1_000_000;
+    return trieu % 1 === 0
+      ? `${trieu} triệu/tháng`
+      : `${trieu.toFixed(1)} triệu/tháng`;
+  }
   };
 
   const statusColors = {
@@ -223,9 +227,9 @@ export default function ContractListPage() {
                       {contract.ngay_ket_thuc}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      {formatCurrency(contract.tien_coc)} VND
+                      {formatCurrency(contract.tien_coc)}
                     </td><td className="px-6 py-4 whitespace-nowrap">
-                      {formatCurrency(contract.chi_phi_tien_ich)} VND
+                      {formatCurrency(contract.chi_phi_tien_ich)}
 
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">

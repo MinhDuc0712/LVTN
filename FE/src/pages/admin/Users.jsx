@@ -169,7 +169,7 @@ export default function Users() {
             {(errorUsers?.message.includes("Unauthorized") || errorRoles?.message.includes("Unauthorized")) && (
               <button
                 onClick={() => {
-                  localStorage.removeItem("token");
+                  sessionStorage.removeItem("token");
                   window.location.href = "/login";
                 }}
                 className="mt-4 inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"

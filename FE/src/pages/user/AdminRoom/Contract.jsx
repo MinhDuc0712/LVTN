@@ -1,21 +1,20 @@
 
-import React, { useState } from 'react';
-import Sidebar from './Sidebar';
 import {
+    AlertCircle,
+    Calendar,
+    Clock,
+    DollarSign,
+    Download,
     Eye,
     FileText,
-    Calendar,
-    DollarSign,
-    MapPin,
-    Phone,
-    User,
     Home,
-    Clock,
-    AlertCircle,
-    CheckCircle,
-    Download,
+    MapPin,
     MessageCircle,
+    Phone,
+    User
 } from 'lucide-react';
+import { useState } from 'react';
+import Sidebar from './Sidebar';
 
 export default function TenantContractView() {
     /* ---------------- STATE ---------------- */
