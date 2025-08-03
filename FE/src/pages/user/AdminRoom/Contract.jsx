@@ -9,10 +9,14 @@ import {
     FileText,
     Home,
     MessageCircle,
-    User
+    User,
+    Printer,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import Sidebar from "./Sidebar";
+import { useRef } from "react";
+import { useReactToPrint } from "react-to-print";
+
 export default function TenantContractView() {
   /* ---------------- STATE ---------------- */
   const { user } = useAuth();
@@ -22,6 +26,7 @@ export default function TenantContractView() {
   const [currentTenant, setCurrentTenant] = useState(null);
   const [contracts, setContracts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const contractRef = useRef();
 
   /* ---------- FETCH DATA ---------- */
   useEffect(() => {
@@ -33,7 +38,6 @@ export default function TenantContractView() {
       try {
         setLoading(true);
         const res = await getUserContracts(user.MaNguoiDung);
-        // console.log("VCL:",res);
         setContracts(res.hopdongs);
         setCurrentTenant(res.khach);
       } catch (error) {
@@ -51,9 +55,28 @@ export default function TenantContractView() {
       style: "currency",
       currency: "VND",
     }).format(v);
+  
   const formatDate = (s) => new Date(s).toLocaleDateString("vi-VN");
+  
   const daysUntil = (endDate) =>
     Math.ceil((new Date(endDate) - new Date()) / 8.64e7);
+  
+  const calculateContractDuration = (startDate, endDate) => {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const diffTime = Math.abs(end - start);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+    const months = Math.floor(diffDays / 30);
+    const days = diffDays % 30;
+    
+    if (months > 0 && days > 0) {
+      return `${months} tháng ${days} ngày`;
+    } else if (months > 0) {
+      return `${months} tháng`;
+    } else {
+      return `${days} ngày`;
+    }
+  }
 
   const statusColor = {
     active: "bg-green-100 text-green-800",
@@ -126,13 +149,6 @@ export default function TenantContractView() {
 
           {/* ---- Info grid ---- */}
           <div className="mb-4 grid gap-4 text-gray-600 md:grid-cols-2 lg:grid-cols-2">
-            {/* <div className="flex gap-2">
-                <MapPin size={16} />
-                <div>
-                    <p className="text-sm font-medium">{c.roomType}</p>
-                    <p className="text-xs">{c.address}</p>
-                </div>
-                </div> */}
             <div className="flex gap-2">
               <Calendar size={16} />
               <div>
@@ -152,24 +168,6 @@ export default function TenantContractView() {
               </div>
             </div>
           </div>
-
-          {/* ---- Owner + next payment ---- */}
-          {/* <div className="mb-4 flex flex-wrap gap-4 text-sm text-gray-600">
-                <span className="flex items-center gap-1">
-                <Phone size={14} />
-                Chủ nhà: {c.landlord.name}
-                </span>
-                <span className="flex items-center gap-1">
-                <Phone size={14} />
-                {c.landlord.phone}
-                </span>
-                {c.nextPaymentDate && (
-                <span className="flex items-center gap-1">
-                    <Clock size={14} />
-                    Thanh toán tiếp: {formatDate(c.nextPaymentDate)}
-                </span>
-                )}
-            </div> */}
 
           {/* ---- Payment warning ---- */}
           {c.status === "active" && c.paymentStatus === "pending" && (
@@ -193,14 +191,6 @@ export default function TenantContractView() {
             <Eye size={16} />
             Xem chi tiết
           </button>
-          {/* <button className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-green-100 px-3 py-2 text-sm text-green-700 transition-colors hover:bg-green-200">
-                <Download size={16} />
-                Tải HĐ
-            </button>
-            <button className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-purple-100 px-3 py-2 text-sm text-purple-700 transition-colors hover:bg-purple-200">
-                <MessageCircle size={16} />
-                Liên hệ
-            </button> */}
         </div>
       </div>
     );
@@ -277,16 +267,32 @@ export default function TenantContractView() {
     </section>
   );
 
-  /* ---------- VIEW CONTRACT (tab “view”) ---------- */
+  /* ---------- VIEW CONTRACT (tab "view") ---------- */
   const ViewContract = () => {
+    const contractRef = useRef(null); 
+    
     if (!selectedContract) return null;
-    const c = selectedContract; // rút gọn tên biến
+    const c = selectedContract;
+
+    // Hàm xuất file PDF
+    const handlePrint = useReactToPrint({
+      content: () => contractRef.current,
+      pageStyle: `
+        @page { size: A4; margin: 20mm; }
+        @media print { 
+          body { -webkit-print-color-adjust: exact; } 
+          .no-print { display: none !important; }
+          .signature-section { page-break-inside: avoid; }
+        }
+      `,
+      documentTitle: `HopDongThueNha_${c.id}_${currentTenant.ho_ten}`
+    });
 
     return (
       <section className="mx-auto max-w-4xl">
-        <div className="rounded-xl border border-gray-200 bg-white shadow-lg">
+        <div className="rounded-xl border border-gray-200 bg-white shadow-lg" ref={contractRef}>
           {/* ---- Panel header ---- */}
-          <div className="flex items-center justify-between border-b px-6 py-4">
+          <div className="flex items-center justify-between border-b px-6 py-4 no-print">
             <h2 className="text-2xl font-bold text-gray-800">
               Chi tiết hợp đồng thuê nhà
             </h2>
@@ -306,8 +312,9 @@ export default function TenantContractView() {
                 HỢP ĐỒNG THUÊ NHÀ
               </h1>
               <p className="text-gray-600">Số hợp đồng: {c.id}</p>
+              <p className="text-gray-600">Ngày lập: {formatDate(new Date())}</p>
 
-              <div className="mt-4 flex justify-center gap-4">
+              <div className="mt-4 flex justify-center gap-4 no-print">
                 <span
                   className={`rounded-full px-4 py-2 text-sm font-medium ${statusColor[c.status]}`}
                 >
@@ -321,76 +328,88 @@ export default function TenantContractView() {
               </div>
             </div>
 
-            {/* Two‑column: landlord / tenant */}
+            {/* Các bên tham gia hợp đồng */}
             <div className="grid gap-8 md:grid-cols-2">
-              {/* <div>
-                    <h3 className="mb-4 text-lg font-semibold text-gray-800">
-                    Thông tin bên cho thuê
-                    </h3>
-                    <div className="space-y-2 text-gray-600">
-                    <p>
-                        <strong>Tên:</strong> {c.landlord.name}
-                    </p>
-                    <p>
-                        <strong>Điện thoại:</strong> {c.landlord.phone}
-                    </p>
-                    </div>
-                </div> */}
-
-              <div>
+              <div className="border-b pb-6 md:border-b-0 md:border-r md:pr-6">
                 <h3 className="mb-4 text-lg font-semibold text-gray-800">
-                  Thông tin bên thuê
+                  BÊN CHO THUÊ (BÊN A)
                 </h3>
-                <div className="space-y-2 text-gray-600">
+                <div className="space-y-3 text-gray-600">
                   <p>
-                    <strong>Tên:</strong> {currentTenant.ho_ten}
+                    <strong>Tên chủ nhà:</strong> { "HOME CONVENIENT"}
+                  </p>
+                  <p>
+                    <strong>Số điện thoại:</strong> { "0123456789"}
+                  </p>
+                  <p>
+                    <strong>Địa chỉ:</strong> { "180 Cao Lỗ Phường 4 Quận 8 TP.HCM"}
+                  </p>
+                  <p>
+                    <strong>CMND/CCCD:</strong> {"5482155854"}
+                  </p>
+                </div>
+              </div>
+
+              <div className="pb-6">
+                <h3 className="mb-4 text-lg font-semibold text-gray-800">
+                  BÊN THUÊ (BÊN B)
+                </h3>
+                <div className="space-y-3 text-gray-600">
+                  <p>
+                    <strong>Tên người thuê:</strong> {currentTenant.ho_ten}
+                  </p>
+                  <p>
+                    <strong>Số điện thoại:</strong> {currentTenant.sdt}
+                  </p>
+                  <p>
+                    <strong>Địa chỉ thường trú:</strong> {currentTenant.dia_chi || "Chưa cập nhật"}
                   </p>
                   <p>
                     <strong>CMND/CCCD:</strong> {currentTenant.cmnd}
-                  </p>
-                  <p>
-                    <strong>Điện thoại:</strong> {currentTenant.sdt}
-                  </p>
-                  <p>
-                    <strong>Email:</strong> {currentTenant.email}
                   </p>
                 </div>
               </div>
             </div>
 
             {/* Asset info */}
-            <div>
+            <div className="border-t pt-6">
               <h3 className="mb-4 text-lg font-semibold text-gray-800">
-                Thông tin tài sản cho thuê
+                THÔNG TIN TÀI SẢN CHO THUÊ
               </h3>
               <div className="rounded-lg bg-gray-50 p-4">
                 <p className="text-lg font-medium text-gray-800">
                   {c.tenPhong}
                 </p>
-                {/* <p className="mt-1 text-gray-600">{c.address}</p> */}
-                <div className="mt-3 grid gap-4 text-gray-600 md:grid-cols-2">
-                  {/* <p>
-                        <strong>Loại:</strong> {c.roomType}
-                    </p> */}
+                <p className="mt-2 text-gray-600">
+                  <strong>Địa chỉ:</strong> {c.diaChiPhong || "180 Cao Lỗ Phường 4 Quận 8 TP.HCM"}
+                </p>
+                <div className="mt-3 grid gap-4 text-gray-600 md:grid-cols-3">
                   <p>
-                    <strong>Diện tích:</strong> {c.dienTich}
+                    <strong>Diện tích:</strong> {c.dienTich} 
                   </p>
                 </div>
+                {/* <div className="mt-3">
+                  <p className="font-medium text-gray-800">Mô tả:</p>
+                  <p className="text-gray-600">{c.mo_ta || "Không có mô tả chi tiết"}</p>
+                </div> */}
               </div>
             </div>
 
             {/* Contract & financial terms */}
-            <div className="grid gap-6 md:grid-cols-2">
+            <div className="grid gap-6 border-t pt-6 md:grid-cols-2">
               <div>
                 <h3 className="mb-4 text-lg font-semibold text-gray-800">
-                  Thời hạn hợp đồng
+                  THỜI HẠN HỢP ĐỒNG
                 </h3>
-                <div className="space-y-2 text-gray-600">
+                <div className="space-y-3 text-gray-600">
                   <p>
                     <strong>Từ ngày:</strong> {formatDate(c.startDate)}
                   </p>
                   <p>
                     <strong>Đến ngày:</strong> {formatDate(c.endDate)}
+                  </p>
+                  <p>
+                    <strong>Thời hạn:</strong> {calculateContractDuration(c.startDate, c.endDate)}
                   </p>
                   {c.status === "active" && (
                     <p>
@@ -402,9 +421,9 @@ export default function TenantContractView() {
 
               <div>
                 <h3 className="mb-4 text-lg font-semibold text-gray-800">
-                  Điều khoản tài chính
+                  ĐIỀU KHOẢN TÀI CHÍNH
                 </h3>
-                <div className="space-y-2 text-gray-600">
+                <div className="space-y-3 text-gray-600">
                   <p>
                     <strong>Tiền thuê:</strong> {formatCurrency(c.tienThue)}
                     /tháng
@@ -412,9 +431,15 @@ export default function TenantContractView() {
                   <p>
                     <strong>Tiền cọc:</strong> {formatCurrency(c.tienCoc)}
                   </p>
+                  <p>
+                    <strong>Phương thức thanh toán:</strong> {c.phuongThucThanhToan || "Chuyển khoản"}
+                  </p>
+                  <p>
+                    <strong>Ngày thanh toán hàng tháng:</strong> {c.ngayThanhToan || "05"}
+                  </p>
                   {c.nextPaymentDate && (
                     <p>
-                      <strong>Thanh toán tiếp:</strong>{" "}
+                      <strong>Thanh toán tiếp theo:</strong>{" "}
                       {formatDate(c.nextPaymentDate)}
                     </p>
                   )}
@@ -422,75 +447,96 @@ export default function TenantContractView() {
               </div>
             </div>
 
-            {/* Utilities & Terms */}
-            {/* <div>
-                <h3 className="mb-4 text-lg font-semibold text-gray-800">
-                    Chi phí tiện ích
-                </h3>
-                <div className="rounded-lg bg-gray-50 p-4 text-gray-600">
-                    {c.bills && c.bills.length > 0
-                    ? `${c.bills.length} hóa đơn`
-                    : "Không có hóa đơn"}
-                </div>
-                </div> */}
+            {/* Điều khoản hợp đồng */}
+            <div className="border-t pt-6">
+              <h3 className="mb-4 text-lg font-semibold text-gray-800">
+                ĐIỀU KHOẢN HỢP ĐỒNG
+              </h3>
+              <div className="rounded-lg bg-gray-50 p-4 text-gray-600">
+                <ol className="list-decimal space-y-3 pl-5">
+                  <li>Bên B phải thanh toán tiền thuê nhà đúng hạn vào ngày {c.ngayThanhToan || "05"} hàng tháng.</li>
+                  <li>Bên B phải giữ gìn tài sản, không được tự ý sửa chữa, cải tạo nếu không có sự đồng ý của Bên A.</li>
+                  <li>Bên A có trách nhiệm bảo trì, sửa chữa các hư hỏng thuộc về kết cấu chung của căn nhà.</li>
+                  <li>Hợp đồng có thể chấm dứt trước hạn nếu một trong hai bên vi phạm nghiêm trọng các điều khoản đã thỏa thuận.</li>
+                  <li>Các vấn đề phát sinh ngoài hợp đồng sẽ được hai bên thương lượng giải quyết trên tinh thần hợp tác.</li>
+                </ol>
+              </div>
+            </div>
 
-            {/* <div>
-                <h3 className="mb-4 text-lg font-semibold text-gray-800">
-                    Điều khoản hợp đồng
-                </h3>
-                <div className="rounded-lg bg-gray-50 p-4 text-gray-600">
-                    {c.terms}
-                </div>
-                </div> */}
-
-            {/* ------- BILLS (nếu có) ------- */}
+            {/* Thanh toán và hóa đơn */}
             {c.bills && c.bills.length > 0 && (
-              <div>
+              <div className="border-t pt-6">
                 <h3 className="mb-4 text-lg font-semibold text-gray-800">
-                  Chi tiết hóa đơn
+                  LỊCH SỬ THANH TOÁN
                 </h3>
-                <table className="w-full border text-left text-sm">
-                  <thead className="bg-gray-100">
-                    <tr>
-                      <th className="p-2">Tháng</th>
-                      <th className="p-2">Trạng thái</th>
-                      <th className="p-2 text-right">Tổng tiền</th>
-                      <th className="p-2">Ngày thanh toán</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {c.bills.map((bill) => (
-                      <tr key={bill.id} className="border-b">
-                        <td className="p-2">
-                          {(() => {
-                            const [year, month] = bill.month.split("-");
-                            return `${month}/${year}`;
-                          })()}
-                        </td>
-                        <td className="p-2">
-                          {bill.status === "paid"
-                            ? "Đã thanh toán"
-                            : "Chưa thanh toán"}
-                        </td>
-                        <td className="p-2 text-right">
-                          {bill.items
-                            .reduce((total, item) => total + item.amount, 0)
-                            .toLocaleString()}
-                          đ
-                        </td>
-                        <td className="p-2">{bill.paidDate || "—"}</td>
+                <div className="overflow-x-auto">
+                  <table className="w-full border text-left text-sm">
+                    <thead className="bg-gray-100">
+                      <tr>
+                        <th className="p-3">STT</th>
+                        <th className="p-3">Tháng</th>
+                        <th className="p-3">Trạng thái</th>
+                        <th className="p-3 text-right">Tổng tiền</th>
+                        <th className="p-3">Ngày thanh toán</th>
+                        <th className="p-3">Phương thức</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {c.bills.map((bill, index) => (
+                        <tr key={bill.id} className="border-b">
+                          <td className="p-3">{index + 1}</td>
+                          <td className="p-3">
+                            {(() => {
+                              const [year, month] = bill.month.split("-");
+                              return `Tháng ${month}/${year}`;
+                            })()}
+                          </td>
+                          <td className="p-3">
+                            <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${
+                              bill.status === "paid" 
+                                ? "bg-green-100 text-green-800" 
+                                : "bg-yellow-100 text-yellow-800"
+                            }`}>
+                              {bill.status === "paid" ? "Đã thanh toán" : "Chưa thanh toán"}
+                            </span>
+                          </td>
+                          <td className="p-3 text-right">
+                            {formatCurrency(bill.items.reduce((total, item) => total + item.amount, 0))}
+                          </td>
+                          <td className="p-3">{bill.paidDate ? formatDate(bill.paidDate) : "—"}</td>
+                          <td className="p-3">{bill.paymentMethod || "Chuyển khoản"}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
 
+            {/* Phần chữ ký */}
+            <div className="signature-section mt-12 border-t pt-8">
+              <div className="grid grid-cols-2 gap-8">
+                <div className="text-center">
+                  <p className="mb-12 font-medium text-gray-800">ĐẠI DIỆN BÊN A</p>
+                  <p className="text-gray-600">(Ký và ghi rõ họ tên)</p>
+                  <div className="mt-4 h-24 border-t-2 border-dashed border-gray-400"></div>
+                </div>
+                <div className="text-center">
+                  <p className="mb-12 font-medium text-gray-800">ĐẠI DIỆN BÊN B</p>
+                  <p className="text-gray-600">(Ký và ghi rõ họ tên)</p>
+                  <div className="mt-4 h-24 border-t-2 border-dashed border-gray-400"></div>
+                </div>
+              </div>
+            </div>
+
             {/* ---- Action buttons ---- */}
-            <div className="flex gap-4 border-t pt-6">
-              <button className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 py-3 text-white transition-colors hover:bg-blue-700">
-                <Download size={20} />
-                Tải xuống hợp đồng
+            <div className="no-print flex gap-4 border-t pt-6">
+              <button 
+                onClick={handlePrint}
+                className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 py-3 text-white transition-colors hover:bg-blue-700"
+              >
+                <Printer size={20} />
+                In hợp đồng
               </button>
               <button className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-green-600 px-6 py-3 text-white transition-colors hover:bg-green-700">
                 <MessageCircle size={20} />
@@ -507,8 +553,6 @@ export default function TenantContractView() {
   return (
     <div className="flex h-screen bg-gray-50">
       <Sidebar activeItem={activeItem} setActiveItem={setActiveItem} />
-
-      {/* ----- Content tràn phải, cuộn độc lập ----- */}
 
       <div className="flex-1 overflow-auto">
         <div className="flex-1 overflow-auto p-6">

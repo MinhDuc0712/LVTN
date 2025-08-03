@@ -53,10 +53,8 @@ function HouseDetail() {
         const houseData = await getHousesById(id);
 
         if (houseData && Object.keys(houseData).length > 0) {
-          // const houseData = response.data; // Lấy phần tử đầu tiên trong mảng
+          // const houseData = response.data; 
           setHouse(houseData);
-
-          // Set ảnh đầu tiên làm ảnh chính
           const firstImage =
             houseData.images?.[0]?.DuongDanHinh || "/default-house.jpg";
           setSelectedImage(firstImage);
@@ -409,14 +407,14 @@ function HouseDetail() {
                       <div className="text-xs text-gray-500">Số tin đăng</div>
                     </div>
                     <div className="w-px bg-gray-200"></div>
-                    <div>
+                    {/* <div>
                       <div className="text-lg font-bold text-gray-800">
                         {house.user.NgayTao
                           ? formatDate(house.user.NgayTao)
                           : "N/A"}
                       </div>
                       <div className="text-xs text-gray-500">Tham gia</div>
-                    </div>
+                    </div> */}
                   </div>
 
                   {/* Contact Buttons */}
@@ -441,7 +439,7 @@ function HouseDetail() {
                   </div>
 
                   {/* Actions */}
-                  <div className="flex justify-around border-t border-gray-100 pt-4">
+                  {/* <div className="flex justify-around border-t border-gray-100 pt-4">
                     <button
                       onClick={() => setIsLiked(!isLiked)}
                       className={`group flex flex-col items-center gap-1 transition-all duration-300 ${
@@ -467,7 +465,7 @@ function HouseDetail() {
                       <AlertTriangle className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
                       <span className="text-xs font-medium">Báo xấu</span>
                     </button>
-                  </div>
+                  </div> */}
 
                   {/* Contact Info */}
                   <div className="mt-6 space-y-2 border-t border-gray-100 pt-4">

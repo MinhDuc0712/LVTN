@@ -19,7 +19,6 @@ import {
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
-
 const amenities = [
   { icon: Wind, name: "Điều hòa" },
   { icon: Wifi, name: "Wifi" },
@@ -45,6 +44,7 @@ const RentalRoomDetail = () => {
   const [loading, setLoading] = useState(false);
   const { id: phongId } = useParams();
   const { user } = useAuth();
+  console.log(user);
   const [room, setRoom] = useState(null);
   const [loadingRoom, setLoadingRoom] = useState(true);
   const [servicePrices, setServicePrices] = useState([]);
@@ -164,82 +164,78 @@ const RentalRoomDetail = () => {
   };
 
   const handleSubmitContract = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    if (!validateForm()) return;
-    if (room.trang_thai !== "trong") {
-      toast.error("Phòng không khả dụng để đặt.");
-      return;
-    }
+  if (!validateForm()) return;
+  if (room.trang_thai !== "trong") {
+    toast.error("Phòng không khả dụng để đặt.");
+    return;
+  }
 
-    try {
-      setLoading(true);
+  try {
+    setLoading(true);
 
-      const start = new Date(formData.startDate);
-      const durationMonths = parseInt(formData.duration);
-      const end = new Date(start);
-      end.setMonth(end.getMonth() + durationMonths);
+    const start = new Date(formData.startDate);
+    const durationMonths = parseInt(formData.duration);
+    const end = new Date(start);
+    end.setMonth(end.getMonth() + durationMonths);
 
-      const hopDongPayload = {
-        phong_id: phongId,
-        cmnd: formData.cmnd.trim(),
-        // MaNguoiDung: user?.MaNguoiDung || user?.id || null,
-        ho_ten: formData.ho_ten.trim(),
-        sdt: formData.sdt.trim(),
-        email: formData.email ? formData.email.trim() : null,
-        ngay_bat_dau: start.toISOString().split("T")[0],
-        ngay_ket_thuc: end.toISOString().split("T")[0],
-        tien_coc: room?.gia || 0,
-        tien_thue: room?.gia || 0,
-        chi_phi_tien_ich: totalServiceFee,
-        ghi_chu: "",
-      };
+    const hopDongPayload = {
+      phong_id: phongId,
+      cmnd: formData.cmnd.trim(),
+      MaNguoiDung: user?.MaNguoiDung,
+      ho_ten: formData.ho_ten.trim(),
+      sdt: formData.sdt.trim(),
+      email: formData.email ? formData.email.trim() : null,
+      ngay_bat_dau: start.toISOString().split("T")[0],
+      ngay_ket_thuc: end.toISOString().split("T")[0],
+      tien_coc: room?.gia || 0,
+      tien_thue: room?.gia || 0,
+      chi_phi_tien_ich: totalServiceFee,
+      ghi_chu: "",
+    };
 
-      console.log("Sending hopDongPayload:", hopDongPayload);
+    const response = await createHopDong(hopDongPayload);
 
-      const response = await createHopDong(hopDongPayload);
-
-      toast.success("Đăng ký thuê phòng thành công!");
-      setShowContractModal(false);
-      setFormData({
-        ho_ten: user?.HoTen || "",
-        sdt: user?.SDT || "",
-        email: user?.Email || "",
-        cmnd: "",
-        startDate: getLocalToday(),
-        duration: "1",
-        termsAgreed: false,
-      });
-    } catch (error) {
-      const message = error.response?.data?.message || error.message;
-      if (error.response?.data?.errors) {
-        const errors = error.response.data.errors;
-        if (errors.cmnd?.[0]?.includes("unique")) {
-          toast.error("Số CCCD/CMND đã được sử dụng.");
-        } else if (errors.sdt?.[0]?.includes("unique")) {
-          toast.error("Số điện thoại đã tồn tại.");
-        } else if (errors.email?.[0]?.includes("unique")) {
-          toast.error("Email đã tồn tại.");
-        // } else if (errors.MaNguoiDung?.[0]?.includes("exists")) {
-        //   toast.error("Mã người dùng không hợp lệ.");
-        } else if (
-          errors.ho_ten?.[0]?.includes("khớp") ||
-          errors.sdt?.[0]?.includes("khớp")
-        ) {
-          toast.error(
-            "Thông tin họ tên hoặc số điện thoại không khớp với CMND/CCCD đã đăng ký.",
-          );
-        } else {
-          toast.error(`Lỗi: ${message}`);
-        }
+    toast.success("Đăng ký thuê phòng thành công!");
+    setShowContractModal(false);
+    setFormData({
+      ho_ten: user?.HoTen || "",
+      sdt: user?.SDT || "",
+      email: user?.Email || "",
+      cmnd: "",
+      MaNguoiDung: user?.MaNguoiDung || "",
+      startDate: getLocalToday(),
+      duration: "1",
+      termsAgreed: false,
+    });
+  } catch (error) {
+    const message = error.response?.data?.message || error.message;
+    if (error.response?.data?.errors) {
+      const errors = error.response.data.errors;
+      if (errors.cmnd?.[0]?.includes("unique")) {
+        toast.error("Số CCCD/CMND đã được sử dụng.");
+      } else if (errors.sdt?.[0]?.includes("unique")) {
+        toast.error("Số điện thoại đã tồn tại.");
+      } else if (errors.email?.[0]?.includes("unique")) {
+        toast.error("Email đã tồn tại.");
+      } else if (
+        errors.ho_ten?.[0]?.includes("khớp") ||
+        errors.sdt?.[0]?.includes("khớp")
+      ) {
+        toast.error("Thông tin họ tên hoặc số điện thoại không khớp với CMND/CCCD đã đăng ký.");
       } else {
-        toast.error(`Đăng ký thất bại: ${message}`);
+        toast.error(`Lỗi: ${message}`);
       }
-      console.error("Lỗi tạo hợp đồng:", error.response?.data || error);
-    } finally {
-      setLoading(false);
+    } else {
+      toast.error(`Đăng ký thất bại: ${message}`);
     }
-  };
+    console.error("Lỗi tạo hợp đồng:", error.response?.data || error);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const renderStars = (rating) => {
     return [...Array(5)].map((_, i) => (

@@ -298,8 +298,8 @@ const Header = () => {
                 key={category.MaDanhMuc}
                 onClick={() => setActiveCategoryId(category.MaDanhMuc)}
                 className={`text-sl relative px-3 py-2 font-medium transition-colors ${activeCategoryId === category.MaDanhMuc
-                  ? "text-[#ff5723]"
-                  : "text-gray-700 hover:text-[#ff5723]"
+                    ? "text-[#ff5723]"
+                    : "text-gray-700 hover:text-[#ff5723]"
                   }`}
               >
                 {category.name}
@@ -308,8 +308,22 @@ const Header = () => {
                 )}
               </Link>
             ))}
+            <Link
+              to="/ServicePrice"
+              onClick={() => setActiveCategoryId("bangGia")}
+              className={`text-sl relative px-3 py-2 font-medium transition-colors ${activeCategoryId === "bangGia"
+                  ? "text-[#ff5723]"
+                  : "text-gray-700 hover:text-[#ff5723]"
+                }`}
+            >
+              Bảng giá dịch vụ
+              {activeCategoryId === "bangGia" && (
+                <span className="absolute -bottom-2 left-0 h-0.5 w-full bg-[#ff5723]"></span>
+              )}
+            </Link>
           </div>
         </nav>
+
 
         {/* Mobile Menu - Slide from right */}
         {isMobileMenuOpen && (
@@ -362,8 +376,8 @@ const Header = () => {
                         className="flex items-center px-2 py-2 text-gray-700 hover:text-orange-700"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
-                        <Home  className="mr-3 h-5 w-5" />
-                        Nhà thuê 
+                        <Home className="mr-3 h-5 w-5" />
+                        Nhà thuê
                       </Link>
                       <button
                         onClick={() => {
