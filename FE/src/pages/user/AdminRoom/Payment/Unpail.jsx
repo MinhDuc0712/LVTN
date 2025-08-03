@@ -1,21 +1,19 @@
-import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import Sidebar from "../Sidebar";
+import { getUnpaidBillsById } from "@/api/homePage";
+import { useAuth } from "@/context/AuthContext";
 import {
   AlertCircle,
-  Zap,
-  Droplet,
-  Home,
+  ArrowRight,
   Bell,
   DollarSign,
-  Calendar,
-  Clock,
-  ArrowRight,
+  Droplet,
+  Home,
   MapPin,
+  Zap
 } from "lucide-react";
-import { useAuth } from "@/context/AuthContext";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
-import { getUnpaidBillsById } from "@/api/homePage";
+import Sidebar from "../Sidebar";
 
 const UnpaidBillsAlert = () => {
   const [activeItem, setActiveItem] = useState("bills");
@@ -34,7 +32,7 @@ useEffect(() => {
 
         let hopdongs = [];
         if (Array.isArray(res)) {
-          hopdongs = res; // Xử lý mảng hợp đồng trực tiếp
+          hopdongs = res;
         } else if (res.success && res.data) {
           hopdongs = Array.isArray(res.data) ? res.data : [res.data];
         } else if (res.id && res.phong_id) {
@@ -117,7 +115,7 @@ useEffect(() => {
   }, [user]);
   const calcDaysOverdue = (dueDateStr) => {
     if (!dueDateStr) return 0;
-    const today = new Date("2025-07-21"); // Cố định để kiểm tra, dùng new Date() trong thực tế
+    const today = new Date();
     const dueDate = new Date(dueDateStr);
     if (isNaN(dueDate.getTime())) return 0;
     return Math.floor((today - dueDate) / (1000 * 60 * 60 * 24));

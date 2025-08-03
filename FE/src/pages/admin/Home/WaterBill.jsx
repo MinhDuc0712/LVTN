@@ -65,7 +65,7 @@ export default function WaterBillList() {
 
 
   const calcUsage = (dau, cuoi) => cuoi - dau;
-  const calcAmount = (bill) => calcUsage(bill.chi_so_dau, bill.chi_so_cuoi) * (bill.don_gia / 10);
+  const calcAmount = (bill) => bill.don_gia;
   const formatCurrency = (amount) => new Intl.NumberFormat("vi-VN").format(amount) + " ₫";
   const formatDate = (dateString) => format(new Date(dateString), "dd/MM/yyyy HH:mm", { locale: vi });
 

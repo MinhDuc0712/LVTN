@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useState } from "react";
+import { Link } from "react-router-dom";
 import Sidebar from "../Sidebar";
 import { toast } from "react-toastify";
 import { createZaloPayPayment } from "@/api/homePage";
@@ -8,7 +8,6 @@ import { useAuth } from "@/context/AuthContext";
 function ZaloPay() {
   const [amount, setAmount] = useState(50000);
   const { user, isAuthenticated } = useAuth();
-  const [searchParams] = useSearchParams();
   // const maGiaoDich = searchParams.get("app_trans_id");
 
   let bonus = 0;

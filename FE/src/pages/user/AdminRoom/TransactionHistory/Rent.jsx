@@ -28,7 +28,7 @@ const UserRentPaymentHistory = () => {
   const { user } = useAuth();
 
   useEffect(() => {
-    console.log("Gọi useEffect - user:", user);
+    // console.log("Gọi useEffect - user:", user);
 
     if (!user || !user.MaNguoiDung) {
       console.log("Chưa có user.MaNguoiDung, bỏ qua fetch");
@@ -38,12 +38,12 @@ const UserRentPaymentHistory = () => {
     const fetchBills = async () => {
       try {
         const res = await getUserPaymentReceiptsById(user.MaNguoiDung);
-        console.log("API Response:", JSON.stringify(res, null, 2));
+        // console.log("API Response:", JSON.stringify(res, null, 2));
         if (Array.isArray(res)) {
-          console.log("Set bills (array):", res);
+          // console.log("Set bills (array):", res);
           setPaymentBills(res);
         } else if (res.success && Array.isArray(res.data)) {
-          console.log("Set bills (data):", res.data);
+          // console.log("Set bills (data):", res.data);
           setPaymentBills(res.data);
         } else {
           console.error("Định dạng dữ liệu không mong đợi:", res);
