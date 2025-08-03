@@ -9,7 +9,7 @@ const ProtectedRoute = ({
 }) => {
   const { isAuthenticated, isAdmin, isOwner, loading } = useAuth();
 
-  if (loading) return null; // hoặc return <Loading /> nếu bạn muốn
+  if (loading) return null;
 
   if (requireAuth && !isAuthenticated) {
     return (

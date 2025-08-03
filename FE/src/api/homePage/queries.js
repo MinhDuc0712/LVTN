@@ -1,4 +1,3 @@
-// queries.js
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getCategoriesAPI } from "./request";
 import { getUtilitiesAPI } from "./request";

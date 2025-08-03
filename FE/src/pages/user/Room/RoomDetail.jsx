@@ -53,10 +53,8 @@ function HouseDetail() {
         const houseData = await getHousesById(id);
 
         if (houseData && Object.keys(houseData).length > 0) {
-          // const houseData = response.data; // Lấy phần tử đầu tiên trong mảng
+          // const houseData = response.data; 
           setHouse(houseData);
-
-          // Set ảnh đầu tiên làm ảnh chính
           const firstImage =
             houseData.images?.[0]?.DuongDanHinh || "/default-house.jpg";
           setSelectedImage(firstImage);
@@ -408,6 +406,7 @@ function HouseDetail() {
                       </div>
                       <div className="text-xs text-gray-500">Số tin đăng</div>
                     </div>
+
                     {/* <div className="w-px bg-gray-200"></div>
                     <div>
                       <div className="text-lg font-bold text-gray-800">
@@ -439,7 +438,6 @@ function HouseDetail() {
                       Nhắn Zalo
                     </a>
                   </div>
-
 
                   {/* Contact Info */}
                   <div className="mt-6 space-y-2 border-t border-gray-100 pt-4">

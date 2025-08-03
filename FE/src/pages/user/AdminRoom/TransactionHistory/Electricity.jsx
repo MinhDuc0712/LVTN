@@ -64,8 +64,7 @@ const UserElectricityHistory = () => {
         paymentDate:
           bill.trang_thai === "Đã thanh toán" ? bill.ngay_thanh_toan : null,
         consumption: bill.chi_so_cuoi - bill.chi_so_dau,
-        amount:
-          parseFloat(bill.don_gia || "0"),
+        amount: parseFloat(bill.don_gia || "0") ,
         status: bill.trang_thai === "Đã thanh toán" ? "paid" : "unpaid",
         meterNumber: `CT-${bill.hopdong?.phong_id ?? "?"}`,
         receiptNumber: `HD-${bill.id}`,
@@ -320,7 +319,7 @@ const UserElectricityHistory = () => {
                     </strong>{" "}
                     chưa thanh toán. Vui lòng thanh toán trước ngày{" "}
                     <strong>
-                      10/{new Date().getMonth() + 2}/{new Date().getFullYear()}
+                      5/{new Date().getMonth() + 2}/{new Date().getFullYear()}
                     </strong>{" "}
                     để tránh bị cắt điện.
                   </p>

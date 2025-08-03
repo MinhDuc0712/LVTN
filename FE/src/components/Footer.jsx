@@ -42,18 +42,6 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* LBKCorp System */}
-        {/* <div className="border-t border-b border-gray-300 py-6 mb-8">
-          <div className="text-center text-gray-700 mb-4">Cùng hệ thống LBKCorp:</div>
-          <div className="flex flex-wrap justify-center gap-4">
-            {['logo1', 'logo2', 'logo3', 'logo4'].map((logo) => (
-              <div key={logo} className="bg-white rounded-md p-3 w-36 h-12 flex items-center justify-center">
-                <div className="text-xs text-gray-500">{logo}</div>
-              </div>
-            ))}
-          </div>
-        </div> */}
-
         {/* Bottom Section */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
           {/* About */}
@@ -92,18 +80,6 @@ const Footer = () => {
               ))}
             </div>
           </div>
-
-          {/* Social Media */}
-          {/* <div>
-            <h3 className="text-gray-800 text-sm font-bold uppercase mb-3">Theo dõi HOME</h3>
-            <div className="flex gap-3">
-              {['facebook', 'youtube', 'twitter', 'linkedin', 'tiktok'].map((social) => (
-                <a key={social} href="#" className="size-8 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300">
-                  <span className="text-xs">{social[0].toUpperCase()}</span>
-                </a>
-              ))}
-            </div>
-          </div> */}
         </div>
 
         {/* Company Info */}
