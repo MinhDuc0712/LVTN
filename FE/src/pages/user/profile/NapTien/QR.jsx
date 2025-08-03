@@ -274,7 +274,7 @@ function BankingPayment() {
 
                 {copied && (
                   <div className="mt-3 text-center text-sm font-medium text-green-600">
-                    ✓ Đã sao chép!
+                    Đã sao chép!
                   </div>
                 )}
               </div>

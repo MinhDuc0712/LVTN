@@ -246,7 +246,7 @@ function PaymentPost() {
               <img className="w-10" src="https://img.icons8.com/ios-filled/24/000000/qr-code.png" alt="QR Code" />
             </div> */}
 
-            <div className="flex items-center justify-between rounded border p-4">
+            {/* <div className="flex items-center justify-between rounded border p-4">
               <label className="flex items-center space-x-2">
                 <input
                   type="radio"
@@ -258,7 +258,7 @@ function PaymentPost() {
                 <span>Thanh toán ví MoMo</span>
               </label>
               <img className="w-10" src="../src/assets/momo.png" alt="MoMo" />
-            </div>
+            </div> */}
 
             <div className="space-y-2 rounded border p-4">
               <label className="flex items-center space-x-2">
