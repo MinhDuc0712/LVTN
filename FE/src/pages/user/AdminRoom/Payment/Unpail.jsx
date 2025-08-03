@@ -1,22 +1,21 @@
-import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import Sidebar from "../Sidebar";
+import { getUnpaidBillsById } from "@/api/homePage";
+import { useAuth } from "@/context/AuthContext";
 import {
   AlertCircle,
-  Zap,
-  Droplet,
-  Home,
+  ArrowRight,
   Bell,
   DollarSign,
-  Calendar,
-  Clock,
-  ArrowRight,
+  Droplet,
+  Home,
   MapPin,
+  Zap
 } from "lucide-react";
-import { useAuth } from "@/context/AuthContext";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import { getUnpaidBillsById } from "@/api/homePage";
 import { updatePaymentReceipt } from "@/api/homePage";
+import Sidebar from "../Sidebar";
 
 const UnpaidBillsAlert = () => {
   const [activeItem, setActiveItem] = useState("bills");
@@ -126,6 +125,7 @@ const UnpaidBillsAlert = () => {
   
   return diffDays > 0 ? diffDays : 0; 
 };
+
 
   const formatPrice = (price) =>
     new Intl.NumberFormat("vi-VN", {

@@ -12,7 +12,6 @@ import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
 const Home = () => {
   const [allListings, setAllListings] = useState([]);
   const [filteredListings, setFilteredListings] = useState([]);
-  const [featuredListings, setFeaturedListings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isFilterLoading, setIsFilterLoading] = useState(false);

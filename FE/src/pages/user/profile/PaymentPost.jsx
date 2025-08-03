@@ -232,34 +232,6 @@ function PaymentPost() {
               </label>
             </div>
 
-            {/* <div className="flex items-center justify-between rounded border p-4">
-              <label className="flex items-center space-x-2">
-                <input
-                  type="radio"
-                  name="payment"
-                  value="qr"
-                  checked={paymentMethod === "qr"}
-                  onChange={(e) => setPaymentMethod(e.target.value)}
-                />
-                <span>Thanh toán quét mã QRCode</span>
-              </label>
-              <img className="w-10" src="https://img.icons8.com/ios-filled/24/000000/qr-code.png" alt="QR Code" />
-            </div> */}
-
-            <div className="flex items-center justify-between rounded border p-4">
-              <label className="flex items-center space-x-2">
-                <input
-                  type="radio"
-                  name="payment"
-                  value="momo"
-                  checked={paymentMethod === "momo"}
-                  onChange={(e) => setPaymentMethod(e.target.value)}
-                />
-                <span>Thanh toán ví MoMo</span>
-              </label>
-              <img className="w-10" src="../src/assets/momo.png" alt="MoMo" />
-            </div>
-
             <div className="space-y-2 rounded border p-4">
               <label className="flex items-center space-x-2">
                 <input

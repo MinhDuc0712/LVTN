@@ -4,27 +4,20 @@ import {
   DollarSign,
   Eye,
   Home,
-  TrendingUp,
-  Users,
+  Users
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import {
   Bar,
   BarChart,
   CartesianGrid,
-  Cell,
-  Legend,
-  Line,
-  LineChart,
-  Pie,
-  PieChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
-  YAxis,
+  YAxis
 } from "recharts";
 import SidebarWithNavbar from "./SidebarWithNavbar";
-import { Link } from "react-router-dom";
 
 const StatCard = ({ title, value, icon: Icon, growth, color = "blue" }) => {
   // const isPositive = growth > 0;

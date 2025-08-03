@@ -42,8 +42,6 @@ const Footer = () => {
           </div>
         </div>
 
-       
-
         {/* Bottom Section */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
           {/* About */}
@@ -73,8 +71,8 @@ const Footer = () => {
           {/* Payment Methods */}
           <div>
             <h3 className="text-gray-800 text-sm font-bold uppercase mb-3">Phương thức thanh toán</h3>
-            <div className="grid grid-cols-4 gap-2">
-              {[...Array(8)].map((_, i) => (
+            <div className="grid grid-cols-3 gap-2">
+              {[...Array(6)].map((_, i) => (
                 <div key={i} className="bg-white rounded p-1 border border-gray-200 flex items-center justify-center h-10">
                   {/* Payment logo placeholder */}
                   <span className="text-xs">Pay {i+1}</span>
@@ -82,9 +80,6 @@ const Footer = () => {
               ))}
             </div>
           </div>
-
-          {/* Social Media */}
-          
         </div>
 
         {/* Company Info */}

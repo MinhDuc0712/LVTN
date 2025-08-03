@@ -137,7 +137,7 @@ const RentalRoomDetail = () => {
   };
 
   const validateForm = () => {
-    const phoneRegex = /^(0[3|5|7|8|9])+([0-9]{8})$/;
+    // const phoneRegex = /^(0[3|5|7|8|9])+([0-9]{8})$/;
     const cmndRegex = /^[0-9]{9,12}$/;
 
     if (!formData.ho_ten.trim()) {
@@ -148,10 +148,10 @@ const RentalRoomDetail = () => {
       toast.error("CMND/CCCD phải có từ 9 đến 12 chữ số.");
       return false;
     }
-    if (!formData.sdt.trim() || !phoneRegex.test(formData.sdt)) {
-      toast.error("Số điện thoại không hợp lệ.");
-      return false;
-    }
+    // if (!formData.sdt.trim() || !phoneRegex.test(formData.sdt)) {
+    //   toast.error("Số điện thoại không hợp lệ.");
+    //   return false;
+    // }
     if (formData.email && !/\S+@\S+\.\S+/.test(formData.email)) {
       toast.error("Email không hợp lệ.");
       return false;
@@ -171,7 +171,6 @@ const RentalRoomDetail = () => {
     toast.error("Phòng không khả dụng để đặt.");
     return;
   }
-
   try {
     setLoading(true);
 

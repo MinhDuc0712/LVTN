@@ -23,7 +23,7 @@ const UserWaterPaymentHistory = () => {
   const [waterBills, setWaterBills] = useState([]);
 
   useEffect(() => {
-    console.log("Gọi useEffect - user:", user);
+    // console.log("Gọi useEffect - user:", user);
 
     if (!user || !user.MaNguoiDung) {
       console.log("Chưa có user.MaNguoiDung, bỏ qua fetch");
@@ -63,8 +63,7 @@ const UserWaterPaymentHistory = () => {
         paymentDate:
           bill.trang_thai === "Đã thanh toán" ? bill.ngay_thanh_toan : null,
         consumption: bill.chi_so_cuoi - bill.chi_so_dau,
-        amount:
-          parseFloat(bill.don_gia || "0") ,
+        amount: parseFloat(bill.don_gia || "0") ,
         status: bill.trang_thai === "Đã thanh toán" ? "paid" : "unpaid",
         meterNumber: `ĐH-${bill.hopdong?.phong_id ?? "?"}`,
         receiptNumber: `HD-${bill.id}`,

@@ -406,8 +406,9 @@ function HouseDetail() {
                       </div>
                       <div className="text-xs text-gray-500">Số tin đăng</div>
                     </div>
-                    <div className="w-px bg-gray-200"></div>
-                    {/* <div>
+
+                    {/* <div className="w-px bg-gray-200"></div>
+                    <div>
                       <div className="text-lg font-bold text-gray-800">
                         {house.user.NgayTao
                           ? formatDate(house.user.NgayTao)
@@ -437,35 +438,6 @@ function HouseDetail() {
                       Nhắn Zalo
                     </a>
                   </div>
-
-                  {/* Actions */}
-                  {/* <div className="flex justify-around border-t border-gray-100 pt-4">
-                    <button
-                      onClick={() => setIsLiked(!isLiked)}
-                      className={`group flex flex-col items-center gap-1 transition-all duration-300 ${
-                        isLiked
-                          ? "text-red-500"
-                          : "text-gray-500 hover:text-red-500"
-                      }`}
-                    >
-                      <Heart
-                        className={`h-5 w-5 transition-all duration-300 group-hover:scale-110 ${
-                          isLiked ? "fill-current" : ""
-                        }`}
-                      />
-                      <span className="text-xs font-medium">Lưu tin</span>
-                    </button>
-
-                    <button className="group flex flex-col items-center gap-1 text-gray-500 transition-all duration-300 hover:text-blue-500">
-                      <Share2 className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
-                      <span className="text-xs font-medium">Chia sẻ</span>
-                    </button>
-
-                    <button className="group flex flex-col items-center gap-1 text-gray-500 transition-all duration-300 hover:text-orange-500">
-                      <AlertTriangle className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
-                      <span className="text-xs font-medium">Báo xấu</span>
-                    </button>
-                  </div> */}
 
                   {/* Contact Info */}
                   <div className="mt-6 space-y-2 border-t border-gray-100 pt-4">
