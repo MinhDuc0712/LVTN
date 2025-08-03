@@ -24,7 +24,7 @@ const UserElectricityHistory = () => {
   // console.log("Dữ liệu bills đang render:", bills);
 
   useEffect(() => {
-    console.log("Gọi useEffect - user:", user);
+    // console.log("Gọi useEffect - user:", user);
 
     if (!user || !user.MaNguoiDung) {
       console.log("Chưa có user.MaNguoiDung, bỏ qua fetch");
@@ -34,9 +34,9 @@ const UserElectricityHistory = () => {
     const fetchBills = async () => {
       try {
         const res = await getUserElecBillsById(user.MaNguoiDung);
-        console.log("API Response:", JSON.stringify(res, null, 2));
+        // console.log("API Response:", JSON.stringify(res, null, 2));
         if (Array.isArray(res)) {
-          console.log("Set bills (array):", res);
+          // console.log("Set bills (array):", res);
           setBills(res);
         } else {
           console.error("Định dạng dữ liệu không mong đợi:", res);
@@ -65,8 +65,7 @@ const UserElectricityHistory = () => {
           bill.trang_thai === "Đã thanh toán" ? bill.ngay_thanh_toan : null,
         consumption: bill.chi_so_cuoi - bill.chi_so_dau,
         amount:
-          parseFloat(bill.don_gia || "0") *
-          (bill.chi_so_cuoi - bill.chi_so_dau),
+          parseFloat(bill.don_gia || "0"),
         status: bill.trang_thai === "Đã thanh toán" ? "paid" : "unpaid",
         meterNumber: `CT-${bill.hopdong?.phong_id ?? "?"}`,
         receiptNumber: `HD-${bill.id}`,

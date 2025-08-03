@@ -137,7 +137,7 @@ const RentalRoomDetail = () => {
   };
 
   const validateForm = () => {
-    const phoneRegex = /^(0[3|5|7|8|9])+([0-9]{8})$/;
+    // const phoneRegex = /^(0[3|5|7|8|9])+([0-9]{8})$/;
     const cmndRegex = /^[0-9]{9,12}$/;
 
     if (!formData.ho_ten.trim()) {
@@ -148,10 +148,10 @@ const RentalRoomDetail = () => {
       toast.error("CMND/CCCD phải có từ 9 đến 12 chữ số.");
       return false;
     }
-    if (!formData.sdt.trim() || !phoneRegex.test(formData.sdt)) {
-      toast.error("Số điện thoại không hợp lệ.");
-      return false;
-    }
+    // if (!formData.sdt.trim() || !phoneRegex.test(formData.sdt)) {
+    //   toast.error("Số điện thoại không hợp lệ.");
+    //   return false;
+    // }
     if (formData.email && !/\S+@\S+\.\S+/.test(formData.email)) {
       toast.error("Email không hợp lệ.");
       return false;
@@ -183,7 +183,7 @@ const RentalRoomDetail = () => {
       const hopDongPayload = {
         phong_id: phongId,
         cmnd: formData.cmnd.trim(),
-        // MaNguoiDung: user?.MaNguoiDung || user?.id || null,
+        MaNguoiDung: user?.MaNguoiDung,
         ho_ten: formData.ho_ten.trim(),
         sdt: formData.sdt.trim(),
         email: formData.email ? formData.email.trim() : null,

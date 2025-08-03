@@ -43,20 +43,19 @@ const Footer = () => {
         </div>
 
         {/* LBKCorp System */}
-        <div className="border-t border-b border-gray-300 py-6 mb-8">
+        {/* <div className="border-t border-b border-gray-300 py-6 mb-8">
           <div className="text-center text-gray-700 mb-4">Cùng hệ thống LBKCorp:</div>
           <div className="flex flex-wrap justify-center gap-4">
             {['logo1', 'logo2', 'logo3', 'logo4'].map((logo) => (
               <div key={logo} className="bg-white rounded-md p-3 w-36 h-12 flex items-center justify-center">
-                {/* Placeholder for logo */}
                 <div className="text-xs text-gray-500">{logo}</div>
               </div>
             ))}
           </div>
-        </div>
+        </div> */}
 
         {/* Bottom Section */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
           {/* About */}
           <div>
             <h3 className="text-gray-800 text-sm font-bold uppercase mb-3">Về HOME </h3>
@@ -84,8 +83,8 @@ const Footer = () => {
           {/* Payment Methods */}
           <div>
             <h3 className="text-gray-800 text-sm font-bold uppercase mb-3">Phương thức thanh toán</h3>
-            <div className="grid grid-cols-4 gap-2">
-              {[...Array(8)].map((_, i) => (
+            <div className="grid grid-cols-3 gap-2">
+              {[...Array(6)].map((_, i) => (
                 <div key={i} className="bg-white rounded p-1 border border-gray-200 flex items-center justify-center h-10">
                   {/* Payment logo placeholder */}
                   <span className="text-xs">Pay {i+1}</span>
@@ -95,17 +94,16 @@ const Footer = () => {
           </div>
 
           {/* Social Media */}
-          <div>
+          {/* <div>
             <h3 className="text-gray-800 text-sm font-bold uppercase mb-3">Theo dõi HOME</h3>
             <div className="flex gap-3">
               {['facebook', 'youtube', 'twitter', 'linkedin', 'tiktok'].map((social) => (
                 <a key={social} href="#" className="size-8 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300">
-                  {/* Social icon placeholder */}
                   <span className="text-xs">{social[0].toUpperCase()}</span>
                 </a>
               ))}
             </div>
-          </div>
+          </div> */}
         </div>
 
         {/* Company Info */}
